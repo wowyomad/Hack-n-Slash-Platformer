@@ -18,18 +18,18 @@ public class PlayerController : MonoBehaviour
      void OnEnable()
     {
         Debug.Log("Enabled Player Controller");
-        m_Input.MoveEvent += HandleMove;
-        m_Input.JumpEvent += HandleJump;
-        m_Input.JumpCancelledEvent += HandleJumpCancelled;
+        m_Input.Move += HandleMove;
+        m_Input.Jump += HandleJump;
+        m_Input.JumpCancelled += HandleJumpCancelled;
     }
 
      void OnDisable()
     {
         Debug.Log("Disabled Player Controller");
 
-        m_Input.MoveEvent -= HandleMove;
-        m_Input.JumpEvent -= HandleJump;
-        m_Input.JumpCancelledEvent -= HandleJumpCancelled;
+        m_Input.Move -= HandleMove;
+        m_Input.Jump -= HandleJump;
+        m_Input.JumpCancelled -= HandleJumpCancelled;
     }
 
     void Update()

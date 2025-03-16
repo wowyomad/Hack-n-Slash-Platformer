@@ -6,13 +6,15 @@ using UnityEngine.InputSystem;
 [CreateAssetMenu(menuName = "InputReader")]
 public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInput.IUIActions
 {
+    public event Action<float> Move;
+    public event Action Jump;
+    public event Action JumpHeld;
+    public event Action JumpCancelled;
+    public event Action Dash;
+    public event Action Run;
 
-    public event Action<float> MoveEvent;
-    public event Action JumpEvent;
-    public event Action JumpCancelledEvent;
-
-    public event Action PauseEvent;
-    public event Action ResumeEvent;
+    public event Action Pause;
+    public event Action Resume;
 
     private GameInput m_GameInput;
     public void SetGameplay()
@@ -48,30 +50,39 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
 
 
     #region interface implementation
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        Move?.Invoke(context.ReadValue<float>());
+    }
 
     public void OnJump(InputAction.CallbackContext context)
     {
         if (InputActionPhase.Performed == context.phase)
         {
-            JumpEvent?.Invoke();
+            Jump?.Invoke();
         }
 
         if (InputActionPhase.Canceled == context.phase)
         {
-            JumpCancelledEvent?.Invoke();
+            JumpCancelled?.Invoke();
         }
     }
 
-    public void OnMove(InputAction.CallbackContext context)
+    public void OnDash()
     {
-        MoveEvent?.Invoke(context.ReadValue<float>());
+        Dash?.Invoke(); 
+    }
+
+    public void OnRun()
+    {
+        Run?.Invoke();
     }
 
     public void OnPause(InputAction.CallbackContext context)
     {
         if (InputActionPhase.Performed == context.phase)
         {
-            PauseEvent?.Invoke();
+            Pause?.Invoke();
         }
     }
 
@@ -79,7 +90,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         if (InputActionPhase.Performed == context.phase)
         {
-            ResumeEvent?.Invoke();
+            Resume?.Invoke();
         }
     }
 
