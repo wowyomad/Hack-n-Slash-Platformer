@@ -27,11 +27,12 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         m_GameInput.UI.Enable();
         m_GameInput.Gameplay.Disable();
+        
     }
 
-     private void OnEnable()
+    private void OnEnable()
     {
-            if (m_GameInput == null)
+        if (m_GameInput == null)
         {
             m_GameInput = new GameInput();
 
@@ -70,7 +71,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
 
     public void OnDash()
     {
-        Dash?.Invoke(); 
+        Dash?.Invoke();
     }
 
     public void OnRun()
@@ -93,7 +94,84 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
             Resume?.Invoke();
         }
     }
-
     #endregion
+
+
+    public void Listen(object listener)
+    {
+        foreach (var method in listener.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+        {
+            if (method.Name.StartsWith("On"))
+            {
+                var eventName = method.Name.Substring(2);
+                var eventInfo = this.GetType().GetEvent(eventName);
+                if (eventInfo != null)
+                {
+                    var parameters = method.GetParameters();
+                    var eventHandlerType = eventInfo.EventHandlerType;
+                    var eventHandlerInvokeMethod = eventHandlerType.GetMethod("Invoke");
+                    var eventHandlerParameters = eventHandlerInvokeMethod.GetParameters();
+
+                    if (parameters.Length == eventHandlerParameters.Length)
+                    {
+                        bool parametersMatch = true;
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                            if (parameters[i].ParameterType != eventHandlerParameters[i].ParameterType)
+                            {
+                                parametersMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (parametersMatch)
+                        {
+                            var action = Delegate.CreateDelegate(eventHandlerType, listener, method);
+                            eventInfo.AddEventHandler(this, action);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void StopListening(object listener)
+    {
+        foreach (var method in listener.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+        {
+            if (method.Name.StartsWith("On"))
+            {
+                var eventName = method.Name.Substring(2);
+                var eventInfo = this.GetType().GetEvent(eventName);
+                if (eventInfo != null)
+                {
+                    var parameters = method.GetParameters();
+                    var eventHandlerType = eventInfo.EventHandlerType;
+                    var eventHandlerInvokeMethod = eventHandlerType.GetMethod("Invoke");
+                    var eventHandlerParameters = eventHandlerInvokeMethod.GetParameters();
+
+                    if (parameters.Length == eventHandlerParameters.Length)
+                    {
+                        bool parametersMatch = true;
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                            if (parameters[i].ParameterType != eventHandlerParameters[i].ParameterType)
+                            {
+                                parametersMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (parametersMatch)
+                        {
+                            var action = Delegate.CreateDelegate(eventHandlerType, listener, method);
+                            eventInfo.RemoveEventHandler(this, action);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 }
