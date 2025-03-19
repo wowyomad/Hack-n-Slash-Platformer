@@ -3,18 +3,19 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[CreateAssetMenu(menuName = "InputReader")]
+[CreateAssetMenu(fileName = "InputReader", menuName = "InputReader")]
 public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInput.IUIActions
 {
     public event Action<float> Move;
     public event Action Jump;
-    public event Action JumpHeld;
     public event Action JumpCancelled;
     public event Action Dash;
     public event Action Run;
 
     public event Action Pause;
     public event Action Resume;
+
+    public float Movement { get; private set; }
 
     private GameInput m_GameInput;
     public void SetGameplay()
@@ -53,6 +54,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     #region interface implementation
     public void OnMove(InputAction.CallbackContext context)
     {
+        Movement = context.ReadValue<float>();
         Move?.Invoke(context.ReadValue<float>());
     }
 
@@ -62,7 +64,6 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         {
             Jump?.Invoke();
         }
-
         if (InputActionPhase.Canceled == context.phase)
         {
             JumpCancelled?.Invoke();
@@ -97,46 +98,18 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     #endregion
 
 
-    public void Listen(object listener)
+    public void ListenEvents(object listener)
     {
-        foreach (var method in listener.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
-        {
-            if (method.Name.StartsWith("On"))
-            {
-                var eventName = method.Name.Substring(2);
-                var eventInfo = this.GetType().GetEvent(eventName);
-                if (eventInfo != null)
-                {
-                    var parameters = method.GetParameters();
-                    var eventHandlerType = eventInfo.EventHandlerType;
-                    var eventHandlerInvokeMethod = eventHandlerType.GetMethod("Invoke");
-                    var eventHandlerParameters = eventHandlerInvokeMethod.GetParameters();
-
-                    if (parameters.Length == eventHandlerParameters.Length)
-                    {
-                        bool parametersMatch = true;
-                        for (int i = 0; i < parameters.Length; i++)
-                        {
-                            if (parameters[i].ParameterType != eventHandlerParameters[i].ParameterType)
-                            {
-                                parametersMatch = false;
-                                break;
-                            }
-                        }
-
-                        if (parametersMatch)
-                        {
-                            var action = Delegate.CreateDelegate(eventHandlerType, listener, method);
-                            eventInfo.AddEventHandler(this, action);
-                        }
-                    }
-                }
-            }
-        }
+        ModifyEventHandlers(listener, (eventInfo, action) => eventInfo.AddEventHandler(this, action));
     }
 
     public void StopListening(object listener)
     {
+        ModifyEventHandlers(listener, (eventInfo, action) => eventInfo.RemoveEventHandler(this, action));
+    }
+
+    private void ModifyEventHandlers(object listener, Action<EventInfo, Delegate> modifyHandler)
+    {
         foreach (var method in listener.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
         {
             if (method.Name.StartsWith("On"))
@@ -165,7 +138,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
                         if (parametersMatch)
                         {
                             var action = Delegate.CreateDelegate(eventHandlerType, listener, method);
-                            eventInfo.RemoveEventHandler(this, action);
+                            modifyHandler(eventInfo, action);
                         }
                     }
                 }

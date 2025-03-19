@@ -1,6 +1,7 @@
 public interface IState
 {
-    void OnEnter();
+    void OnEnter(IState from);
     void OnExit();
-    void Update();  
+    void Update();
+    void FixedUpdate();
 }

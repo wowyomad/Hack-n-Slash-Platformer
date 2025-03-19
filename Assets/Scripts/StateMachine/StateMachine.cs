@@ -2,17 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class StateMachine
 {
-    StateNode m_Current;
-    Dictionary<Type, StateNode> m_Nodes = new();
-    HashSet<ITransition> m_AnyTransitions = new();
+    [SerializeField] StateNode m_Current;
+    [SerializeField] Dictionary<Type, StateNode> m_Nodes = new();
+    [SerializeField] HashSet<ITransition> m_AnyTransitions = new();
 
     public void Update()
     {
         ITransition transition = GetTransition();
         if (transition != null)
         {
+            Debug.Log($"State transition from {m_Current.State.GetType()} to {transition.To.GetType()}");
             SwitchState(transition.To);
         }
         
@@ -53,22 +55,32 @@ public class StateMachine
         if (m_Current?.State == state || !m_Nodes.ContainsKey(state.GetType()))
             return;
 
+        IState previous = m_Current.State;
+
+        previous?.OnExit();
         m_Current = m_Nodes[state.GetType()];
-        m_Current.State.OnEnter();
+        m_Current.State.OnEnter(previous);
     }
 
     private void SwitchState(IState state)
     {
         if (m_Current?.State == state || !m_Nodes.ContainsKey(state.GetType()))
             return;
-          
-        m_Current.State.OnExit();
+
+        IState previous = m_Current.State;
+
+        previous?.OnExit();
         m_Current = m_Nodes[state.GetType()];
-        m_Current.State.OnEnter();  
+        m_Current.State.OnEnter(previous);
     }
 
     private ITransition GetTransition()
     {
+        if(m_Current == null)
+        {
+            Debug.Log("Current state is null");
+            return null;
+        }
         foreach (var transition in m_AnyTransitions)
         {
             if (transition.Condition.Evaluate())
@@ -84,9 +96,10 @@ public class StateMachine
         return null;
     }
 
+    [System.Serializable]
     class StateNode
     {
-        public IState State { get; }
+        [SerializeField] public IState State { get; }
         public HashSet<ITransition> Transitions { get; }
 
         public StateNode(IState state)

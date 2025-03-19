@@ -14,7 +14,6 @@ public class PlayerMovemenState
         Debug.Log("Enabled Player Controller");
         m_Input.Move += HandleMove;
         m_Input.Jump += HandleJump;
-        m_Input.JumpCancelled += HandleJumpCancelled;
     }
 
      public void Stop()
@@ -23,7 +22,6 @@ public class PlayerMovemenState
 
         m_Input.Move -= HandleMove;
         m_Input.Jump -= HandleJump;
-        m_Input.JumpCancelled -= HandleJumpCancelled;
     }
 
     void HandleMove(float direction)
