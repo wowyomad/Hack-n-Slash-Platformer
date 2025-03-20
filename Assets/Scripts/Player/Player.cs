@@ -1,22 +1,24 @@
 using NUnit.Framework;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
+
 public class Player : MonoBehaviour
 {
-    private float m_Gravity = -10.0f;
-
+    [Header("Components")]
     public CharacterController Controller;
     public StateMachine StateMachine;
     public Animator Animator;
     public InputReader Input;
 
+    public float Gravity = -20.0f;
+    public Vector3 Velocity;
+
     PlayerIdleState IdleState;
     PlayerWalkState WalkState;
     PlayerJumpState JumpState;
     PlayerAirState AirState;
-
-    private bool m_IsJumping;
 
     private void Awake()
     {
@@ -25,20 +27,9 @@ public class Player : MonoBehaviour
         Animator = GetComponentInChildren<Animator>();
     }
 
-
-
     private void Start()
     {
        
-    }
-
-    private void OnJump()
-    {
-        m_IsJumping = true;
-    }
-    private void OnJumpCancelled()
-    {
-        m_IsJumping = false;
     }
 
     private void OnEnable()
@@ -56,6 +47,11 @@ public class Player : MonoBehaviour
     private void Update()
     {
         StateMachine?.Update(); 
+
+        Velocity.y += Gravity * Time.deltaTime;
+        Controller.Move(Velocity * Time.deltaTime);
+
+        Controller.Move(new Vector2(Input.HorizontalMovement * 10.0f, 0.0f) * Time.deltaTime);
     }
 
     void InitializeStates()
@@ -65,9 +61,9 @@ public class Player : MonoBehaviour
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
 
-        StateMachine.AddTransition(IdleState, WalkState, () => Input.Movement != 0);
-        StateMachine.AddTransition(WalkState, IdleState, () => Input.Movement == 0);
-
+        StateMachine.AddTransition(IdleState, WalkState, () => Input.HorizontalMovement != 0);
+        StateMachine.AddTransition(WalkState, IdleState, () => Input.HorizontalMovement == 0);
+        StateMachine.AddTransition(JumpState, IdleState, () => Controller.Collisions.Below);
         StateMachine.SetState(IdleState);
     }
 }

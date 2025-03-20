@@ -9,6 +9,14 @@ public class StateMachine
     [SerializeField] Dictionary<Type, StateNode> m_Nodes = new();
     [SerializeField] HashSet<ITransition> m_AnyTransitions = new();
 
+    public IState Current
+    {
+        get
+        {
+            return m_Current.State;
+        }
+    }
+
     public void Update()
     {
         ITransition transition = GetTransition();

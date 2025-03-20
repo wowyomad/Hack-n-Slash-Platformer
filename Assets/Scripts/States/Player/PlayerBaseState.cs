@@ -4,11 +4,11 @@ public abstract class PlayerBaseState : IState
 {
     public Player Player { get; private set; }
 
-    protected static readonly int IdleAnimationHash = Animator.StringToHash("Player_Idle");
-    protected static readonly int JumpAnimationHash = Animator.StringToHash("Player_Jump");
-    protected static readonly int WalkAnimationHash = Animator.StringToHash("Player_Walk");
-    protected static readonly int RunAnimationHash = Animator.StringToHash("Player_Run");
-    protected static readonly int AirAnimationHash = Animator.StringToHash("Player_Air");
+    protected static readonly int IdleAnimationHash = Animator.StringToHash("Idle");
+    protected static readonly int JumpAnimationHash = Animator.StringToHash("Jump");
+    protected static readonly int WalkAnimationHash = Animator.StringToHash("Walk");
+    protected static readonly int RunAnimationHash = Animator.StringToHash("Run");
+    protected static readonly int AirAnimationHash = Animator.StringToHash("Air");
 
     public PlayerBaseState(Player player)
     {

@@ -15,7 +15,11 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Pause;
     public event Action Resume;
 
-    public float Movement { get; private set; }
+
+    public bool IsJumpPressed {  get; private set; }
+    public bool IsDashPressed { get; private set; }
+
+    public float HorizontalMovement { get; private set; }
 
     private GameInput m_GameInput;
     public void SetGameplay()
@@ -54,7 +58,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     #region interface implementation
     public void OnMove(InputAction.CallbackContext context)
     {
-        Movement = context.ReadValue<float>();
+        HorizontalMovement = context.ReadValue<float>();
         Move?.Invoke(context.ReadValue<float>());
     }
 
@@ -68,16 +72,6 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         {
             JumpCancelled?.Invoke();
         }
-    }
-
-    public void OnDash()
-    {
-        Dash?.Invoke();
-    }
-
-    public void OnRun()
-    {
-        Run?.Invoke();
     }
 
     public void OnPause(InputAction.CallbackContext context)
@@ -145,6 +139,4 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
             }
         }
     }
-
-
 }
