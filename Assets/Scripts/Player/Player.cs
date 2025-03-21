@@ -3,7 +3,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-
+[SelectionBase]
 public class Player : MonoBehaviour
 {
     [Header("Components")]
