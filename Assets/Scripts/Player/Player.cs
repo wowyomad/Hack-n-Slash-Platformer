@@ -74,8 +74,6 @@ public class Player : MonoBehaviour
 
         Velocity.y += m_Gravity * Time.deltaTime;
 
-        Debug.Log($"Collisions below: {Controller.Collisions.Below}");
-
         if (m_HasJumped && Controller.Collisions.Below)
         {
             Velocity.y = m_JumpVelocity;

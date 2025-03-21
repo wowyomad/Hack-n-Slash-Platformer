@@ -1,5 +1,7 @@
+using System;
 using System.Data;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class CharacterController : MonoBehaviour
@@ -35,7 +37,7 @@ public class CharacterController : MonoBehaviour
         m_Collider = GetComponent<Collider2D>();
         RecalculateRaySpacing();
     }
-
+        
     private void OnValidate()
     {
         RecalculateRaySpacing();
@@ -46,8 +48,10 @@ public class CharacterController : MonoBehaviour
         RecalculateRaycastOrigins();
         m_CollisionInfo.Reset();
 
-        VerticalCollisions();
-        HorizontalCollisions();
+        if (Mathf.Abs(m_Displacement.x) >= Epsilon)
+            HorizontalCollisions();
+        if (Mathf.Abs(m_Displacement.y) >= Epsilon)
+            VerticalCollisions();
 
         DisplayDebugRays();
 
@@ -62,24 +66,40 @@ public class CharacterController : MonoBehaviour
         for (int i = 0; i < m_HorizontalRayCount; i++)
         {
             Vector2 origin = xDirection == -1 ? m_RaycastOrigins.BottomLeft : m_RaycastOrigins.BottomRight;
-            origin += Vector2.up * (m_HorizontalRaySpacing * i + m_Displacement.y);
+            origin += Vector2.up * (m_HorizontalRaySpacing * i);
 
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.right * xDirection, rayLength, m_CollisionMask);
+            Debug.DrawRay(origin, Vector2.right * xDirection * rayLength, Color.green);
             if (hit)
             {
-                float sloopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-
-                if (i == 0 && sloopeAngle <= m_MaxSlopeAngle)
+                float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                if (i == 0 && slopeAngle <= m_MaxSlopeAngle)
                 {
-                    //Implement
+                    float distanceToSlope = 0.0f;
+                    if (slopeAngle != m_CollisionInfo.PreviousSlopeAngle)
+                    {   
+                        distanceToSlope = hit.distance - m_SkinWidth;
+                        m_Displacement.x -= distanceToSlope * xDirection;
+                    }
+                    ClimbSlope(slopeAngle);
+                    m_Displacement.x += distanceToSlope * xDirection;
+
                 }
 
-                m_Displacement.x = (hit.distance - m_SkinWidth) * xDirection;
-                rayLength = hit.distance;
+                if (!m_CollisionInfo.ClimbingSlope || slopeAngle > m_MaxSlopeAngle)
+                {
+                    m_Displacement.x = (hit.distance - m_SkinWidth) * xDirection;
+                    rayLength = hit.distance;
 
+                    if (m_CollisionInfo.ClimbingSlope)
+                    {
+                        m_Displacement.y = Mathf.Tan(m_CollisionInfo.SlopeAngle * Mathf.Deg2Rad) * Mathf.Abs(m_Displacement.x);
+                    }
 
-                m_CollisionInfo.Left = xDirection == -1;
-                m_CollisionInfo.Right = xDirection == 1;
+                    m_CollisionInfo.Left = xDirection == -1;
+                    m_CollisionInfo.Right = xDirection == 1;
+                }
+
             }
 
             if (Mathf.Abs(m_Displacement.x) <= Epsilon)
@@ -101,14 +121,18 @@ public class CharacterController : MonoBehaviour
             origin += Vector2.right * (m_VerticalRaySpacing * i + m_Displacement.x);
 
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up * yDirection, rayLength, m_CollisionMask);
-            if (hit && hit.normal.y != 0)
+            if (hit)
             {
-                Debug.Log($"Hit Normal: {hit.normal}");
                 m_Displacement.y = (hit.distance - m_SkinWidth) * yDirection;
                 rayLength = hit.distance;
- 
+
                 m_CollisionInfo.Below = yDirection == -1;
                 m_CollisionInfo.Above = yDirection == 1;
+
+                if (m_CollisionInfo.ClimbingSlope && m_CollisionInfo.Above)
+                {
+                    m_Displacement.x = m_Displacement.y / Mathf.Tan(m_CollisionInfo.SlopeAngle * Mathf.Deg2Rad) * Mathf.Sign(m_Displacement.x);
+                }
 
                 if (Mathf.Abs(m_Displacement.y) <= Epsilon)
                 {
@@ -116,6 +140,22 @@ public class CharacterController : MonoBehaviour
                     break;
                 }
             }
+
+            
+        }
+    }
+
+    private void ClimbSlope(float slopeAngle)
+    {
+        float distance = Mathf.Abs(m_Displacement.x);
+        float yClimbDistance = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * distance;
+        if (m_Displacement.y <= yClimbDistance)
+        {
+            m_Displacement.y = yClimbDistance;
+            m_Displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * distance * Mathf.Sign(m_Displacement.x);
+            m_CollisionInfo.Below = true;
+            m_CollisionInfo.ClimbingSlope = true;
+            m_CollisionInfo.SlopeAngle = slopeAngle;
         }
     }
 
@@ -173,10 +213,14 @@ public class CharacterController : MonoBehaviour
     {
         public bool Above, Below;
         public bool Left, Right;
+        public bool ClimbingSlope;
+        public float SlopeAngle, PreviousSlopeAngle;
 
         public void Reset()
         {
-            Above = Below = Left = Right = false;
+            Above = Below = Left = Right = ClimbingSlope = false;
+            PreviousSlopeAngle = SlopeAngle;
+            SlopeAngle = 0.0f;
         }
     }
 }
