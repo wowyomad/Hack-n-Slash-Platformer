@@ -7,13 +7,15 @@ public class CharacterController : MonoBehaviour
     private Collider2D m_Collider;
 
     private RaycastOrigins m_RaycastOrigins;
-    private CollisionInfo m_CollisionInfo;
+    [SerializeField] private CollisionInfo m_CollisionInfo;
     public CollisionInfo Collisions { get { return m_CollisionInfo; } }
 
     [SerializeField] private LayerMask m_CollisionMask;
     [SerializeField][Range(2, 32)] private int m_HorizontalRayCount = 4;
     [SerializeField][Range(2, 32)] private int m_VerticalRayCount = 4;
     [SerializeField][Range(0.001f, 1.0f)] private float m_SkinWidth = 0.015f;
+
+    [SerializeField] private float m_MaxSlopeAngle = 80.0f;
 
     private float m_HorizontalRaySpacing;
     private float m_VerticalRaySpacing;
@@ -22,15 +24,12 @@ public class CharacterController : MonoBehaviour
 
     [SerializeField] private bool m_DisplayDebugRays;
 
+    static private readonly float Epsilon = 0.00001f;
+
     public void Move(Vector3 displacement)
     {
         m_Displacement += displacement;
     }
-
-    private void FixedUpdate()
-    {
-    }
-
     private void Awake()
     {
         m_Collider = GetComponent<Collider2D>();
@@ -42,36 +41,22 @@ public class CharacterController : MonoBehaviour
         RecalculateRaySpacing();
     }
 
-    private void Update()
+    public void OnUpdate()
     {
         RecalculateRaycastOrigins();
+        m_CollisionInfo.Reset();
+
         VerticalCollisions();
         HorizontalCollisions();
 
-        if (m_DisplayDebugRays)
-        {
-            Vector2 displacement = new Vector2(m_Displacement.x, m_Displacement.y);
-            for (int i = 0; i < m_VerticalRayCount; i++)
-            {
-                if (m_Displacement.y > 0)
-                    Debug.DrawRay(m_RaycastOrigins.TopLeft + displacement + Vector2.right * (m_VerticalRaySpacing * i), Vector2.up * Mathf.Abs(m_Displacement.y), Color.red);
-                else
-                    Debug.DrawRay(m_RaycastOrigins.BottomLeft + displacement + Vector2.right * (m_VerticalRaySpacing * i), Vector2.down * Mathf.Abs(m_Displacement.y), Color.red);
-
-                if (m_Displacement.x > 0)
-                    Debug.DrawRay(m_RaycastOrigins.BottomRight + displacement + Vector2.up * (m_HorizontalRaySpacing * i), Vector2.right * Mathf.Abs(m_Displacement.x), Color.red);
-                else
-                    Debug.DrawRay(m_RaycastOrigins.BottomLeft + displacement + Vector2.up * (m_HorizontalRaySpacing * i), Vector2.left * Mathf.Abs(m_Displacement.x), Color.red);
-            }
-
-        }
+        DisplayDebugRays();
 
         transform.Translate(m_Displacement);
         m_Displacement = Vector3.zero;
     }
     protected void HorizontalCollisions()
     {
-        float xDirection = Mathf.Sign(m_Displacement.x);
+        int xDirection = (int)Mathf.Sign(m_Displacement.x);
         float rayLength = Mathf.Abs(m_Displacement.x) + m_SkinWidth;
 
         for (int i = 0; i < m_HorizontalRayCount; i++)
@@ -82,15 +67,32 @@ public class CharacterController : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.right * xDirection, rayLength, m_CollisionMask);
             if (hit)
             {
+                float sloopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+
+                if (i == 0 && sloopeAngle <= m_MaxSlopeAngle)
+                {
+                    //Implement
+                }
+
                 m_Displacement.x = (hit.distance - m_SkinWidth) * xDirection;
                 rayLength = hit.distance;
+
+
+                m_CollisionInfo.Left = xDirection == -1;
+                m_CollisionInfo.Right = xDirection == 1;
+            }
+
+            if (Mathf.Abs(m_Displacement.x) <= Epsilon)
+            {
+                m_Displacement.x = 0.0f;
+                break;
             }
         }
     }
 
     protected void VerticalCollisions()
     {
-        float yDirection = Mathf.Sign(m_Displacement.y);
+        int yDirection = (int)Mathf.Sign(m_Displacement.y);
         float rayLength = Mathf.Abs(m_Displacement.y) + m_SkinWidth;
 
         for (int i = 0; i < m_VerticalRayCount; i++)
@@ -99,10 +101,20 @@ public class CharacterController : MonoBehaviour
             origin += Vector2.right * (m_VerticalRaySpacing * i + m_Displacement.x);
 
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up * yDirection, rayLength, m_CollisionMask);
-            if (hit)
+            if (hit && hit.normal.y != 0)
             {
+                Debug.Log($"Hit Normal: {hit.normal}");
                 m_Displacement.y = (hit.distance - m_SkinWidth) * yDirection;
                 rayLength = hit.distance;
+ 
+                m_CollisionInfo.Below = yDirection == -1;
+                m_CollisionInfo.Above = yDirection == 1;
+
+                if (Mathf.Abs(m_Displacement.y) <= Epsilon)
+                {
+                    m_Displacement.y = 0.0f;
+                    break;
+                }
             }
         }
     }
@@ -129,13 +141,35 @@ public class CharacterController : MonoBehaviour
         m_HorizontalRaySpacing = bounds.size.y / (m_HorizontalRayCount - 1);
         m_VerticalRaySpacing = bounds.size.x / (m_VerticalRayCount - 1);
     }
+
+    private void DisplayDebugRays()
+    {
+        if (m_DisplayDebugRays)
+        {
+            Vector2 displacement = new Vector2(m_Displacement.x, m_Displacement.y);
+            for (int i = 0; i < m_VerticalRayCount; i++)
+            {
+                if (m_Displacement.y > 0)
+                    Debug.DrawRay(m_RaycastOrigins.TopLeft + displacement + Vector2.right * (m_VerticalRaySpacing * i), Vector2.up * Mathf.Abs(m_Displacement.y), Color.red);
+                else
+                    Debug.DrawRay(m_RaycastOrigins.BottomLeft + displacement + Vector2.right * (m_VerticalRaySpacing * i), Vector2.down * Mathf.Abs(m_Displacement.y), Color.red);
+                if (m_Displacement.x > 0)
+                    Debug.DrawRay(m_RaycastOrigins.BottomRight + displacement + Vector2.up * (m_HorizontalRaySpacing * i), Vector2.right * Mathf.Abs(m_Displacement.x), Color.red);
+                else
+                    Debug.DrawRay(m_RaycastOrigins.BottomLeft + displacement + Vector2.up * (m_HorizontalRaySpacing * i), Vector2.left * Mathf.Abs(m_Displacement.x), Color.red);
+            }
+        }
+    }
+
+
     private struct RaycastOrigins
     {
         public Vector2 BottomLeft, BottomRight;
         public Vector2 TopLeft, TopRight;
     }
 
-    public struct CollisionInfo
+    [System.Serializable]
+    public class CollisionInfo
     {
         public bool Above, Below;
         public bool Left, Right;

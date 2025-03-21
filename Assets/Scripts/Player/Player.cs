@@ -12,13 +12,27 @@ public class Player : MonoBehaviour
     public Animator Animator;
     public InputReader Input;
 
-    public float Gravity = -20.0f;
+
+    [Header("Movement")]
+    public float JumpHeight = 10.0f;
+    public float TimeToJumpApex = 1.0f;
+    public float MoveSpeed = 6.0f;
+    public float AccelerationTimeAirborne = 0.35f;
+    public float AccelerationTimeGrounded = 0.2f;
+    public float VelocityXSmoothing = 0.1f;
     public Vector3 Velocity;
+
+    private float m_Gravity;
+    private float m_JumpVelocity;
 
     PlayerIdleState IdleState;
     PlayerWalkState WalkState;
     PlayerJumpState JumpState;
     PlayerAirState AirState;
+
+
+
+    private bool m_HasJumped;
 
     private void Awake()
     {
@@ -29,7 +43,12 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-       
+       RecalculateGravity();
+    }
+    
+    private void OnValidate()
+    {
+        RecalculateGravity();
     }
 
     private void OnEnable()
@@ -44,14 +63,48 @@ public class Player : MonoBehaviour
         Input.StopListening(this);
     }
 
-    private void Update()
+    public void Update()
     {
-        StateMachine?.Update(); 
+        StateMachine?.Update();
 
-        Velocity.y += Gravity * Time.deltaTime;
+        if (Controller.Collisions.Above || Controller.Collisions.Below)
+        {
+            Velocity.y = 0.0f;
+        }
+
+        Velocity.y += m_Gravity * Time.deltaTime;
+
+        Debug.Log($"Collisions below: {Controller.Collisions.Below}");
+
+        if (m_HasJumped && Controller.Collisions.Below)
+        {
+            Velocity.y = m_JumpVelocity;
+            m_HasJumped = false;
+        }
+
+        float targetVelocityX = Input.HorizontalMovement * MoveSpeed;
+        Velocity.x = Mathf.SmoothDamp(Velocity.x, targetVelocityX, ref VelocityXSmoothing,
+            (Controller.Collisions.Below) ? AccelerationTimeGrounded : AccelerationTimeAirborne);
+
         Controller.Move(Velocity * Time.deltaTime);
+        Controller.OnUpdate();
+    }
 
-        Controller.Move(new Vector2(Input.HorizontalMovement * 10.0f, 0.0f) * Time.deltaTime);
+    private void OnJump()
+    {
+        m_HasJumped = true;
+    }
+
+    private void OnJumpCancelled()
+    {
+        m_HasJumped = false;
+    }
+
+
+    private void RecalculateGravity()
+    {
+        m_Gravity = -(2 * JumpHeight) / Mathf.Pow(TimeToJumpApex, 2);
+        m_JumpVelocity = -m_Gravity * TimeToJumpApex;
     }
 
     void InitializeStates()
