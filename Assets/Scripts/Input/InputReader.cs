@@ -59,7 +59,10 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public void OnMove(InputAction.CallbackContext context)
     {
         HorizontalMovement = context.ReadValue<float>();
-        Move?.Invoke(context.ReadValue<float>());
+        if (HorizontalMovement != 0.0f)
+        {
+            Move?.Invoke(context.ReadValue<float>());
+        }
     }
 
     public void OnJump(InputAction.CallbackContext context)

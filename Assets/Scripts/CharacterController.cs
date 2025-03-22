@@ -6,49 +6,33 @@ using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
 [RequireComponent(typeof(BoxCollider2D))]
-public class CharacterController : MonoBehaviour
+public class CharacterController : RaycastController
 {
-    private Collider2D m_Collider;
-
-    private RaycastOrigins m_RaycastOrigins;
-    [SerializeField] private CollisionInfo m_Collisions;
+    [SerializeField] protected CollisionInfo m_Collisions;
     public CollisionInfo Collisions { get { return m_Collisions; } }
 
-    [SerializeField] private LayerMask m_CollisionMask;
-    [SerializeField][Range(2, 32)] private int m_HorizontalRayCount = 4;
-    [SerializeField][Range(2, 32)] private int m_VerticalRayCount = 4;
-    [SerializeField][Range(0.001f, 1.0f)] private float m_SkinWidth = 0.015f;
+    [SerializeField] [Range(0.01f, 90.01f)] protected float m_MaxSlopeAngle = 80.0f;
+    [SerializeField] [Range(0.01f, 90.01f)] protected float m_MaxDescendAngle = 80.0f;
 
-    [SerializeField] private float m_MaxSlopeAngle = 80.0f;
-    [SerializeField] private float m_MaxDescendAngle = 80.0f;
+    protected Vector3 m_Displacement = Vector3.zero;
 
-    private float m_HorizontalRaySpacing;
-    private float m_VerticalRaySpacing;
+    [SerializeField] protected bool m_DisplayDebugRays;
 
-    private Vector3 m_Displacement;
-
-    [SerializeField] private bool m_DisplayDebugRays;
-
-    static private readonly float Epsilon = 0.00001f;
+    static protected readonly float Epsilon = 0.00001f;
 
     public void Move(Vector3 displacement)
     {
         m_Displacement += displacement;
     }
-    private void Awake()
+    protected override void Awake()
     {
-        m_Collider = GetComponent<Collider2D>();
-        RecalculateRaySpacing();
+        base.Awake();
     }
 
-    private void OnValidate()
+    protected override void Update()
     {
-        RecalculateRaySpacing();
-    }
+        base.Update();
 
-    public void OnUpdate()
-    {
-        RecalculateRaycastOrigins();
         m_Collisions.Reset();
 
         if (m_Displacement.y <= -Epsilon && Mathf.Abs(m_Displacement.x) >= Epsilon)
@@ -61,7 +45,7 @@ public class CharacterController : MonoBehaviour
         if (Mathf.Abs(m_Displacement.y) >= Epsilon)
             VerticalCollisions();
 
-        transform.Translate(m_Displacement);
+        transform.position += m_Displacement;
         m_Displacement = Vector3.zero;
     }
     protected void HorizontalCollisions()
@@ -170,7 +154,7 @@ public class CharacterController : MonoBehaviour
         }
     }
 
-    private void ClimbSlope(float slopeAngle)
+    protected void ClimbSlope(float slopeAngle)
     {
         float distance = Mathf.Abs(m_Displacement.x);
         float yClimbDistance = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * distance;
@@ -184,7 +168,7 @@ public class CharacterController : MonoBehaviour
         }
     }
 
-    private void DescdendSlope()
+    protected void DescdendSlope()
     {
         int xDirection = (int)Mathf.Sign(m_Displacement.x);
         Vector2 origin = xDirection == -1 ? m_RaycastOrigins.BottomRight : m_RaycastOrigins.BottomLeft;
@@ -209,36 +193,6 @@ public class CharacterController : MonoBehaviour
                 }
             }
         }
-    }
-
-
-    protected void RecalculateRaycastOrigins()
-    {
-        Bounds bounds = m_Collider.bounds;
-        bounds.Expand(-m_SkinWidth * 2.0f);
-        m_RaycastOrigins.BottomLeft = new Vector2(bounds.min.x, bounds.min.y);
-        m_RaycastOrigins.BottomRight = new Vector2(bounds.max.x, bounds.min.y);
-        m_RaycastOrigins.TopLeft = new Vector2(bounds.min.x, bounds.max.y);
-        m_RaycastOrigins.TopRight = new Vector2(bounds.max.x, bounds.max.y);
-    }
-
-    protected void RecalculateRaySpacing()
-    {
-        if (m_Collider == null) return;
-
-        Bounds bounds = m_Collider.bounds;
-        bounds.Expand(-m_SkinWidth * 2.0f);
-        m_HorizontalRayCount = Mathf.Clamp(m_HorizontalRayCount, 2, int.MaxValue);
-        m_VerticalRayCount = Mathf.Clamp(m_VerticalRayCount, 2, int.MaxValue);
-        m_HorizontalRaySpacing = bounds.size.y / (m_HorizontalRayCount - 1);
-        m_VerticalRaySpacing = bounds.size.x / (m_VerticalRayCount - 1);
-    }
-
-
-    private struct RaycastOrigins
-    {
-        public Vector2 BottomLeft, BottomRight;
-        public Vector2 TopLeft, TopRight;
     }
 
     [System.Serializable]

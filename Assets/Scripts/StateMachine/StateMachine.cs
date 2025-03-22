@@ -63,14 +63,11 @@ public class StateMachine
         if (m_Current?.State == state || !m_Nodes.ContainsKey(state.GetType()))
             return;
 
-        IState previous = m_Current.State;
-
-        previous?.OnExit();
         m_Current = m_Nodes[state.GetType()];
-        m_Current.State.OnEnter(previous);
+        m_Current.State.OnEnter(null);
     }
 
-    private void SwitchState(IState state)
+    public void SwitchState(IState state)
     {
         if (m_Current?.State == state || !m_Nodes.ContainsKey(state.GetType()))
             return;

@@ -1,9 +1,9 @@
 using NUnit.Framework;
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-[SelectionBase]
 public class Player : MonoBehaviour
 {
     [Header("Components")]
@@ -20,19 +20,18 @@ public class Player : MonoBehaviour
     public float AccelerationTimeAirborne = 0.35f;
     public float AccelerationTimeGrounded = 0.2f;
     public float VelocityXSmoothing = 0.1f;
-    public Vector3 Velocity;
+    public Vector3 Velocity = Vector3.zero;
 
-    private float m_Gravity;
-    private float m_JumpVelocity;
+    private float m_Gravity = 0.0f;
+    private float m_JumpVelocity = 0.0f;
 
     PlayerIdleState IdleState;
     PlayerWalkState WalkState;
     PlayerJumpState JumpState;
     PlayerAirState AirState;
 
-
-
     private bool m_HasJumped;
+    private int m_FacingDirection = 1;
 
     private void Awake()
     {
@@ -44,6 +43,7 @@ public class Player : MonoBehaviour
     private void Start()
     {
        RecalculateGravity();
+       m_FacingDirection = transform.rotation.eulerAngles.y == 0.0f ? 1 : -1;
     }
     
     private void OnValidate()
@@ -85,7 +85,6 @@ public class Player : MonoBehaviour
             (Controller.Collisions.Below) ? AccelerationTimeGrounded : AccelerationTimeAirborne);
 
         Controller.Move(Velocity * Time.deltaTime);
-        Controller.OnUpdate();
     }
 
     private void OnJump()
@@ -98,6 +97,19 @@ public class Player : MonoBehaviour
         m_HasJumped = false;
     }
 
+    private void OnMove(float direction)
+    {
+        Flip((int)Mathf.Sign(direction));
+    }
+
+    void Flip(int direction)
+    {
+        if (direction != m_FacingDirection)
+        {
+            m_FacingDirection = -m_FacingDirection;
+            transform.eulerAngles = new Vector3(0.0f, m_FacingDirection == 1 ? 0.0f : 180.0f, 0.0f);
+        }
+    }
 
     private void RecalculateGravity()
     {
@@ -105,16 +117,36 @@ public class Player : MonoBehaviour
         m_JumpVelocity = -m_Gravity * TimeToJumpApex;
     }
 
-    void InitializeStates()
+    protected void InitializeStates()
     {
+        StateMachine = new StateMachine();
+
         IdleState = new PlayerIdleState(this);
         WalkState = new PlayerWalkState(this);
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
 
-        StateMachine.AddTransition(IdleState, WalkState, () => Input.HorizontalMovement != 0);
-        StateMachine.AddTransition(WalkState, IdleState, () => Input.HorizontalMovement == 0);
-        StateMachine.AddTransition(JumpState, IdleState, () => Controller.Collisions.Below);
+        At(IdleState, WalkState, () => Input.HorizontalMovement != 0 && Controller.Collisions.Below);
+        At(WalkState, IdleState, () => Input.HorizontalMovement == 0 || !Controller.Collisions.Below);
+        At(IdleState, JumpState, () => Velocity.y > 0.0f);
+        At(WalkState, JumpState, () => Velocity.y > 0.0f);
+        At(JumpState, AirState, () => Velocity.y <= 0.0f);
+        At(AirState, IdleState, () => Controller.Collisions.Below);
+
         StateMachine.SetState(IdleState);
+    }
+
+
+    protected void At(IState from, IState to, Func<bool> condition)
+    {
+        StateMachine.AddTransition(from, to, condition);
+    }
+    protected void At(IState from, IState to, IPredicate predicate)
+    {
+        StateMachine.AddTransition(from, to, predicate);
+    }
+    protected void Any(IState from, IState to, IPredicate predicate)
+    {
+        StateMachine.AddAnyTransition(to, predicate);
     }
 }

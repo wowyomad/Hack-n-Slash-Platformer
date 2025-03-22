@@ -11,17 +11,7 @@ public class PlayerJumpState : PlayerBaseState
 
     public override void OnEnter(IState from)
     {
-        Debug.Log("Player entered Jump State");
-    }
-
-    public override void OnExit()
-    {
-       
-    }
-
-    public override void Update()
-    {
-       
+        Player.Animator.CrossFade(JumpAnimationHash, 0.0f);
     }
 }
 
