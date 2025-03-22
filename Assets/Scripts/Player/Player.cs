@@ -43,7 +43,7 @@ public class Player : MonoBehaviour
     private void Start()
     {
        RecalculateGravity();
-       m_FacingDirection = transform.rotation.eulerAngles.y == 0.0f ? 1 : -1;
+        m_FacingDirection = transform.localScale.x == 1 ? 1 : -1;
     }
     
     private void OnValidate()
@@ -107,7 +107,7 @@ public class Player : MonoBehaviour
         if (direction != m_FacingDirection)
         {
             m_FacingDirection = -m_FacingDirection;
-            transform.eulerAngles = new Vector3(0.0f, m_FacingDirection == 1 ? 0.0f : 180.0f, 0.0f);
+            transform.localScale = new Vector3(m_FacingDirection, 1.0f, 1.0f);
         }
     }
 
