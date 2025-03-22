@@ -19,7 +19,7 @@ public class Player : MonoBehaviour
     public float MoveSpeed = 6.0f;
     public float AccelerationTimeAirborne = 0.35f;
     public float AccelerationTimeGrounded = 0.2f;
-    public float VelocityXSmoothing = 0.1f;
+    public float m_VelocityXSmoothing = 0.1f;
     public Vector3 Velocity = Vector3.zero;
 
     private float m_Gravity = 0.0f;
@@ -42,10 +42,10 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-       RecalculateGravity();
+        RecalculateGravity();
         m_FacingDirection = transform.localScale.x == 1 ? 1 : -1;
     }
-    
+
     private void OnValidate()
     {
         RecalculateGravity();
@@ -72,7 +72,7 @@ public class Player : MonoBehaviour
             Velocity.y = 0.0f;
         }
 
-        //Velocity.y += m_Gravity * Time.deltaTime;
+        Velocity.y += m_Gravity * Time.deltaTime;
 
         if (m_HasJumped && Controller.Collisions.Below)
         {
@@ -81,7 +81,15 @@ public class Player : MonoBehaviour
         }
 
         float targetVelocityX = Input.HorizontalMovement * MoveSpeed;
-        Velocity.x = Mathf.SmoothDamp(Velocity.x, targetVelocityX, ref VelocityXSmoothing,
+        if (Controller.Collisions.Right)
+        {
+            targetVelocityX = Mathf.Min(targetVelocityX, 0);
+        }
+        else if (Controller.Collisions.Left)
+        {
+            targetVelocityX = Mathf.Max(targetVelocityX, 0);
+        }
+        Velocity.x = Mathf.SmoothDamp(Velocity.x, targetVelocityX, ref m_VelocityXSmoothing,
             (Controller.Collisions.Below) ? AccelerationTimeGrounded : AccelerationTimeAirborne);
 
         Controller.Move(Velocity * Time.deltaTime);
@@ -127,7 +135,7 @@ public class Player : MonoBehaviour
         AirState = new PlayerAirState(this);
 
         At(IdleState, WalkState, () => Input.HorizontalMovement != 0 && Controller.Collisions.Below);
-        At(WalkState, IdleState, () => Input.HorizontalMovement == 0 || !Controller.Collisions.Below);
+        At(WalkState, IdleState, () => Input.HorizontalMovement == 0 || Mathf.Abs(Velocity.x) <= 0.00001f || !Controller.Collisions.Below);
         At(IdleState, JumpState, () => Velocity.y > 0.0f);
         At(WalkState, JumpState, () => Velocity.y > 0.0f);
         At(JumpState, AirState, () => Velocity.y <= 0.0f);
