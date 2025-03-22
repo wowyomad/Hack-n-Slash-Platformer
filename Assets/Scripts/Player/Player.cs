@@ -72,7 +72,7 @@ public class Player : MonoBehaviour
             Velocity.y = 0.0f;
         }
 
-        Velocity.y += m_Gravity * Time.deltaTime;
+        //Velocity.y += m_Gravity * Time.deltaTime;
 
         if (m_HasJumped && Controller.Collisions.Below)
         {

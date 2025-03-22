@@ -11,8 +11,8 @@ public class CharacterController : RaycastController
     [SerializeField] protected CollisionInfo m_Collisions;
     public CollisionInfo Collisions { get { return m_Collisions; } }
 
-    [SerializeField] [Range(0.01f, 90.01f)] protected float m_MaxSlopeAngle = 80.0f;
-    [SerializeField] [Range(0.01f, 90.01f)] protected float m_MaxDescendAngle = 80.0f;
+    [SerializeField][Range(0.01f, 90.01f)] protected float m_MaxSlopeAngle = 80.0f;
+    [SerializeField][Range(0.01f, 90.01f)] protected float m_MaxDescendAngle = 80.0f;
 
     protected Vector3 m_Displacement = Vector3.zero;
 
@@ -41,9 +41,13 @@ public class CharacterController : RaycastController
         }
 
         if (Mathf.Abs(m_Displacement.x) >= Epsilon)
+        {
             HorizontalCollisions();
+        }
         if (Mathf.Abs(m_Displacement.y) >= Epsilon)
+        {
             VerticalCollisions();
+        }
 
         transform.position += m_Displacement;
         m_Displacement = Vector3.zero;
@@ -81,6 +85,7 @@ public class CharacterController : RaycastController
                     m_Displacement.x = (hit.distance - m_SkinWidth) * xDirection;
                     rayLength = hit.distance;
 
+
                     if (m_Collisions.ClimbingSlope)
                     {
                         m_Displacement.y = Mathf.Tan(m_Collisions.SlopeAngle * Mathf.Deg2Rad) * Mathf.Abs(m_Displacement.x);
@@ -98,6 +103,7 @@ public class CharacterController : RaycastController
                 break;
             }
         }
+        Debug.Log($"m_Displacement: {m_Displacement.ToString("F6")}");
     }
 
     protected void VerticalCollisions()
