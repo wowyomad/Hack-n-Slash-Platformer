@@ -12,6 +12,7 @@ public class PlayerIdleState : PlayerBaseState
         Player.Animator.CrossFade(IdleAnimationHash, 0.0f);
         Player.Input.Jump += OnJump;
         Player.Input.Move += OnMove;
+        Player.Velocity.y = 0.0f; //TODO: Be better
     }
 
     public override void OnExit()
@@ -23,11 +24,11 @@ public class PlayerIdleState : PlayerBaseState
     {
         if (!Player.Controller.IsGrounded)
         {
-            Player.ChangeState(Player.AirState);
+            Player.ChangeState(Player.AirState); return;
         }
         else if (HorizontalInput != 0)
         {
-            Player.ChangeState(Player.WalkState);
+            Player.ChangeState(Player.WalkState); return;
         }
 
         if (Mathf.Abs(Player.Velocity.x) > 0.0f)
@@ -52,6 +53,6 @@ public class PlayerIdleState : PlayerBaseState
     }
     protected void OnJump()
     {
-        ChangeState(Player.JumpState);
+        ChangeState(Player.JumpState); return;
     }
 }

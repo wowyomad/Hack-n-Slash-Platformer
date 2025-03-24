@@ -21,7 +21,7 @@ public class PlayerAirState : PlayerBaseState
     {
         if (Player.Controller.IsGrounded)
         {
-            Player.ChangeState(Player.IdleState);
+            Player.ChangeState(Player.IdleState); return;
         }
 
         Player.ApplyGravity();

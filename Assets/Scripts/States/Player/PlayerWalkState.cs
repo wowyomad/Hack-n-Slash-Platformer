@@ -15,6 +15,7 @@ public class PlayerWalkState : PlayerBaseState
         Player.Input.Move += OnMove;
 
         m_VelocitySmoothing = 0.0f;
+        Player.Velocity.y = 0.0f; //TODO: Be better
     }
 
     public override void OnExit()
@@ -30,6 +31,7 @@ public class PlayerWalkState : PlayerBaseState
             ChangeState(Player.AirState); return;
         }
 
+        //Abomination
         if (Mathf.Abs(Player.Velocity.x) <= 3.0f)
         {
             Player.Animator.CrossFade(IdleAnimationHash, 0.0f);
@@ -38,8 +40,6 @@ public class PlayerWalkState : PlayerBaseState
         {
             Player.Animator.CrossFade(WalkAnimationHash, 0.0f);
         }
-
-        Player.ApplyGravity();
 
         float input = Input.HorizontalMovement;
 
@@ -57,7 +57,7 @@ public class PlayerWalkState : PlayerBaseState
 
         if (Mathf.Abs(Player.Velocity.x) <= m_VeloctiyThreshold && Time.time - m_LastInputTime > m_InputThreashold)
         {
-            ChangeState(Player.IdleState);
+            ChangeState(Player.IdleState); return;
         }
     }
     public void OnMove(float direction)
@@ -68,6 +68,6 @@ public class PlayerWalkState : PlayerBaseState
     }
     public void OnJump()
     {
-        ChangeState(Player.JumpState);
+        ChangeState(Player.JumpState); return;
     }
 }

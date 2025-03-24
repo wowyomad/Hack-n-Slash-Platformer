@@ -24,7 +24,7 @@ public class PlayerJumpState : PlayerBaseState
 
         if (Player.Velocity.y <= 0.0f)
         {
-            Player.ChangeState(Player.AirState);
+            Player.ChangeState(Player.AirState); return;
         }
 
         float input = Input.HorizontalMovement;

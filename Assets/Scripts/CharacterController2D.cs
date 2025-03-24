@@ -11,7 +11,7 @@ public class CharacterController2D : RaycastController
     [SerializeField] protected CollisionInfo m_Collisions;
     [SerializeField] protected bool m_IsGrounded;
 
-    public bool IsGrounded { get { return m_IsGrounded; } }
+    public bool IsGrounded { get { return m_IsGrounded || Collisions.DescendingSlope; } } //Hack to make 'Descending' state count as Grounded. TODO: Be better.
     public CollisionInfo Collisions { get { return m_Collisions; } }
 
     [SerializeField][Range(0.01f, 90.01f)] protected float m_MaxSlopeAngle = 80.0f;

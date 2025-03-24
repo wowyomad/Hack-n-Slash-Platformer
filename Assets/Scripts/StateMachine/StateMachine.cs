@@ -22,7 +22,6 @@ public class StateMachine
         ITransition transition = GetTransition();
         if (transition != null)
         {
-            Debug.Log($"State transition from {m_Current.State.GetType()} to {transition.To.GetType()}");
             SwitchState(transition.To);
         }
         
@@ -63,20 +62,20 @@ public class StateMachine
         if (m_Current?.State == state)
             return;
 
-        IState previousState = m_Current?.State;
+        IState previous = m_Current?.State;
 
-        if (previousState != null)
+        if (previous != null)
         {
-            Debug.Log($"Transition from {previousState.GetType()} to {state}");
+            Debug.Log($"Change from {previous.GetType()} to {state}");
         }
         else
         {
-            Debug.Log($"Transition to {state}");
+            Debug.Log($"Change to {state}");
         }
 
-        previousState?.OnExit();
+        previous?.OnExit();
         m_Current = new StateNode(state);
-        m_Current.State.OnEnter(previousState);
+        m_Current.State.OnEnter(previous);
     }
 
     public void SwitchState(IState state)
@@ -85,6 +84,14 @@ public class StateMachine
             return;
 
         IState previous = m_Current.State;
+        if (previous != null)
+        {
+            Debug.Log($"Transition from {previous.GetType()} to {state}");
+        }
+        else
+        {
+            Debug.Log($"Transition to {state}");
+        }
 
         previous?.OnExit();
         m_Current = m_Nodes[state.GetType()];
