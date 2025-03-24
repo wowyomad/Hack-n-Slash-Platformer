@@ -12,18 +12,9 @@ public class Player : MonoBehaviour
     public Animator Animator;
     public InputReader Input;
 
-
-    [Header("Movement")]
-    public float JumpHeight = 10.0f;
-    public float TimeToJumpApex = 1.0f;
-    public float MoveSpeed = 6.0f;
-    public float AccelerationTimeAirborne = 0.35f;
-    public float AccelerationTimeGrounded = 0.2f;
-    public float m_VelocityXSmoothing = 0.1f;
+    private float m_VelocityXSmoothing = 0.1f;
     public Vector3 Velocity = Vector3.zero;
-
-    private float m_Gravity = 0.0f;
-    private float m_JumpVelocity = 0.0f;
+    public CharacterMovementStats Movement;
 
     PlayerIdleState IdleState;
     PlayerWalkState WalkState;
@@ -42,13 +33,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        RecalculateGravity();
         m_FacingDirection = transform.localScale.x == 1 ? 1 : -1;
-    }
-
-    private void OnValidate()
-    {
-        RecalculateGravity();
     }
 
     private void OnEnable()
@@ -72,15 +57,16 @@ public class Player : MonoBehaviour
             Velocity.y = 0.0f;
         }
 
-        Velocity.y += m_Gravity * Time.deltaTime;
+        Velocity.y += Movement.Gravity * Time.deltaTime;
+        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
 
         if (m_HasJumped && Controller.Collisions.Below)
         {
-            Velocity.y = m_JumpVelocity;
+            Velocity.y = Movement.JumpVelocity;
             m_HasJumped = false;
         }
 
-        float targetVelocityX = Input.HorizontalMovement * MoveSpeed;
+        float targetVelocityX = Input.HorizontalMovement * Movement.HorizontalSpeed;
         if (Controller.Collisions.Right)
         {
             targetVelocityX = Mathf.Min(targetVelocityX, 0);
@@ -90,7 +76,7 @@ public class Player : MonoBehaviour
             targetVelocityX = Mathf.Max(targetVelocityX, 0);
         }
         Velocity.x = Mathf.SmoothDamp(Velocity.x, targetVelocityX, ref m_VelocityXSmoothing,
-            (Controller.Collisions.Below) ? AccelerationTimeGrounded : AccelerationTimeAirborne);
+            (Controller.Collisions.Below) ? Movement.AccelerationTimeGrounded : Movement.AccelerationTimeAirborne);
 
         Controller.Move(Velocity * Time.deltaTime);
     }
@@ -119,12 +105,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void RecalculateGravity()
-    {
-        m_Gravity = -(2 * JumpHeight) / Mathf.Pow(TimeToJumpApex, 2);
-        m_JumpVelocity = -m_Gravity * TimeToJumpApex;
-    }
-
     protected void InitializeStates()
     {
         StateMachine = new StateMachine();
@@ -138,6 +118,8 @@ public class Player : MonoBehaviour
         At(WalkState, IdleState, () => Input.HorizontalMovement == 0 || Mathf.Abs(Velocity.x) <= 0.00001f || !Controller.Collisions.Below);
         At(IdleState, JumpState, () => Velocity.y > 0.0f);
         At(WalkState, JumpState, () => Velocity.y > 0.0f);
+        At(IdleState, AirState, () => !Controller.Collisions.Below);
+        At(WalkState, AirState, () => !Controller.Collisions.Below);
         At(JumpState, AirState, () => Velocity.y <= 0.0f);
         At(AirState, IdleState, () => Controller.Collisions.Below);
 
