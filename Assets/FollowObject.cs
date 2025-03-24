@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class FollowCamera : MonoBehaviour
+public class FollowObject : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public Transform Target;
+
+    public Vector2 Offset;
+
     void Start()
     {
-        if (Target == null)
-        {
-            Target = GameObject.FindWithTag("Player")?.transform;
-        }
+       
     }
 
     // Update is called once per frame
@@ -21,6 +21,6 @@ public class FollowCamera : MonoBehaviour
             return;
         }
 
-        transform.position = new Vector3(Target.position.x, Target.position.y, transform.position.z);
+        transform.position = new Vector3(Target.position.x + Offset.x, Target.position.y + Offset.y, transform.position.z);
     }
 }

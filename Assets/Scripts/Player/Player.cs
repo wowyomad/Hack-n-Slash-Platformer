@@ -3,31 +3,33 @@ using System;
 using Unity.VisualScripting;
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
+[SelectionBase]
+[RequireComponent(typeof(CharacterController2D))]
 public class Player : MonoBehaviour
 {
     [Header("Components")]
-    public CharacterController Controller;
-    public StateMachine StateMachine;
+    protected StateMachine m_StateMachine;
+    public CharacterController2D Controller;
     public Animator Animator;
     public InputReader Input;
 
-    private float m_VelocityXSmoothing = 0.1f;
     public Vector3 Velocity = Vector3.zero;
     public CharacterMovementStats Movement;
 
-    PlayerIdleState IdleState;
-    PlayerWalkState WalkState;
-    PlayerJumpState JumpState;
-    PlayerAirState AirState;
+    public PlayerIdleState IdleState;
+    public PlayerWalkState WalkState;
+    public PlayerJumpState JumpState;
+    public PlayerAirState AirState;
 
-    private bool m_HasJumped;
+    public Action<IState> OnStateChange;
+    public IState CurrentState => m_StateMachine.Current;
+
     private int m_FacingDirection = 1;
 
     private void Awake()
     {
         Input = Resources.Load<InputReader>("Input/InputReader");
-        Controller = GetComponent<CharacterController>();
+        Controller = GetComponent<CharacterController2D>();
         Animator = GetComponentInChildren<Animator>();
     }
 
@@ -50,53 +52,12 @@ public class Player : MonoBehaviour
 
     public void Update()
     {
-        StateMachine?.Update();
-
-        if (Controller.Collisions.Above || Controller.Collisions.Below)
-        {
-            Velocity.y = 0.0f;
-        }
-
-        Velocity.y += Movement.Gravity * Time.deltaTime;
-        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
-
-        if (m_HasJumped && Controller.Collisions.Below)
-        {
-            Velocity.y = Movement.JumpVelocity;
-            m_HasJumped = false;
-        }
-
-        float targetVelocityX = Input.HorizontalMovement * Movement.HorizontalSpeed;
-        if (Controller.Collisions.Right)
-        {
-            targetVelocityX = Mathf.Min(targetVelocityX, 0);
-        }
-        else if (Controller.Collisions.Left)
-        {
-            targetVelocityX = Mathf.Max(targetVelocityX, 0);
-        }
-        Velocity.x = Mathf.SmoothDamp(Velocity.x, targetVelocityX, ref m_VelocityXSmoothing,
-            (Controller.Collisions.Below) ? Movement.AccelerationTimeGrounded : Movement.AccelerationTimeAirborne);
+        m_StateMachine?.Update();
 
         Controller.Move(Velocity * Time.deltaTime);
     }
 
-    private void OnJump()
-    {
-        m_HasJumped = true;
-    }
-
-    private void OnJumpCancelled()
-    {
-        m_HasJumped = false;
-    }
-
-    private void OnMove(float direction)
-    {
-        Flip((int)Mathf.Sign(direction));
-    }
-
-    void Flip(int direction)
+    public void Flip(int direction)
     {
         if (direction != m_FacingDirection)
         {
@@ -107,36 +68,38 @@ public class Player : MonoBehaviour
 
     protected void InitializeStates()
     {
-        StateMachine = new StateMachine();
+        m_StateMachine = new StateMachine();
 
         IdleState = new PlayerIdleState(this);
         WalkState = new PlayerWalkState(this);
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
 
-        At(IdleState, WalkState, () => Input.HorizontalMovement != 0 && Controller.Collisions.Below);
-        At(WalkState, IdleState, () => Input.HorizontalMovement == 0 || Mathf.Abs(Velocity.x) <= 0.00001f || !Controller.Collisions.Below);
-        At(IdleState, JumpState, () => Velocity.y > 0.0f);
-        At(WalkState, JumpState, () => Velocity.y > 0.0f);
-        At(IdleState, AirState, () => !Controller.Collisions.Below);
-        At(WalkState, AirState, () => !Controller.Collisions.Below);
-        At(JumpState, AirState, () => Velocity.y <= 0.0f);
-        At(AirState, IdleState, () => Controller.Collisions.Below);
-
-        StateMachine.SetState(IdleState);
+        m_StateMachine.ChangeState(IdleState);
     }
 
+    public void ApplyGravity()
+    {
+        Velocity.y += Movement.Gravity * Time.deltaTime;
+        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
+    }
+
+    public void ChangeState(IState state)
+    {
+        m_StateMachine.ChangeState(state);
+        OnStateChange.Invoke(state);
+    }
 
     protected void At(IState from, IState to, Func<bool> condition)
     {
-        StateMachine.AddTransition(from, to, condition);
+        m_StateMachine.AddTransition(from, to, condition);
     }
     protected void At(IState from, IState to, IPredicate predicate)
     {
-        StateMachine.AddTransition(from, to, predicate);
+        m_StateMachine.AddTransition(from, to, predicate);
     }
     protected void Any(IState from, IState to, IPredicate predicate)
     {
-        StateMachine.AddAnyTransition(to, predicate);
+        m_StateMachine.AddAnyTransition(to, predicate);
     }
 }

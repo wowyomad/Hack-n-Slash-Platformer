@@ -58,13 +58,25 @@ public class StateMachine
         m_Nodes[from.GetType()].AddTransition(to, condition);
     } 
 
-    public void SetState(IState state)
+    public void ChangeState(IState state)
     {
-        if (m_Current?.State == state || !m_Nodes.ContainsKey(state.GetType()))
+        if (m_Current?.State == state)
             return;
 
-        m_Current = m_Nodes[state.GetType()];
-        m_Current.State.OnEnter(null);
+        IState previousState = m_Current?.State;
+
+        if (previousState != null)
+        {
+            Debug.Log($"Transition from {previousState.GetType()} to {state}");
+        }
+        else
+        {
+            Debug.Log($"Transition to {state}");
+        }
+
+        previousState?.OnExit();
+        m_Current = new StateNode(state);
+        m_Current.State.OnEnter(previousState);
     }
 
     public void SwitchState(IState state)

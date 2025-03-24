@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42fa82c4ffd90564fa345724f486f9bd, type: 3}
   m_Name: Player Movemenet Stats
   m_EditorClassIdentifier: 
-  JumpHeight: 4
-  TimeToJumpApex: 0.4
-  MoveSpeed: 8
-  AccelerationTimeAirborne: 0.25
+  m_JumpHeight: 4.5
+  m_TimeToJumpApex: 0.3
+  m_MaxGravityScale: 0.15
+  AccelerationTimeAirborne: 0.5
   AccelerationTimeGrounded: 0.1
+  DecelerationTimeAirborne: 0.1
+  DecelerationTimeGrounded: 0.1
+  HorizontalSpeed: 8

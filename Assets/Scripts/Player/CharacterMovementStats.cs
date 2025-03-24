@@ -8,14 +8,17 @@ public class CharacterMovementStats : ScriptableObject
     [SerializeField] private float m_JumpHeight = 4.0f;
     [SerializeField] private float m_TimeToJumpApex = 0.4f;
     [SerializeField] private float m_MaxGravityScale = 1.5f;
+    public float AccelerationTimeAirborne = 0.25f;
+    public float AccelerationTimeGrounded = 0.1f;
+    public float DecelerationTimeAirborne = 0.1f;
+    public float DecelerationTimeGrounded = 0.1f;
 
     [Header("Calcualted Values")]
     public float Gravity { get; private set; }
     public float MaxGravityVelocity { get; private set; }
     public float JumpVelocity { get; private set; }
     public float HorizontalSpeed = 8.0f;
-    public float AccelerationTimeAirborne = 0.25f;
-    public float AccelerationTimeGrounded = 0.1f;
+
 
     private void Awake()
     {

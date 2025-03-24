@@ -5,10 +5,13 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
-[RequireComponent(typeof(BoxCollider2D))]
-public class CharacterController : RaycastController
+[RequireComponent(typeof(Collider2D))]
+public class CharacterController2D : RaycastController
 {
     [SerializeField] protected CollisionInfo m_Collisions;
+    [SerializeField] protected bool m_IsGrounded;
+
+    public bool IsGrounded { get { return m_IsGrounded; } }
     public CollisionInfo Collisions { get { return m_Collisions; } }
 
     [SerializeField][Range(0.01f, 90.01f)] protected float m_MaxSlopeAngle = 80.0f;
@@ -20,7 +23,7 @@ public class CharacterController : RaycastController
 
     static protected readonly float Epsilon = 0.00001f;
 
-    public void Move(Vector3 displacement)
+    public virtual void Move(Vector3 displacement)
     {
         m_Displacement += displacement;
     }
@@ -46,8 +49,9 @@ public class CharacterController : RaycastController
         }
         if (Mathf.Abs(m_Displacement.y) >= Epsilon)
         {
-            VerticalCollisions();
+             VerticalCollisions();
         }
+        m_IsGrounded = Grounded();
 
         transform.position += m_Displacement;
         m_Displacement = Vector3.zero;
@@ -103,7 +107,6 @@ public class CharacterController : RaycastController
                 break;
             }
         }
-        Debug.Log($"m_Displacement: {m_Displacement.ToString("F6")}");
     }
 
     protected void VerticalCollisions()
@@ -158,6 +161,22 @@ public class CharacterController : RaycastController
                 }
             }
         }
+    }
+
+    protected bool Grounded()
+    {
+        float rayLength = 1.1f * m_SkinWidth + m_Displacement.y;
+        for (int i = 0; i < m_VerticalRayCount; i++)
+        {
+            Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.right * (m_VerticalRaySpacing * i + m_Displacement.x);
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, rayLength, m_CollisionMask);
+            Debug.DrawRay(origin, Vector2.down * rayLength, Color.yellow);
+            if (hit)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void ClimbSlope(float slopeAngle)
