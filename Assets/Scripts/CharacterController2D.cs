@@ -11,8 +11,11 @@ public class CharacterController2D : RaycastController
 {
     [SerializeField] protected CollisionInfo m_Collisions;
     [SerializeField] protected bool m_IsGrounded;
-    [SerializeField] public bool IsFacingWallLeft { get; private set; }
-    [SerializeField] public bool IsFacingWallRight { get; private set; }
+    [SerializeField] protected bool m_IsFacingWallLeft;
+    [SerializeField] protected bool m_IsFacingWallRight;
+
+    [SerializeField] public bool IsFacingWallLeft { get { return m_IsFacingWallLeft; } }
+    [SerializeField] public bool IsFacingWallRight { get { return m_IsFacingWallRight; } }
 
     public bool IsGrounded { get { return m_IsGrounded || Collisions.DescendingSlope; } } //Hack to make 'Descending' state count as Grounded. TODO: Be better.
     public CollisionInfo Collisions { get { return m_Collisions; } }
@@ -41,7 +44,7 @@ public class CharacterController2D : RaycastController
 
         m_Collisions.Reset();
 
-        if (m_Displacement.y <= -Epsilon && Mathf.Abs(m_Displacement.x) >= Epsilon)
+        if (Mathf.Abs(m_Displacement.x) >= Epsilon)
         {
             DescdendSlope();
         }
@@ -56,7 +59,7 @@ public class CharacterController2D : RaycastController
         }
 
         m_IsGrounded = Grounded();
-        (IsFacingWallLeft, IsFacingWallRight) = FacingWall();
+        (m_IsFacingWallLeft, m_IsFacingWallRight) = FacingWall();
 
         transform.position += m_Displacement;
         m_Displacement = Vector3.zero;
@@ -176,7 +179,7 @@ public class CharacterController2D : RaycastController
         {
             Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.up * (m_HorizontalRaySpacing * i);
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.left, m_SkinWidth * 1.1f, m_CollisionMask);
-            if (hit)
+            if (hit && Vector2.Angle(hit.normal, Vector2.up) > m_MaxSlopeAngle)
             {
                 left = true;
                 break;
@@ -187,7 +190,7 @@ public class CharacterController2D : RaycastController
         {
             Vector2 origin = m_RaycastOrigins.BottomRight + Vector2.up * (m_HorizontalRaySpacing * i);
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.right, m_SkinWidth * 1.1f, m_CollisionMask);
-            if (hit)
+            if (hit && Vector2.Angle(hit.normal, Vector2.up) > m_MaxSlopeAngle)
             {
                 right = true;
                 break;
@@ -240,16 +243,13 @@ public class CharacterController2D : RaycastController
             {
                 if ((int)Mathf.Sign(hit.normal.x) == xDirection)
                 {
-                    if (hit.distance - m_SkinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(m_Displacement.x))
-                    {
-                        float distance = Mathf.Abs(m_Displacement.x);
-                        float yDescendDistance = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * distance;
-                        m_Displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * distance * Mathf.Sign(m_Displacement.x);
-                        m_Displacement.y -= yDescendDistance;
-                        m_Collisions.SlopeAngle = slopeAngle;
-                        m_Collisions.Below = true;
-                        m_Collisions.DescendingSlope = true;
-                    }
+                    float distance = Mathf.Abs(m_Displacement.x);
+                    float yDescendDistance = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * distance;
+                    m_Displacement.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * distance * Mathf.Sign(m_Displacement.x);
+                    m_Displacement.y -= yDescendDistance;
+                    m_Collisions.SlopeAngle = slopeAngle;
+                    m_Collisions.Below = true;
+                    m_Collisions.DescendingSlope = true;
                 }
             }
         }
