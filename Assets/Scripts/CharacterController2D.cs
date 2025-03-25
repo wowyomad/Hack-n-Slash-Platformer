@@ -151,7 +151,7 @@ public class CharacterController2D : RaycastController
             }
         }
 
-        //Fixes player getting in the air when going to a different slope
+        //Fixes player getting in the air when going to a different sloped
         if (m_Collisions.ClimbingSlope)
         {
             float xDirection = Mathf.Sign(m_Displacement.x);
@@ -203,7 +203,7 @@ public class CharacterController2D : RaycastController
 
     protected bool Grounded()
     {
-        float rayLength = 1.1f * m_SkinWidth + m_Displacement.y;
+        float rayLength = 1.15f * m_SkinWidth + m_Displacement.y;
         for (int i = 0; i < m_VerticalRayCount; i++)
         {
             Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.right * (m_VerticalRaySpacing * i + m_Displacement.x);
@@ -235,7 +235,10 @@ public class CharacterController2D : RaycastController
     {
         int xDirection = (int)Mathf.Sign(m_Displacement.x);
         Vector2 origin = xDirection == -1 ? m_RaycastOrigins.BottomRight : m_RaycastOrigins.BottomLeft;
-        var hit = Physics2D.Raycast(origin, Vector2.down, Mathf.Infinity, m_CollisionMask);
+
+        float maxRayLength = Mathf.Abs(m_Displacement.x) / Mathf.Cos(m_MaxDescendAngle * Mathf.Deg2Rad) + m_SkinWidth * 1.15f;
+
+        var hit = Physics2D.Raycast(origin, Vector2.down, maxRayLength, m_CollisionMask);
         if (hit)
         {
             float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
@@ -254,6 +257,7 @@ public class CharacterController2D : RaycastController
             }
         }
     }
+
 
     [System.Serializable]
     public class CollisionInfo
