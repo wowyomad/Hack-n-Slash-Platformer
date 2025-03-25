@@ -44,10 +44,7 @@ public class PlayerJumpState : PlayerBaseState
 
     public void OnMove(float direction)
     {
-        if (Mathf.Sign(Player.Velocity.x) != Mathf.Sign(direction))
-        {
-            Player.Flip((int)direction);
-        }
+            Player.Flip(direction);
     }
 }
 

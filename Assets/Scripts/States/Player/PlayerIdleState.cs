@@ -26,7 +26,7 @@ public class PlayerIdleState : PlayerBaseState
         {
             Player.ChangeState(Player.AirState); return;
         }
-        else if (HorizontalInput != 0)
+        else if (HorizontalInput > 0 && !Controller.IsFacingWallRight || HorizontalInput < 0 && !Controller.IsFacingWallLeft)
         {
             Player.ChangeState(Player.WalkState); return;
         }

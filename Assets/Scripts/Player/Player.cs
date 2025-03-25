@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
     public Action<IState> OnStateChange;
     public IState CurrentState => m_StateMachine.Current;
 
-    private int m_FacingDirection = 1;
+    public int FacingDirection { get; private set; }
 
     private void Awake()
     {
@@ -35,7 +35,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        m_FacingDirection = transform.localScale.x == 1 ? 1 : -1;
+        FacingDirection = transform.localScale.x > 0 ? 1 : -1;
     }
 
     private void OnEnable()
@@ -59,11 +59,16 @@ public class Player : MonoBehaviour
 
     public void Flip(int direction)
     {
-        if (direction != m_FacingDirection)
+        if (direction != FacingDirection)
         {
-            m_FacingDirection = -m_FacingDirection;
-            transform.localScale = new Vector3(m_FacingDirection, 1.0f, 1.0f);
+            FacingDirection = -FacingDirection;
+            transform.localScale = new Vector3(FacingDirection, 1.0f, 1.0f);
         }
+    }
+
+    public void Flip(float direction)
+    {
+        Flip((int)direction);
     }
 
     protected void InitializeStates()
@@ -78,18 +83,18 @@ public class Player : MonoBehaviour
         m_StateMachine.ChangeState(IdleState);
     }
 
-    public void ApplyGravity()
-    {
-        Velocity.y += Movement.Gravity * Time.deltaTime;
-        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
-    }
-
     public void ChangeState(IState state)
     {
         m_StateMachine.ChangeState(state);
         OnStateChange.Invoke(state);
     }
 
+    #region likely to be removed
+    public void ApplyGravity()
+    {
+        Velocity.y += Movement.Gravity * Time.deltaTime;
+        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
+    }
     protected void At(IState from, IState to, Func<bool> condition)
     {
         m_StateMachine.AddTransition(from, to, condition);
@@ -102,4 +107,5 @@ public class Player : MonoBehaviour
     {
         m_StateMachine.AddAnyTransition(to, predicate);
     }
+    #endregion
 }

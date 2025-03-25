@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -10,6 +11,8 @@ public class CharacterController2D : RaycastController
 {
     [SerializeField] protected CollisionInfo m_Collisions;
     [SerializeField] protected bool m_IsGrounded;
+    [SerializeField] public bool IsFacingWallLeft { get; private set; }
+    [SerializeField] public bool IsFacingWallRight { get; private set; }
 
     public bool IsGrounded { get { return m_IsGrounded || Collisions.DescendingSlope; } } //Hack to make 'Descending' state count as Grounded. TODO: Be better.
     public CollisionInfo Collisions { get { return m_Collisions; } }
@@ -49,9 +52,11 @@ public class CharacterController2D : RaycastController
         }
         if (Mathf.Abs(m_Displacement.y) >= Epsilon)
         {
-             VerticalCollisions();
+            VerticalCollisions();
         }
+
         m_IsGrounded = Grounded();
+        (IsFacingWallLeft, IsFacingWallRight) = FacingWall();
 
         transform.position += m_Displacement;
         m_Displacement = Vector3.zero;
@@ -162,6 +167,36 @@ public class CharacterController2D : RaycastController
             }
         }
     }
+    protected (bool left, bool right) FacingWall()
+    {
+        bool left = false, right = false;
+
+
+        for (int i = 0; i < m_HorizontalRayCount; i++)
+        {
+            Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.up * (m_HorizontalRaySpacing * i);
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.left, m_SkinWidth * 1.1f, m_CollisionMask);
+            if (hit)
+            {
+                left = true;
+                break;
+            }
+        }
+
+        for (int i = 0; i < m_HorizontalRayCount; i++)
+        {
+            Vector2 origin = m_RaycastOrigins.BottomRight + Vector2.up * (m_HorizontalRaySpacing * i);
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.right, m_SkinWidth * 1.1f, m_CollisionMask);
+            if (hit)
+            {
+                right = true;
+                break;
+            }
+        }
+
+        return (left, right);
+    }
+
 
     protected bool Grounded()
     {

@@ -40,11 +40,13 @@ public class PlayerAirState : PlayerBaseState
         Player.Velocity.x = Mathf.SmoothDamp(Player.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
     }
 
+    public void Move(float direction)
+    {
+
+    }
+
     public void OnMove(float direction)
     {
-        if (Mathf.Sign(Player.Velocity.x) != Mathf.Sign(direction))
-        {
-            Player.Flip((int)direction);
-        }
+        Player.Flip(direction);
     }
 }

@@ -30,6 +30,13 @@ public class PlayerWalkState : PlayerBaseState
         {
             ChangeState(Player.AirState); return;
         }
+        
+        //TODO: use FacingWall instead.
+        if (Input.HorizontalMovement == 1  && Controller.Collisions.Right ||
+            Input.HorizontalMovement == -1 && Controller.Collisions.Left)
+        {
+            ChangeState(Player.IdleState); return;
+        }
 
         //Abomination
         if (Mathf.Abs(Player.Velocity.x) <= 3.0f)
@@ -62,9 +69,8 @@ public class PlayerWalkState : PlayerBaseState
     }
     public void OnMove(float direction)
     {
-        Player.Flip((int)direction);
         m_LastInputTime = Time.time;
-
+        Player.Flip(direction);
     }
     public void OnJump()
     {
