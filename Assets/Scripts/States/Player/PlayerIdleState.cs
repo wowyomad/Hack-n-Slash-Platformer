@@ -53,7 +53,7 @@ public class PlayerIdleState : PlayerBaseState
 
     private void OnAttackMelee()
     {
-        ChangeState(new PlayerAttackingMeleeState(Player));
+        ChangeState(new PlayerAttackMeleeState(Player));
     }
 
     private void OnMove(float direction)

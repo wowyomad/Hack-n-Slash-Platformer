@@ -77,7 +77,7 @@ public class PlayerWalkState : PlayerBaseState
 
     public void OnAttackMelee()
     {
-        ChangeState(new PlayerAttackingMeleeState(Player));
+        ChangeState(new PlayerAttackMeleeState(Player));
     }
     public void OnJump()
     {
