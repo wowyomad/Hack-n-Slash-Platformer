@@ -59,7 +59,7 @@ public class StateMachine
 
     public void ChangeState(IState state)
     {
-        if (m_Current?.State == state)
+        if (m_Current?.State?.GetType() == state.GetType())
             return;
 
         IState previous = m_Current?.State;

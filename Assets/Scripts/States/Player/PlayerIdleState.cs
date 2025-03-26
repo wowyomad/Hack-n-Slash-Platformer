@@ -53,6 +53,7 @@ public class PlayerIdleState : PlayerBaseState
 
     private void OnAttackMelee()
     {
+        Debug.Log("OnAttack");
         ChangeState(new PlayerAttackMeleeState(Player));
     }
 

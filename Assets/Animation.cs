@@ -17,6 +17,6 @@ public class Animation : MonoBehaviour
     }
     void AttackMeleeFinish()
     {
-        OnAttackMeleeFinished?.Invoke();
+        OnAttackMeleeFinished?.Invoke();    
     }
 }

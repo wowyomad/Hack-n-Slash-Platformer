@@ -28,7 +28,7 @@ public class Enemy : MonoBehaviour, IDamageable
     }
     public void TakeDamage(float value, Vector2 direction)
     {
-        Debug.Log($"Damage: {value}, {direction}");
+        Debug.Log($"Tryinng to invoked TakeDamage with: {value}, {direction}");
         OnTakeDamage?.Invoke(value, direction);
     }
 }

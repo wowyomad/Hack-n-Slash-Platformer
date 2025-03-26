@@ -51,7 +51,6 @@ public class PlayerAttackMeleeState : PlayerBaseState
 
     protected void OnAnimationFinished()
     {
-        IState newState = (IState)m_PreviousState.GetType().Instantiate(Player);
-        ChangeState(newState);
+        
     }
 }
