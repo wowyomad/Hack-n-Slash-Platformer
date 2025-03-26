@@ -10,10 +10,12 @@ public class PlayerAirState : PlayerBaseState
     {
         Player.Animator.CrossFade(AirAnimationHash, 0.0f);
         Input.Move += OnMove;
+        Input.Throw += OnThrow;
     }
 
     public override void OnExit()
     {
+        Input.Throw -= OnThrow;
         Input.Move -= OnMove;
     }
 
@@ -43,6 +45,11 @@ public class PlayerAirState : PlayerBaseState
     public void Move(float direction)
     {
 
+    }
+
+    public void OnThrow()
+    {
+        Player.ThrowFirebottle();
     }
 
     public void OnMove(float direction)

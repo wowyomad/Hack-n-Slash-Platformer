@@ -12,6 +12,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Dash;
     public event Action Run;
     public event Action AttackMelee;
+    public event Action Throw;
 
     public event Action Pause;
     public event Action Resume;
@@ -35,6 +36,14 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         m_GameInput.UI.Enable();
         m_GameInput.Gameplay.Disable();
         
+    }
+
+    public void OnThrow(InputAction.CallbackContext context)
+    {
+        if(InputActionPhase.Performed == context.phase)
+        {
+            Throw?.Invoke();
+        }
     }
 
     private void OnEnable()
@@ -157,4 +166,5 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
             }
         }
     }
+
 }

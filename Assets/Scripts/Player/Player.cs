@@ -92,6 +92,23 @@ public class Player : MonoBehaviour
         OnStateChange.Invoke(state);
     }
 
+    public void ThrowFirebottle()
+    {
+        var fireBottlePrefab = Instantiate(Resources.Load<GameObject>("Prefabs/Throwable/FireBottle"));
+        IThrowable fireBottle;
+        if (fireBottlePrefab.TryGetComponent<IThrowable>(out fireBottle))
+        {
+            Throw(fireBottle);
+        }
+    }
+
+    public void Throw(IThrowable throwable)
+    {
+        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.CursorPosition);
+        Vector2 playerPosition = transform.position;
+        Vector2 direction = (mousePosition - playerPosition).normalized;
+        throwable.Throw(playerPosition, direction);
+    }
 
     #region likely to be removed
     public void ApplyGravity()

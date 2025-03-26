@@ -13,6 +13,7 @@ public class PlayerIdleState : PlayerBaseState
         Player.Input.Jump += OnJump;
         Player.Input.Move += OnMove;
         Player.Input.AttackMelee += OnAttackMelee;
+        Player.Input.Throw += OnThrow;
         Player.Velocity.y = 0.0f; //TODO: Be better
     }
 
@@ -21,7 +22,7 @@ public class PlayerIdleState : PlayerBaseState
         Player.Input.Jump -= OnJump;
         Player.Input.Move -= OnMove;
         Player.Input.AttackMelee -= OnAttackMelee;
-
+        Player.Input.Throw -= OnThrow;
     }
     public override void Update()
     {
@@ -49,6 +50,11 @@ public class PlayerIdleState : PlayerBaseState
                 m_VelocitySmoothing = 0f;
             }
         }
+    }
+
+    private void OnThrow()
+    {
+        Player.ThrowFirebottle();
     }
 
     private void OnAttackMelee()

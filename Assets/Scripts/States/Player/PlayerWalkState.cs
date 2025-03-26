@@ -14,6 +14,7 @@ public class PlayerWalkState : PlayerBaseState
         Player.Input.AttackMelee += OnAttackMelee;
         Player.Input.Move += OnMove;
         Player.Input.Jump += OnJump;
+        Player.Input.Throw += OnThrow;
 
         m_VelocitySmoothing = 0.0f;
         Player.Velocity.y = 0.0f; //TODO: Be better
@@ -24,6 +25,7 @@ public class PlayerWalkState : PlayerBaseState
         Player.Input.AttackMelee -= OnAttackMelee;
         Player.Input.Move -= OnMove;
         Player.Input.Jump -= OnJump;
+        Player.Input.Throw -= OnThrow;
     }
 
     public override void Update()
@@ -73,6 +75,11 @@ public class PlayerWalkState : PlayerBaseState
     {
         m_LastInputTime = Time.time;
         Player.Flip(direction);
+    }
+
+    public void OnThrow()
+    {
+        Player.ThrowFirebottle();
     }
 
     public void OnAttackMelee()
