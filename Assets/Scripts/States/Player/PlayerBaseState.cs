@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.XR;
 
 public abstract class PlayerBaseState : IState
 {
     protected CharacterController2D Controller => Player.Controller;
     protected InputReader Input => Player.Input;
-    protected void ChangeState(IState state) => Player.ChangeState(state); 
+    protected void ChangeState(IState state) => Player.ChangeState(state);
 
     public Player Player { get; private set; }
 
@@ -14,6 +15,7 @@ public abstract class PlayerBaseState : IState
     protected static readonly int WalkAnimationHash = Animator.StringToHash("Walk");
     protected static readonly int RunAnimationHash = Animator.StringToHash("Run");
     protected static readonly int AirAnimationHash = Animator.StringToHash("Air");
+    protected static readonly int AttackMeleeAnimationHash = Animator.StringToHash("AttackMelee");
 
     public PlayerBaseState(Player player)
     {
@@ -24,4 +26,11 @@ public abstract class PlayerBaseState : IState
     public virtual void OnExit() { }
     public virtual void Update() { }
     public virtual void FixedUpdate() { }
+
+    protected bool IsAnimationPresent(int hash)
+    {
+        return Player.Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == hash
+            || Player.Animator.GetNextAnimatorStateInfo(0).shortNameHash == hash;
+    }
+
 }

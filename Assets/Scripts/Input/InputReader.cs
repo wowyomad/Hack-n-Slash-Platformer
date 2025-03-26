@@ -11,6 +11,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action JumpCancelled;
     public event Action Dash;
     public event Action Run;
+    public event Action AttackMelee;
 
     public event Action Pause;
     public event Action Resume;
@@ -20,6 +21,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public bool IsDashPressed { get; private set; }
 
     public float HorizontalMovement { get; private set; }
+    public Vector2 CursorPosition { get; private set; }
 
     private GameInput m_GameInput;
     public void SetGameplay()
@@ -65,6 +67,14 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         }
     }
 
+    public void OnMeleeAttack(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            AttackMelee?.Invoke();
+        }
+    }
+
     public void OnJump(InputAction.CallbackContext context)
     {
         if (InputActionPhase.Performed == context.phase)
@@ -75,6 +85,11 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         {
             JumpCancelled?.Invoke();
         }
+    }
+
+    public void OnCursor(InputAction.CallbackContext context)
+    {
+        CursorPosition = context.ReadValue<Vector2>();
     }
 
     public void OnPause(InputAction.CallbackContext context)

@@ -11,6 +11,7 @@ public class Player : MonoBehaviour
     protected StateMachine m_StateMachine;
     public CharacterController2D Controller;
     public Animator Animator;
+    public Animation Animation;
     public InputReader Input;
 
     public Vector3 Velocity = Vector3.zero;
@@ -31,6 +32,7 @@ public class Player : MonoBehaviour
         Input = Resources.Load<InputReader>("Input/InputReader");
         Controller = GetComponent<CharacterController2D>();
         Animator = GetComponentInChildren<Animator>();
+        Animation = GetComponentInChildren<Animation>();
     }
 
     private void Start()
@@ -80,6 +82,7 @@ public class Player : MonoBehaviour
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
 
+
         m_StateMachine.ChangeState(IdleState);
     }
 
@@ -88,6 +91,7 @@ public class Player : MonoBehaviour
         m_StateMachine.ChangeState(state);
         OnStateChange.Invoke(state);
     }
+
 
     #region likely to be removed
     public void ApplyGravity()

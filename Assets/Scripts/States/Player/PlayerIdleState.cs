@@ -12,6 +12,7 @@ public class PlayerIdleState : PlayerBaseState
         Player.Animator.CrossFade(IdleAnimationHash, 0.0f);
         Player.Input.Jump += OnJump;
         Player.Input.Move += OnMove;
+        Player.Input.AttackMelee += OnAttackMelee;
         Player.Velocity.y = 0.0f; //TODO: Be better
     }
 
@@ -19,16 +20,18 @@ public class PlayerIdleState : PlayerBaseState
     {
         Player.Input.Jump -= OnJump;
         Player.Input.Move -= OnMove;
+        Player.Input.AttackMelee -= OnAttackMelee;
+
     }
     public override void Update()
     {
         if (!Player.Controller.IsGrounded)
         {
-            Player.ChangeState(Player.AirState); return;
+            ChangeState(Player.AirState); return;
         }
-        else if (HorizontalInput > 0 && !Controller.IsFacingWallRight || HorizontalInput < 0 && !Controller.IsFacingWallLeft)
+        if (HorizontalInput > 0 && !Controller.IsFacingWallRight || HorizontalInput < 0 && !Controller.IsFacingWallLeft)
         {
-            Player.ChangeState(Player.WalkState); return;
+            ChangeState(Player.WalkState); return;
         }
 
         if (Mathf.Abs(Player.Velocity.x) > 0.0f)
@@ -47,12 +50,18 @@ public class PlayerIdleState : PlayerBaseState
             }
         }
     }
+
+    private void OnAttackMelee()
+    {
+        ChangeState(new PlayerAttackingMeleeState(Player));
+    }
+
     private void OnMove(float direction)
     {
         Player.Flip((int)Mathf.Sign(direction));
     }
     protected void OnJump()
     {
-        ChangeState(Player.JumpState); return;
+        ChangeState(Player.JumpState);
     }
 }
