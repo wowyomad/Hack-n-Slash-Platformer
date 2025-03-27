@@ -73,15 +73,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
             var eventField = GetType().GetEvent(actionName);
             if (eventField == null)
             {
-                Debug.LogWarning($"Event for ActionType({actionName}) is missing");
-                continue;
-            }
-
-            var methodName = "On" + actionName;
-            var method = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (method == null)
-            {
-                Debug.LogWarning($"InputReader {methodName} implementation for ActionType({actionName}) is missing");
+                Debug.LogError($"Event for ActionType({actionName}) is missing");
                 continue;
             }
         }
@@ -161,13 +153,13 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
                 var @event = GetEventInfo(eventName);
                 if (@event == null)
                 {
-                    Debug.LogWarning($"No event found for action type: {eventName}");
+                    Debug.LogError($"No event found for action type: {eventName}");
                     continue;
                 }
 
                 if (!MethodSignatureMatchesEvent(method, @event))
                 {
-                    Debug.LogWarning($"Method signature does not match for action type: {eventName}");
+                    Debug.LogError($"Method signature does not match for action type: {eventName}");
                     continue;
                 }
 
