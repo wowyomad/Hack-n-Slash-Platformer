@@ -22,15 +22,9 @@ public abstract class PlayerBaseState : IState
         Player = player;
     }
 
-    public virtual void OnEnter(IState from) { }
-    public virtual void OnExit() { }
+    public virtual void Enter(IState from) { }
+    public virtual void Exit() { }
     public virtual void Update() { }
     public virtual void FixedUpdate() { }
-
-    protected bool IsAnimationPresent(int hash)
-    {
-        return Player.Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == hash
-            || Player.Animator.GetNextAnimatorStateInfo(0).shortNameHash == hash;
-    }
 
 }

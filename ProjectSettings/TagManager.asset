@@ -34,7 +34,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Particle
   - Enemy
   - Player
   - Ground
@@ -42,5 +42,11 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Game
+    uniqueID: 357171673
+    locked: 0
   m_RenderingLayers:
   - Default
+  - Particle
+  - Player
+  - Chlen

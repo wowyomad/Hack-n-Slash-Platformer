@@ -6,7 +6,7 @@ public class StandartEnemyDeadState : EnemyBaseState
     float m_Timer = 0f;
     public StandartEnemyDeadState(Enemy self) : base(self) { }
 
-    public override void OnEnter(IState from)
+    public override void Enter(IState from)
     {
         SpriteRenderer sprite;
         if (Self.TryGetComponent(out sprite))

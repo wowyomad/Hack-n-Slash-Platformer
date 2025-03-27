@@ -119,7 +119,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MeleeAttack"",
+                    ""name"": ""Attack"",
                     ""type"": ""Button"",
                     ""id"": ""9a64452a-1c9c-49d7-95bf-49225c697a05"",
                     ""expectedControlType"": """",
@@ -253,7 +253,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MeleeAttack"",
+                    ""action"": ""Attack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -317,7 +317,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
         m_Gameplay_Jump = m_Gameplay.FindAction("Jump", throwIfNotFound: true);
         m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
-        m_Gameplay_MeleeAttack = m_Gameplay.FindAction("MeleeAttack", throwIfNotFound: true);
+        m_Gameplay_Attack = m_Gameplay.FindAction("Attack", throwIfNotFound: true);
         m_Gameplay_Cursor = m_Gameplay.FindAction("Cursor", throwIfNotFound: true);
         m_Gameplay_Throw = m_Gameplay.FindAction("Throw", throwIfNotFound: true);
         // UI
@@ -407,7 +407,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Move;
     private readonly InputAction m_Gameplay_Jump;
     private readonly InputAction m_Gameplay_Pause;
-    private readonly InputAction m_Gameplay_MeleeAttack;
+    private readonly InputAction m_Gameplay_Attack;
     private readonly InputAction m_Gameplay_Cursor;
     private readonly InputAction m_Gameplay_Throw;
     /// <summary>
@@ -434,9 +434,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Pause => m_Wrapper.m_Gameplay_Pause;
         /// <summary>
-        /// Provides access to the underlying input action "Gameplay/MeleeAttack".
+        /// Provides access to the underlying input action "Gameplay/Attack".
         /// </summary>
-        public InputAction @MeleeAttack => m_Wrapper.m_Gameplay_MeleeAttack;
+        public InputAction @Attack => m_Wrapper.m_Gameplay_Attack;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Cursor".
         /// </summary>
@@ -480,9 +480,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Pause.started += instance.OnPause;
             @Pause.performed += instance.OnPause;
             @Pause.canceled += instance.OnPause;
-            @MeleeAttack.started += instance.OnMeleeAttack;
-            @MeleeAttack.performed += instance.OnMeleeAttack;
-            @MeleeAttack.canceled += instance.OnMeleeAttack;
+            @Attack.started += instance.OnAttack;
+            @Attack.performed += instance.OnAttack;
+            @Attack.canceled += instance.OnAttack;
             @Cursor.started += instance.OnCursor;
             @Cursor.performed += instance.OnCursor;
             @Cursor.canceled += instance.OnCursor;
@@ -509,9 +509,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Pause.started -= instance.OnPause;
             @Pause.performed -= instance.OnPause;
             @Pause.canceled -= instance.OnPause;
-            @MeleeAttack.started -= instance.OnMeleeAttack;
-            @MeleeAttack.performed -= instance.OnMeleeAttack;
-            @MeleeAttack.canceled -= instance.OnMeleeAttack;
+            @Attack.started -= instance.OnAttack;
+            @Attack.performed -= instance.OnAttack;
+            @Attack.canceled -= instance.OnAttack;
             @Cursor.started -= instance.OnCursor;
             @Cursor.performed -= instance.OnCursor;
             @Cursor.canceled -= instance.OnCursor;
@@ -676,12 +676,12 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPause(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "MeleeAttack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Attack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMeleeAttack(InputAction.CallbackContext context);
+        void OnAttack(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Cursor" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

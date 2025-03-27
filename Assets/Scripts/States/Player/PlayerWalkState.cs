@@ -1,3 +1,4 @@
+using GameActions;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
@@ -9,23 +10,17 @@ public class PlayerWalkState : PlayerBaseState
     private float m_VeloctiyThreshold = 0.03f;
     public PlayerWalkState(Player player) : base(player) { }
 
-    public override void OnEnter(IState state)
+    public override void Enter(IState state)
     {
-        Player.Input.AttackMelee += OnAttackMelee;
-        Player.Input.Move += OnMove;
-        Player.Input.Jump += OnJump;
-        Player.Input.Throw += OnThrow;
+        Input.ListenEvents(this);
 
         m_VelocitySmoothing = 0.0f;
         Player.Velocity.y = 0.0f; //TODO: Be better
     }
 
-    public override void OnExit()
+    public override void Exit()
     {
-        Player.Input.AttackMelee -= OnAttackMelee;
-        Player.Input.Move -= OnMove;
-        Player.Input.Jump -= OnJump;
-        Player.Input.Throw -= OnThrow;
+        Input.StopListening(this);
     }
 
     public override void Update()
@@ -71,22 +66,27 @@ public class PlayerWalkState : PlayerBaseState
             ChangeState(Player.IdleState); return;
         }
     }
-    public void OnMove(float direction)
+
+    [GameAction(ActionType.Move)]
+    protected void OnMove(float direction)
     {
         m_LastInputTime = Time.time;
         Player.Flip(direction);
     }
-
-    public void OnThrow()
+    [GameAction(ActionType.Throw)]
+    protected void OnThrow()
     {
         Player.ThrowFirebottle();
     }
 
-    public void OnAttackMelee()
+    [GameAction(ActionType.Attack)]
+    protected void OnAttack()
     {
         ChangeState(new PlayerAttackMeleeState(Player));
     }
-    public void OnJump()
+
+    [GameAction(ActionType.Jump)]
+    protected void OnJump()
     {
         ChangeState(Player.JumpState); return;
     }

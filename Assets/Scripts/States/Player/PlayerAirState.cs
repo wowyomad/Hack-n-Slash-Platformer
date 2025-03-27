@@ -1,22 +1,19 @@
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
-
+using GameActions;
 public class PlayerAirState : PlayerBaseState
 {
     private float m_VelocitySmoothing = 0.0f;
     public PlayerAirState(Player player) : base(player) { }
 
-    public override void OnEnter(IState from)
+    public override void Enter(IState from)
     {
+        Input.ListenEvents(this);
         Player.Animator.CrossFade(AirAnimationHash, 0.0f);
-        Input.Move += OnMove;
-        Input.Throw += OnThrow;
     }
 
-    public override void OnExit()
+    public override void Exit()
     {
-        Input.Throw -= OnThrow;
-        Input.Move -= OnMove;
+        Input.StopListening(this);
     }
 
     public override void Update()
@@ -42,17 +39,13 @@ public class PlayerAirState : PlayerBaseState
         Player.Velocity.x = Mathf.SmoothDamp(Player.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
     }
 
-    public void Move(float direction)
-    {
-
-    }
-
-    public void OnThrow()
+    [GameAction(ActionType.Throw)]
+    protected void OnThrow()
     {
         Player.ThrowFirebottle();
     }
-
-    public void OnMove(float direction)
+    [GameAction(ActionType.Move)]
+    protected void OnMove(float direction)
     {
         Player.Flip(direction);
     }

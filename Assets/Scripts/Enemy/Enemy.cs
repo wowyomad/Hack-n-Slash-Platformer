@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
@@ -20,15 +21,15 @@ public class Enemy : MonoBehaviour, IDamageable
     private void Awake()
     {
         Controller = GetComponent<CharacterController2D>();
-        StateMachine.ChangeState(new StandartEnemyIdleState(this));
     }
     private void Update()
     {
         StateMachine.Update();
     }
-    public void TakeDamage(float value, Vector2 direction)
+
+    public void TakeDamage(float value, Vector2 normal)
     {
-        Debug.Log($"Tryinng to invoked TakeDamage with: {value}, {direction}");
-        OnTakeDamage?.Invoke(value, direction);
+        Debug.Log($"Tryinng to invoked TakeDamage with: {value}, {normal}");
+        OnTakeDamage?.Invoke(value, normal);
     }
 }

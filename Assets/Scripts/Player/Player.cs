@@ -1,12 +1,11 @@
-using NUnit.Framework;
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
 public class Player : MonoBehaviour
 {
+
     [Header("Components")]
     protected StateMachine m_StateMachine;
     public CharacterController2D Controller;
@@ -26,6 +25,7 @@ public class Player : MonoBehaviour
     public IState CurrentState => m_StateMachine.Current;
 
     public int FacingDirection { get; private set; }
+    public Vector2 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
 
     private void Awake()
     {
@@ -73,6 +73,14 @@ public class Player : MonoBehaviour
         Flip((int)direction);
     }
 
+    public void TurnToCursor()
+    {
+        Vector3 mousePosition = Input.CursorPosition;
+        Vector3 playerPosition = Camera.main.WorldToScreenPoint(transform.position);
+        Vector3 direction = mousePosition - playerPosition;
+        Flip(direction.x > 0 ? 1 : -1);
+    }
+
     protected void InitializeStates()
     {
         m_StateMachine = new StateMachine();
@@ -104,9 +112,8 @@ public class Player : MonoBehaviour
 
     public void Throw(IThrowable throwable)
     {
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.CursorPosition);
         Vector2 playerPosition = transform.position;
-        Vector2 direction = (mousePosition - playerPosition).normalized;
+        Vector2 direction = (WorldCursorPosition - playerPosition).normalized;
         throwable.Throw(playerPosition, direction);
     }
 

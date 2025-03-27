@@ -11,12 +11,12 @@ public class EnemyBaseState : IState
         
     }
 
-    public virtual void OnEnter(IState from)
+    public virtual void Enter(IState from)
     {
         
     }
 
-    public virtual void OnExit()
+    public virtual void Exit()
     {
         
     }

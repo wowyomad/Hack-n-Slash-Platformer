@@ -14,28 +14,20 @@ public class PlayerAttackMeleeState : PlayerBaseState
         m_Weapon = player.GetComponentInChildren<Weapon>();
     }
 
-    public override void OnEnter(IState from)
+    public override void Enter(IState from)
     {
         m_PreviousState = from;
         m_Timer = 0.0f;
 
-        TurnToCursor();
+        Player.TurnToCursor();
 
         Player.Animator.CrossFade(AttackMeleeAnimationHash, 0.0f);
         Player.Animation.OnAttackMeleeFinished.AddListener(OnAnimationFinished);
     }
 
-    protected void TurnToCursor()
+    public override void Exit()
     {
-        Vector3 mousePosition = Input.CursorPosition;
-        Vector3 playerPosition = Camera.main.WorldToScreenPoint(Player.transform.position);
-        Vector3 direction = mousePosition - playerPosition;
-        Player.Flip(direction.x > 0 ? 1 : -1);
-    }
-
-    public override void OnExit()
-    {
-        
+        Player.Animation.OnAttackMeleeFinished.RemoveListener(OnAnimationFinished);
     }
 
     public override void Update()
@@ -51,6 +43,6 @@ public class PlayerAttackMeleeState : PlayerBaseState
 
     protected void OnAnimationFinished()
     {
-        
+        ChangeState(Player.IdleState);
     }
 }

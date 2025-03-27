@@ -60,7 +60,10 @@ public class StateMachine
     public void ChangeState(IState state)
     {
         if (m_Current?.State?.GetType() == state.GetType())
+        {
+            Debug.LogWarning($"State {state} is already active");
             return;
+        }
 
         IState previous = m_Current?.State;
 
@@ -73,9 +76,9 @@ public class StateMachine
             Debug.Log($"Change to {state}");
         }
 
-        previous?.OnExit();
+        previous?.Exit();
         m_Current = new StateNode(state);
-        m_Current.State.OnEnter(previous);
+        m_Current.State.Enter(previous);
     }
 
     public void SwitchState(IState state)
@@ -93,9 +96,9 @@ public class StateMachine
             Debug.Log($"Transition to {state}");
         }
 
-        previous?.OnExit();
+        previous?.Exit();
         m_Current = m_Nodes[state.GetType()];
-        m_Current.State.OnEnter(previous);
+        m_Current.State.Enter(previous);
     }
 
     private ITransition GetTransition()

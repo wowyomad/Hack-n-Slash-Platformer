@@ -11,9 +11,8 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action JumpCancelled;
     public event Action Dash;
     public event Action Run;
-    public event Action AttackMelee;
+    public event Action Attack;
     public event Action Throw;
-
     public event Action Pause;
     public event Action Resume;
 
@@ -65,6 +64,28 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         m_GameInput.UI.Disable();
     }
 
+    private void OnValidate()
+    {
+        var gameActions = Enum.GetValues(typeof(GameActions.ActionType));
+        foreach (var action in gameActions)
+        {
+            var actionName = action.ToString();
+            var eventField = GetType().GetEvent(actionName);
+            if (eventField == null)
+            {
+                Debug.LogWarning($"Event for ActionType({actionName}) is missing");
+                continue;
+            }
+
+            var methodName = "On" + actionName;
+            var method = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (method == null)
+            {
+                Debug.LogWarning($"InputReader {methodName} implementation for ActionType({actionName}) is missing");
+                continue;
+            }
+        }
+    }
 
     #region interface implementation
     public void OnMove(InputAction.CallbackContext context)
@@ -76,11 +97,11 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         }
     }
 
-    public void OnMeleeAttack(InputAction.CallbackContext context)
+    public void OnAttack(InputAction.CallbackContext context)
     {
         if (InputActionPhase.Performed == context.phase)
         {
-            AttackMelee?.Invoke();
+            Attack?.Invoke();
         }
     }
 
@@ -133,37 +154,70 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         foreach (var method in listener.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
         {
-            if (method.Name.StartsWith("On"))
+            var attribute = method.GetCustomAttribute<GameActions.GameActionAttribute>();
+            if (attribute != null)
             {
-                var eventName = method.Name.Substring(2);
-                var eventInfo = this.GetType().GetEvent(eventName);
-                if (eventInfo != null)
+                var eventName = attribute.ActionType.ToString();
+                var @event = GetEventInfo(eventName);
+                if (@event == null)
                 {
-                    var parameters = method.GetParameters();
-                    var eventHandlerType = eventInfo.EventHandlerType;
-                    var eventHandlerInvokeMethod = eventHandlerType.GetMethod("Invoke");
-                    var eventHandlerParameters = eventHandlerInvokeMethod.GetParameters();
+                    Debug.LogWarning($"No event found for action type: {eventName}");
+                    continue;
+                }
 
-                    if (parameters.Length == eventHandlerParameters.Length)
-                    {
-                        bool parametersMatch = true;
-                        for (int i = 0; i < parameters.Length; i++)
-                        {
-                            if (parameters[i].ParameterType != eventHandlerParameters[i].ParameterType)
-                            {
-                                parametersMatch = false;
-                                break;
-                            }
-                        }
+                if (!MethodSignatureMatchesEvent(method, @event))
+                {
+                    Debug.LogWarning($"Method signature does not match for action type: {eventName}");
+                    continue;
+                }
 
-                        if (parametersMatch)
-                        {
-                            var action = Delegate.CreateDelegate(eventHandlerType, listener, method);
-                            modifyHandler(eventInfo, action);
-                        }
-                    }
+                var action = CreateDelegate(listener, method, @event);
+                if (action != null)
+                {
+                    modifyHandler(@event, action);
                 }
             }
+        }
+    }
+
+    private bool MethodSignatureMatchesEvent(MethodInfo method, EventInfo eventInfo)
+    {
+        var parameters = method.GetParameters();
+        var eventHandlerType = eventInfo.EventHandlerType;
+        var eventHandlerInvokeMethod = eventHandlerType.GetMethod("Invoke");
+        var eventHandlerParameters = eventHandlerInvokeMethod.GetParameters();
+
+        if (parameters.Length != eventHandlerParameters.Length)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].ParameterType != eventHandlerParameters[i].ParameterType)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private EventInfo GetEventInfo(string eventName)
+    {
+        return GetType().GetEvent(eventName);
+    }
+
+    private Delegate CreateDelegate(object listener, MethodInfo method, EventInfo eventInfo)
+    {
+        try
+        {
+            return Delegate.CreateDelegate(eventInfo.EventHandlerType, listener, method);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to create delegate for method: {method.Name}. Exception: {ex}");
+            return null;
         }
     }
 

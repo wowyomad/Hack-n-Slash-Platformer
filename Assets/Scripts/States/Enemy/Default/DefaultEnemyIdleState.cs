@@ -8,7 +8,7 @@ public class StandartEnemyIdleState : EnemyBaseState
 
     }
 
-    public override void OnEnter(IState state)
+    public override void Enter(IState state)
     {
         Self.OnTakeDamage += OnTakeDamage;
 
@@ -19,7 +19,7 @@ public class StandartEnemyIdleState : EnemyBaseState
         }
     }
 
-    public override void OnExit()
+    public override void Exit()
     {
         Self.OnTakeDamage -= OnTakeDamage;
     }

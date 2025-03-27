@@ -1,3 +1,4 @@
+using GameActions;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
@@ -8,17 +9,15 @@ public class PlayerJumpState : PlayerBaseState
 
     public PlayerJumpState(Player player) : base(player) { }
 
-    public override void OnEnter(IState from)
+    public override void Enter(IState from)
     {
-        Input.Move += OnMove;
-        Input.Throw += OnThrow;
+        Input.ListenEvents(this);
         Player.Animator.CrossFade(JumpAnimationHash, 0.0f);
         Player.Velocity.y = JumpVelocity;
     }
-    public override void OnExit()
+    public override void Exit()
     {
-        Input.Throw -= OnThrow;
-        Input.Move -= OnMove;
+        Input.StopListening(this);
     }
     public override void Update()
     {
@@ -43,13 +42,17 @@ public class PlayerJumpState : PlayerBaseState
         Player.Velocity.x = Mathf.SmoothDamp(Player.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
 
     }
-    public void OnThrow()
+
+    [GameAction(ActionType.Throw)]
+    protected void OnThrow()
     {
         Player.ThrowFirebottle();
     }
-    public void OnMove(float direction)
+
+    [GameAction(ActionType.Move)]
+    protected void OnMove(float direction)
     {
-            Player.Flip(direction);
+        Player.Flip(direction);
     }
 }
 
