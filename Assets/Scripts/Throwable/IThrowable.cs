@@ -4,5 +4,6 @@ using UnityEngine;
 public interface IThrowable
 {
     public void Throw(Vector2 origin, Vector2 direction);
-    event Action<GameObject> OnImpact;
+    event Action<GameObject, Vector2> OnImpact;
+    event Action<Vector2> OnThrow;
 }

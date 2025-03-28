@@ -16,10 +16,7 @@ public class StateTextUpdater : MonoBehaviour
 
     private void Start()
     {
-        if (m_Player != null)
-        {
-            UpdateStateText(m_Player.CurrentState);
-        }
+       
     }
 
     private void OnEnable()

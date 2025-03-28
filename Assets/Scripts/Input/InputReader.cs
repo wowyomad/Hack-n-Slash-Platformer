@@ -7,6 +7,9 @@ using UnityEngine.InputSystem;
 public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInput.IUIActions
 {
     public event Action<float> Move;
+    public event Action<float> MoveStared; //unused
+    public event Action<float> MoveCancelled; //unused
+
     public event Action Jump;
     public event Action JumpCancelled;
     public event Action Dash;
@@ -106,6 +109,14 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         if (InputActionPhase.Canceled == context.phase)
         {
             JumpCancelled?.Invoke();
+        }
+    }
+
+    public void OnDash(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Dash?.Invoke();
         }
     }
 

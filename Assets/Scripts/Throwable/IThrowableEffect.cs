@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface IThrowableEffect
 {
-    void ApplyEffect(GameObject target);
+    void ApplyEffect(GameObject collidedObject, Vector2 position);
 }

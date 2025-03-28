@@ -5,13 +5,15 @@ public class RaycastController : MonoBehaviour
     protected RaycastOrigins m_RaycastOrigins;
     protected Collider2D m_Collider;
 
-    [SerializeField] protected LayerMask m_CollisionMask;
-    [SerializeField][Range(2, 32)] protected int m_HorizontalRayCount = 4;
-    [SerializeField][Range(2, 32)] protected int m_VerticalRayCount = 4;
-    [SerializeField][Range(0.001f, 1.0f)] protected float m_SkinWidth = 0.015f;
+    [SerializeField] protected LayerMask CollisionMask;
+    [SerializeField] protected LayerMask PassThroughMask;
 
-    protected float m_HorizontalRaySpacing;
-    protected float m_VerticalRaySpacing;
+    [SerializeField][Range(2, 32)] protected int HorizontalRayCount = 4;
+    [SerializeField][Range(2, 32)] protected int VerticalRayCount = 4;
+    [SerializeField][Range(0.001f, 1.0f)] protected float SkinWidth = 0.015f;
+
+    protected float HorizontalRaySpacing;
+    protected float VerticalRaySpacing;
 
 
     protected virtual void Awake()
@@ -32,7 +34,7 @@ public class RaycastController : MonoBehaviour
     protected void RecalculateRaycastOrigins()
     {
         Bounds bounds = m_Collider.bounds;
-        bounds.Expand(-m_SkinWidth * 2.0f);
+        bounds.Expand(-SkinWidth * 2.0f);
         m_RaycastOrigins.BottomLeft = new Vector2(bounds.min.x, bounds.min.y);
         m_RaycastOrigins.BottomRight = new Vector2(bounds.max.x, bounds.min.y);
         m_RaycastOrigins.TopLeft = new Vector2(bounds.min.x, bounds.max.y);
@@ -44,11 +46,11 @@ public class RaycastController : MonoBehaviour
         if (m_Collider == null) return;
 
         Bounds bounds = m_Collider.bounds;
-        bounds.Expand(-m_SkinWidth * 2.0f);
-        m_HorizontalRayCount = Mathf.Clamp(m_HorizontalRayCount, 2, int.MaxValue);
-        m_VerticalRayCount = Mathf.Clamp(m_VerticalRayCount, 2, int.MaxValue);
-        m_HorizontalRaySpacing = bounds.size.y / (m_HorizontalRayCount - 1);
-        m_VerticalRaySpacing = bounds.size.x / (m_VerticalRayCount - 1);
+        bounds.Expand(-SkinWidth * 2.0f);
+        HorizontalRayCount = Mathf.Clamp(HorizontalRayCount, 2, int.MaxValue);
+        VerticalRayCount = Mathf.Clamp(VerticalRayCount, 2, int.MaxValue);
+        HorizontalRaySpacing = bounds.size.y / (HorizontalRayCount - 1);
+        VerticalRaySpacing = bounds.size.x / (VerticalRayCount - 1);
     }
 
 

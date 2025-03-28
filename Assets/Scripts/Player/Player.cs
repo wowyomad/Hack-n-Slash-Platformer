@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
     public PlayerWalkState WalkState;
     public PlayerJumpState JumpState;
     public PlayerAirState AirState;
+    public PlayerAttackState AttackState;
 
     public Action<IState> OnStateChange;
     public IState CurrentState => m_StateMachine.Current;
@@ -89,7 +90,7 @@ public class Player : MonoBehaviour
         WalkState = new PlayerWalkState(this);
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
-
+        AttackState = new PlayerAttackState(this);
 
         m_StateMachine.ChangeState(IdleState);
     }

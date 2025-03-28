@@ -3,13 +3,13 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class PlayerAttackMeleeState : PlayerBaseState
+public class PlayerAttackState : PlayerBaseState
 {
     private IState m_PreviousState;
     private float m_FallbackDuration = 0.4375f;
     private float m_Timer = 0.0f;
     private Weapon m_Weapon;
-    public PlayerAttackMeleeState(Player player) : base(player)
+    public PlayerAttackState(Player player) : base(player)
     {
         m_Weapon = player.GetComponentInChildren<Weapon>();
     }

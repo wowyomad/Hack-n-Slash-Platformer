@@ -6,9 +6,11 @@ public class SomeThrowable : MonoBehaviour, IThrowable
 {
     private Rigidbody2D m_RigidBody;
 
-    public event Action<GameObject> OnImpact;
+    public event Action<GameObject, Vector2> OnImpact;
+    public event Action<Vector2> OnThrow;
+
     [SerializeField] private float m_Velocity = 1.0f;
-    [SerializeField] private float m_MaxThrowDistanceBeforeImpact = 10f;
+    [SerializeField] private bool m_CanHitPlayer = false;
 
     private void Awake()
     {
@@ -39,11 +41,19 @@ public class SomeThrowable : MonoBehaviour, IThrowable
         gameObject.SetActive(true);
         transform.position = origin;
         m_RigidBody.linearVelocity = direction * m_Velocity;
+
+        OnThrow?.Invoke(direction);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        OnImpact?.Invoke(collision.gameObject);
+
+        if(!m_CanHitPlayer && collision.gameObject.GetComponent<Player>() != null)
+        {
+            return;
+        }
+
+        OnImpact?.Invoke(collision.gameObject, collision.contacts[0].point);
         Reset();
     }
 

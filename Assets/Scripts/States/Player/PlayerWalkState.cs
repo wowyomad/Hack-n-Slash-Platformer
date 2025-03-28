@@ -67,6 +67,12 @@ public class PlayerWalkState : PlayerBaseState
         }
     }
 
+    [GameAction(ActionType.Dash)]
+    protected void OnPass()
+    {
+        Controller.PassThrough();
+    }
+
     [GameAction(ActionType.Move)]
     protected void OnMove(float direction)
     {
@@ -82,7 +88,7 @@ public class PlayerWalkState : PlayerBaseState
     [GameAction(ActionType.Attack)]
     protected void OnAttack()
     {
-        ChangeState(new PlayerAttackMeleeState(Player));
+        ChangeState(new PlayerAttackState(Player));
     }
 
     [GameAction(ActionType.Jump)]

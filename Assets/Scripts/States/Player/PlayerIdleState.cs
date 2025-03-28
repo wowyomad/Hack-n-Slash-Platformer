@@ -25,6 +25,7 @@ public class PlayerIdleState : PlayerBaseState
         {
             ChangeState(Player.AirState); return;
         }
+
         if (HorizontalInput > 0 && !Controller.IsFacingWallRight || HorizontalInput < 0 && !Controller.IsFacingWallLeft)
         {
             ChangeState(Player.WalkState); return;
@@ -32,19 +33,14 @@ public class PlayerIdleState : PlayerBaseState
 
         if (Mathf.Abs(Player.Velocity.x) > 0.0f)
         {
-            Player.Velocity.x = Mathf.SmoothDamp(
-                Player.Velocity.x,
-                0f,
-                ref m_VelocitySmoothing,
-                Player.Movement.DecelerationTimeGrounded
-            );
-
-            if (Mathf.Abs(Player.Velocity.x) < 0.01f)
-            {
-                Player.Velocity.x = 0f;
-                m_VelocitySmoothing = 0f;
-            }
+            Player.Velocity.x = 0.0f;
         }
+    }
+
+    [GameAction(ActionType.Dash)]
+    protected void OnPass()
+    {
+        Controller.PassThrough();
     }
 
     [GameAction(ActionType.Throw)]
@@ -56,14 +52,13 @@ public class PlayerIdleState : PlayerBaseState
     [GameAction(ActionType.Attack)]
     protected void OnAttack()
     {
-        Debug.Log("OnAttack");
-        ChangeState(new PlayerAttackMeleeState(Player));
+        ChangeState(Player.AttackState);
     }
 
     [GameAction(ActionType.Move)]
     protected void OnMove(float direction)
     {
-        Player.Flip((int)Mathf.Sign(direction));
+        Player.Flip(direction);
     }
 
     [GameAction(ActionType.Jump)]

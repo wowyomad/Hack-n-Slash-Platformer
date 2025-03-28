@@ -23,6 +23,11 @@ public class PlayerJumpState : PlayerBaseState
     {
         Player.ApplyGravity();
 
+        if (Controller.Collisions.Above)
+        {
+            Player.Velocity.y = 0.0f;
+        }
+
         if (Player.Velocity.y <= 0.0f)
         {
             Player.ChangeState(Player.AirState); return;
