@@ -26,7 +26,7 @@ public class Player : MonoBehaviour
     public IState CurrentState => m_StateMachine.Current;
 
     public int FacingDirection { get; private set; }
-    public Vector2 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
+    public Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
 
     private void Awake()
     {
@@ -113,9 +113,10 @@ public class Player : MonoBehaviour
 
     public void Throw(IThrowable throwable)
     {
-        Vector2 playerPosition = transform.position;
-        Vector2 direction = (WorldCursorPosition - playerPosition).normalized;
-        throwable.Throw(playerPosition, direction);
+        Vector3 targetPosition = WorldCursorPosition - Velocity;
+        Vector3 directionToTarget = (targetPosition - transform.position).normalized;
+        Vector3 originPosition = transform.position + directionToTarget * 1.0f;
+        throwable.Throw(originPosition, WorldCursorPosition);
     }
 
     #region likely to be removed

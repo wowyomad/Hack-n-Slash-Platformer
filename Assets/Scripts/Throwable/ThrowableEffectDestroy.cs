@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class ThrowableDestroyOnImpact : MonoBehaviour, IThrowableEffect
+public class ThrowableDestroyOnImpact : MonoBehaviour, IThrowableImpactEffect
 {
-    public void ApplyEffect(GameObject collidedObject, Vector2 position)
+    public void ApplyImpactEffect(GameObject collidedObject, Vector2 position, Vector2 normal)
     {
         Destroy(gameObject);
     }

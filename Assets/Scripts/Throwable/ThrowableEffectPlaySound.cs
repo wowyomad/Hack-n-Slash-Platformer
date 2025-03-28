@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ThrowableEffectSound : MonoBehaviour, IThrowableEffect
+public class ThrowableEffectSound : MonoBehaviour, IThrowableImpactEffect
 {
     public AudioClip Sound;
     private AudioSource m_AudioSource;
@@ -10,7 +10,7 @@ public class ThrowableEffectSound : MonoBehaviour, IThrowableEffect
         m_AudioSource = GetComponent<AudioSource>();
     }
 
-    public void ApplyEffect(GameObject collidedObject, Vector2 position)
+    public void ApplyImpactEffect(GameObject collidedObject, Vector2 position, Vector2 normal)
     {
         if (Sound != null)
         {
