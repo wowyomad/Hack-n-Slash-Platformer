@@ -5,26 +5,36 @@ using UnityEngine;
 [System.Serializable]
 public class StateMachine
 {
-    [SerializeField] StateNode m_Current;
-    [SerializeField] Dictionary<Type, StateNode> m_Nodes = new();
-    [SerializeField] HashSet<ITransition> m_AnyTransitions = new();
+    StateNode m_Current;
+    Dictionary<Type, StateNode> m_Nodes = new();
+    HashSet<ITransition> m_AnyTransitions = new();
+
+    private IState m_PendingState = null;
+    private StateNode m_EmptyStateNode;
 
     public IState Current
     {
         get
         {
-            return m_Current.State;
+            return m_Current?   .State;
         }
     }
 
     public void Update()
     {
-        ITransition transition = GetTransition();
-        if (transition != null)
+        if (m_PendingState != null)
         {
-            SwitchState(transition.To);
+            ChangeCurrentStateToPending();
         }
-        
+        else 
+        {
+            ITransition transition = GetTransition();
+            if (transition != null)
+            {
+                SwitchState(transition.To);
+            }
+        }
+
         m_Current.State.Update();
     }
 
@@ -36,7 +46,7 @@ public class StateMachine
 
     public void AddAnyTransition(IState to, IPredicate condition)
     {
-        if(!m_Nodes.ContainsKey(to.GetType()))
+        if (!m_Nodes.ContainsKey(to.GetType()))
             m_Nodes.Add(to.GetType(), new StateNode(to));
         m_AnyTransitions.Add(new Transition(to, condition));
     }
@@ -55,7 +65,7 @@ public class StateMachine
             m_Nodes.Add(to.GetType(), new StateNode(to));
 
         m_Nodes[from.GetType()].AddTransition(to, condition);
-    } 
+    }
 
     public void ChangeState(IState state)
     {
@@ -64,21 +74,36 @@ public class StateMachine
             Debug.LogWarning($"State {state} is already active");
             return;
         }
-
-        IState previous = m_Current?.State;
-
-        if (previous != null)
+        if (m_PendingState != null)
         {
-            Debug.Log($"Change from {previous.GetType()} to {state}");
+            Debug.LogWarning($"State Machine already has a pending state: {state}");
+            return;
         }
-        else
-        {
-            Debug.Log($"Change to {state}");
-        }
+        m_PendingState = state;
+    }
 
-        previous?.Exit();
-        m_Current = new StateNode(state);
-        m_Current.State.Enter(previous);
+    private void ChangeCurrentStateToPending()
+    {
+        if (m_PendingState != null)
+        {
+            IState newState = m_PendingState;
+            m_PendingState = null;
+
+            IState previousState = m_Current?.State;
+
+            if (previousState != null)
+            {
+                Debug.Log($"Change from {previousState.GetType()} to {newState.GetType()}");
+            }
+            else
+            {
+                Debug.Log($"Change to {newState.GetType()}");
+            }
+
+            previousState?.Exit();
+            m_Current = GetOrCreateStateNode(newState);
+            m_Current.State.Enter(previousState);
+        }
     }
 
     public void SwitchState(IState state)
@@ -101,9 +126,14 @@ public class StateMachine
         m_Current.State.Enter(previous);
     }
 
+    private StateNode GetOrCreateStateNode(IState state)
+    {
+       return new StateNode(state);
+    }
+
     private ITransition GetTransition()
     {
-        if(m_Current == null)
+        if (m_Current == null)
         {
             Debug.Log("Current state is null");
             return null;
@@ -126,7 +156,7 @@ public class StateMachine
     [System.Serializable]
     class StateNode
     {
-        [SerializeField] public IState State { get; }
+        [SerializeField] public IState State { get; private set; }
         public HashSet<ITransition> Transitions { get; }
 
         public StateNode(IState state)
@@ -134,7 +164,6 @@ public class StateMachine
             State = state;
             Transitions = new HashSet<ITransition>();
         }
-
         public void AddTransition(IState to, IPredicate condition)
         {
             Debug.Log($"Added transition from {State.GetType()} to {to.GetType()}");
