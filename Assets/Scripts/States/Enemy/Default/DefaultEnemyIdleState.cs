@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
 {

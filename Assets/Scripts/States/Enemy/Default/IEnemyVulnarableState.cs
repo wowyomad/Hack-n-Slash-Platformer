@@ -1,5 +1,4 @@
 public interface IEnemyVulnarableState : IEnemyState
 {
 
-
 }

@@ -43,7 +43,11 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     }
     public void TakeHit()
     {
-        OnHit?.Invoke();
+        if (CanTakeHit)
+        {
+            OnHit?.Invoke();
+            EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent { EnemyPosition = transform.position });
+        }
     }
 
     private void OnDestroy()

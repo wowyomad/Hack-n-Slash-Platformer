@@ -6,6 +6,10 @@ public class EnemyBaseState : IEnemyState
         Self = self;
     }
 
+    public virtual void Update()
+    {
+
+    }
     public virtual void FixedUpdate()
     {
         
@@ -21,10 +25,6 @@ public class EnemyBaseState : IEnemyState
         
     }
 
-    public virtual void Update()
-    {
-        
-    }
 
     protected void ChangeState(IEnemyState state) => Self.StateMachine.ChangeState(state);
 }
