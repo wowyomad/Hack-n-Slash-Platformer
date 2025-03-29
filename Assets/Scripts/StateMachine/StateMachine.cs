@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class StateMachine
+public class StateMachine <TState> where TState : class, IState
 {
-    StateNode m_Current;
-    Dictionary<Type, StateNode> m_Nodes = new();
-    HashSet<ITransition> m_AnyTransitions = new();
+    public event Action<IState, IState> OnStateChange;
 
-    private IState m_PendingState = null;
+    private StateNode m_Current;
+    private Dictionary<Type, StateNode> m_Nodes = new();
+    private HashSet<Transition<TState>> m_AnyTransitions = new();
+
+    private TState m_PendingState = null;
     private StateNode m_EmptyStateNode;
-
-    public IState Current
+    public TState CurrentState
     {
         get
         {
-            return m_Current?   .State;
+            return m_Current?.State;
         }
     }
 
@@ -26,38 +27,38 @@ public class StateMachine
         {
             ChangeCurrentStateToPending();
         }
-        else 
+        else
         {
-            ITransition transition = GetTransition();
+            var transition = GetTransition();
             if (transition != null)
             {
                 SwitchState(transition.To);
             }
         }
 
-        m_Current.State.Update();
+        CurrentState?.Update();
     }
 
-    public void AddAnyTransition(IState to, Func<bool> condition)
+    public void AddAnyTransition(TState to, Func<bool> condition)
     {
         var predicate = new FuncPredicate(condition);
         AddAnyTransition(to, predicate);
     }
 
-    public void AddAnyTransition(IState to, IPredicate condition)
+    public void AddAnyTransition(TState to, IPredicate condition)
     {
         if (!m_Nodes.ContainsKey(to.GetType()))
             m_Nodes.Add(to.GetType(), new StateNode(to));
-        m_AnyTransitions.Add(new Transition(to, condition));
+        m_AnyTransitions.Add(new Transition<TState>(to, condition));
     }
 
-    public void AddTransition(IState from, IState to, Func<bool> condition)
+    public void AddTransition(TState from, TState to, Func<bool> condition)
     {
         var predicate = new FuncPredicate(condition);
         AddTransition(from, to, predicate);
     }
 
-    public void AddTransition(IState from, IState to, IPredicate condition)
+    public void AddTransition(TState from, TState to, IPredicate condition)
     {
         if (!m_Nodes.ContainsKey(from.GetType()))
             m_Nodes.Add(from.GetType(), new StateNode(from));
@@ -67,9 +68,9 @@ public class StateMachine
         m_Nodes[from.GetType()].AddTransition(to, condition);
     }
 
-    public void ChangeState(IState state)
+    public void ChangeState(TState state)
     {
-        if (m_Current?.State?.GetType() == state.GetType())
+        if (CurrentState?.GetType() == state.GetType())
         {
             Debug.LogWarning($"State {state} is already active");
             return;
@@ -82,60 +83,34 @@ public class StateMachine
         m_PendingState = state;
     }
 
+    public void SwitchState(TState state)
+    {
+        if (CurrentState == state || !m_Nodes.ContainsKey(state.GetType()))
+            return;
+
+        PerformStateTransition(state);
+    }
+
     private void ChangeCurrentStateToPending()
     {
         if (m_PendingState != null)
         {
-            IState newState = m_PendingState;
+            TState newState = m_PendingState;
             m_PendingState = null;
-
-            IState previousState = m_Current?.State;
-
-            if (previousState != null)
-            {
-                Debug.Log($"Change from {previousState.GetType()} to {newState.GetType()}");
-            }
-            else
-            {
-                Debug.Log($"Change to {newState.GetType()}");
-            }
-
-            previousState?.Exit();
-            m_Current = GetOrCreateStateNode(newState);
-            m_Current.State.Enter(previousState);
+            PerformStateTransition(newState);
         }
     }
 
-    public void SwitchState(IState state)
+    private StateNode GetOrCreateStateNode(TState state)
     {
-        if (m_Current?.State == state || !m_Nodes.ContainsKey(state.GetType()))
-            return;
-
-        IState previous = m_Current.State;
-        if (previous != null)
-        {
-            Debug.Log($"Transition from {previous.GetType()} to {state}");
-        }
-        else
-        {
-            Debug.Log($"Transition to {state}");
-        }
-
-        previous?.Exit();
-        m_Current = m_Nodes[state.GetType()];
-        m_Current.State.Enter(previous);
+        return new StateNode(state);
     }
 
-    private StateNode GetOrCreateStateNode(IState state)
-    {
-       return new StateNode(state);
-    }
-
-    private ITransition GetTransition()
+    private Transition<TState> GetTransition()
     {
         if (m_Current == null)
         {
-            Debug.Log("Current state is null");
+            Debug.LogWarning("Current state is null");
             return null;
         }
         foreach (var transition in m_AnyTransitions)
@@ -153,21 +128,32 @@ public class StateMachine
         return null;
     }
 
-    [System.Serializable]
-    class StateNode
+    private void PerformStateTransition(TState newState)
     {
-        [SerializeField] public IState State { get; private set; }
-        public HashSet<ITransition> Transitions { get; }
+        IState previousState = m_Current?.State;
 
-        public StateNode(IState state)
+        previousState?.Exit();
+        m_Current = GetOrCreateStateNode(newState);
+        m_Current.State.Enter(previousState);
+
+        OnStateChange?.Invoke(previousState, newState);
+    }
+
+    [System.Serializable]
+    private class StateNode
+    {
+        [SerializeField] public TState State { get; private set; }
+        public HashSet<Transition<TState>> Transitions { get; }
+
+        public StateNode(TState state)
         {
             State = state;
-            Transitions = new HashSet<ITransition>();
+            Transitions = new HashSet<Transition<TState>>();
         }
-        public void AddTransition(IState to, IPredicate condition)
+        public void AddTransition(TState to, IPredicate condition)
         {
             Debug.Log($"Added transition from {State.GetType()} to {to.GetType()}");
-            Transitions.Add(new Transition(to, condition));
+            Transitions.Add(new Transition<TState>(to, condition));
         }
     }
 }

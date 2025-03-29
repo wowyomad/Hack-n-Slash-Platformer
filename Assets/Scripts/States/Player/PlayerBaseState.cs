@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
-using UnityEngine.XR;
 
 public abstract class PlayerBaseState : IState
 {
     protected CharacterController2D Controller => Player.Controller;
     protected InputReader Input => Player.Input;
-    protected void ChangeState(IState state) => Player.ChangeState(state);
+    protected void ChangeState(IPlayerState state) => Player.ChangeState(state);
 
     public Player Player { get; private set; }
 

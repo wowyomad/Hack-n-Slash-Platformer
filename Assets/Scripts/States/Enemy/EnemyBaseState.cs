@@ -1,4 +1,4 @@
-public class EnemyBaseState : IState
+public class EnemyBaseState : IEnemyState
 {
     public Enemy Self;
     public EnemyBaseState(Enemy self)
@@ -26,5 +26,5 @@ public class EnemyBaseState : IState
         
     }
 
-    protected void ChangeState(IState state) => Self.StateMachine.ChangeState(state);
+    protected void ChangeState(IEnemyState state) => Self.StateMachine.ChangeState(state);
 }

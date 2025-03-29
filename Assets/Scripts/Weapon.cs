@@ -1,6 +1,8 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
+[RequireComponent(typeof(Collider2D))]
+
 public class Weapon : MonoBehaviour
 {
     private Collider2D m_Collider;
@@ -29,11 +31,10 @@ public class Weapon : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         Debug.Log($"Hit {collision.tag}");
-        Enemy enemy;
-        if (collision.TryGetComponent<Enemy>(out enemy))
+        IHittable target;
+        if (collision.TryGetComponent<IHittable>(out target))
         {
-            var direction = (collision.transform.position - transform.position).normalized;
-            enemy.TakeDamage(0, direction);
+            target.TakeHit();
         }
     }
 

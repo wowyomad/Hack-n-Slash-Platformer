@@ -1,15 +1,6 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-
-[CreateAssetMenu(fileName = "ThrowableStats", menuName = "Throwable/Stats")]
-public class ThrowableStats : ScriptableObject
-{
-    public float Velocity = 1.0f;
-    public bool CanHitPlayer = false;
-    public bool CanHitEnemy = true;
-    public bool FalloffOnTarget = false;
-    public LayerMask HitLayer;
-}
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
@@ -21,8 +12,19 @@ public class SomeThrowable : MonoBehaviour, IThrowable
     public event Action<GameObject, Vector2, Vector2> OnImpact;
     public event Action<Vector2> OnThrow;
     [SerializeField] private ThrowableStats m_Stats;
+    private int m_HitCount = 0;
+    private HashSet<GameObject> m_HitObjects = new();
 
     private Action m_OnReset => () => GameObject.Destroy(gameObject);
+
+    private Vector3 m_TargetPosition;
+    public float DistanceToTarget => (m_TargetPosition - transform.position).magnitude;
+
+    private bool m_HasReachedTarget = false;
+    private float m_ClosestDistance = float.MaxValue;
+
+    private float m_HasReachedTargetTimer = 0.0f;
+    private bool RemoveOnTargetReached => m_Stats.RemoveOnTargetReached && (m_HasReachedTargetTimer >= m_Stats.TimeAliveAfterReachedTarget);
 
 
     private void Awake()
@@ -46,21 +48,44 @@ public class SomeThrowable : MonoBehaviour, IThrowable
 
     public void Throw(Vector2 origin, Vector2 target)
     {
-        gameObject.SetActive(true);
         transform.position = origin;
         var direction = (target - origin).normalized;
         m_RigidBody.linearVelocity = direction * m_Stats.Velocity;
 
+        m_TargetPosition = target;
+        gameObject.SetActive(true);
         OnThrow?.Invoke(direction);
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        Vector2 displacement = m_RigidBody.linearVelocity * Time.fixedDeltaTime;
-        float distanceThisFrame = displacement.magnitude;
+        if (RemoveOnTargetReached || m_HitCount >= m_Stats.MaximumHits)
+        {
+            Reset();
+        }
+        else
+        {
+            Vector2 displacement = m_RigidBody.linearVelocity * Time.fixedDeltaTime;
+            float distanceThisFrame = displacement.magnitude;
 
-        RotateInDirection(m_RigidBody.linearVelocity);
-        HandleCollision(distanceThisFrame, displacement);
+            float currentDistance = DistanceToTarget;
+            if (currentDistance < m_ClosestDistance)
+            {
+                m_ClosestDistance = currentDistance;
+            }
+
+            if (!m_HasReachedTarget && currentDistance > m_ClosestDistance)
+            {
+                m_HasReachedTarget = true;
+            }
+
+            RotateInDirection(m_RigidBody.linearVelocity);
+            HandleCollision(distanceThisFrame, displacement);
+        }
+        if (m_HasReachedTarget)
+        {
+            m_HasReachedTargetTimer += Time.deltaTime;
+        }
     }
 
     private void RotateInDirection(Vector2 direction)
@@ -72,33 +97,57 @@ public class SomeThrowable : MonoBehaviour, IThrowable
         }
     }
 
-    private void HandleCollision(float distanceThisFrame, Vector2 displacement)
+    private void HandleCollision(float distance, Vector2 displacement)
     {
+        bool hasHitObstacle = false;
         float angle = m_RigidBody.rotation;
-        RaycastHit2D hit = Physics2D.BoxCast(transform.position, m_Collider.size * 0.5f, angle, m_RigidBody.linearVelocity.normalized, distanceThisFrame, m_Stats.HitLayer);
-        if (hit.collider != null)
+        RaycastHit2D[] hits = Physics2D.BoxCastAll(transform.position, m_Collider.size * 0.5f, angle, m_RigidBody.linearVelocity.normalized, distance, m_Stats.HitLayer);
+        foreach (var hit in hits)
         {
-            if (CanHitTarget(hit.collider))
+            if (hit.collider != null && !m_HitObjects.Contains(hit.collider.gameObject))
             {
-                OnImpact?.Invoke(hit.collider.gameObject, hit.point, hit.normal);
+                m_HitObjects.Add(hit.collider.gameObject);
+                if (CanHitTarget(hit.collider))
+                {
+                    OnImpact?.Invoke(hit.collider.gameObject, hit.point, hit.normal);
+                    m_HitCount++;
+                }
+                else
+                {
+                    IHittable hittable = hit.collider.GetComponent<IHittable>();
+                    if (hittable == null)
+                    {
+                        hasHitObstacle = true;
+                    }
+                }
             }
+        }
+
+        if (hasHitObstacle)
+        {
             Reset();
         }
-        else if (distanceThisFrame > 0)
-        {
-            m_RigidBody.MovePosition(m_RigidBody.position + displacement);
-        }
+
     }
 
     private bool CanHitTarget(Collider2D collider)
     {
-        if (collider.GetComponent<Player>() != null && m_Stats.CanHitPlayer)
+        if (m_HitCount >= m_Stats.MaximumHits)
         {
-            return true;
+            return false;
         }
-        if (collider.GetComponent<Enemy>() != null && m_Stats.CanHitEnemy)
+
+        IHittable hittable;
+        if (collider.TryGetComponent(out hittable) && hittable.CanTakeHit)
         {
-            return true;
+            if (hittable is Player)
+            {
+                return m_Stats.CanHitPlayer;
+            }
+            if (hittable is Enemy)
+            {
+                return m_Stats.CanHitEnemy;
+            }
         }
         return false;
     }
@@ -116,7 +165,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
             OnImpact += effect.ApplyImpactEffect;
         }
         var throwEfects = GetComponents<IThrowableThrowEffect>();
-        foreach (var effect in throwEfects)
+        foreach (var effect in throwEfects) 
         {
             OnThrow += effect.ApplyThrowEffect;
         }

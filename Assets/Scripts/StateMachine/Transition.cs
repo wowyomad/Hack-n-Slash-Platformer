@@ -1,9 +1,10 @@
-﻿public class Transition : ITransition
+﻿public class Transition<TState> : ITransition<TState>
+    where TState : class, IState
 {
-    public IState To { get; private set; }
+    public TState To { get; private set; }
     public IPredicate Condition { get; private set; }
 
-    public Transition(IState to, IPredicate condition)
+    public Transition(TState to, IPredicate condition)
     {
         To = to;
         Condition = condition;

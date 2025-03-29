@@ -1,6 +1,6 @@
 using UnityEngine;
 using GameActions;
-public class PlayerAirState : PlayerBaseState
+public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
 {
     private float m_VelocitySmoothing = 0.0f;
     public PlayerAirState(Player player) : base(player) { }
@@ -42,7 +42,7 @@ public class PlayerAirState : PlayerBaseState
     [GameAction(ActionType.Throw)]
     protected void OnThrow()
     {
-        Player.ThrowFirebottle();
+        Player.ThrowKnife();
     }
     [GameAction(ActionType.Move)]
     protected void OnMove(float direction)

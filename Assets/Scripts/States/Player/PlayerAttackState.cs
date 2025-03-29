@@ -1,9 +1,8 @@
 
 
-using Unity.VisualScripting;
 using UnityEngine;
 
-public class PlayerAttackState : PlayerBaseState
+public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 {
     private IState m_PreviousState;
     private float m_FallbackDuration = 0.4375f;
@@ -23,11 +22,14 @@ public class PlayerAttackState : PlayerBaseState
 
         Player.Animator.CrossFade(AttackMeleeAnimationHash, 0.0f);
         Player.Animation.OnAttackMeleeFinished.AddListener(OnAnimationFinished);
+        Player.Animation.OnAttackMeleeEntered.AddListener(OnAnimationEntered);
     }
 
     public override void Exit()
     {
         Player.Animation.OnAttackMeleeFinished.RemoveListener(OnAnimationFinished);
+        Player.Animation.OnAttackMeleeEntered.RemoveListener(OnAnimationEntered);
+
     }
 
     public override void Update()
@@ -40,9 +42,12 @@ public class PlayerAttackState : PlayerBaseState
         m_Timer += Time.deltaTime;
         Player.ApplyGravity();
     }
-
+    protected void OnAnimationEntered()
+    {
+        m_Weapon.EnableCollider();
+    }
     protected void OnAnimationFinished()
     {
-        ChangeState(Player.IdleState);
+        m_Weapon.DisableCollider();
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Animation : MonoBehaviour
+public class PlayerAnimationEventBehaviour : MonoBehaviour
 {
     [SerializeField] public UnityEvent OnAttackMeleeEntered;
     [SerializeField] public UnityEvent OnAttackMeleeFinished;

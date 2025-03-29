@@ -2,7 +2,7 @@ using GameActions;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
-public class PlayerJumpState : PlayerBaseState
+public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
 {
     protected float m_VelocitySmoothing = 0.0f;
     public float JumpVelocity => Player.Movement.JumpVelocity;
@@ -51,7 +51,7 @@ public class PlayerJumpState : PlayerBaseState
     [GameAction(ActionType.Throw)]
     protected void OnThrow()
     {
-        Player.ThrowFirebottle();
+        Player.ThrowKnife();
     }
 
     [GameAction(ActionType.Move)]

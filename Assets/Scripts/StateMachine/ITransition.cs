@@ -1,5 +1,5 @@
-﻿public interface ITransition
-{ 
-    IState To { get; }
+﻿public interface ITransition <TState> where TState : class, IState
+{
+    TState To { get; }
     IPredicate Condition { get; }
 }

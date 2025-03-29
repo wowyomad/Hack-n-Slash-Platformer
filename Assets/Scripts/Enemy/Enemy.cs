@@ -12,8 +12,10 @@ public interface IDestroyable
 public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 {
     [HideInInspector] public CharacterController2D Controller;
-    public StateMachine StateMachine;
+    public StateMachine<IEnemyState> StateMachine;
     public Vector3 Velocity;
+
+    public bool CanTakeHit => StateMachine.CurrentState is IEnemyVulnarableState;
 
     public event Action<float, Vector2> OnTakeDamage;
     public event Action OnHit;
@@ -21,7 +23,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     private void OnEnable()
     {
-        StateMachine = new StateMachine();
+        StateMachine = new StateMachine<IEnemyState>();
         StateMachine.ChangeState(new StandartEnemyIdleState(this));
     }
 
@@ -37,12 +39,10 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     public void TakeDamage(float value, Vector2 normal)
     {
-        Debug.Log($"Tryinng to invoke OnTakeDamage with: {value}, {normal}");
         OnTakeDamage?.Invoke(value, normal);
     }
     public void TakeHit()
     {
-        Debug.Log($"Tryinng to invoke OnTakeHit");
         OnHit?.Invoke();
     }
 

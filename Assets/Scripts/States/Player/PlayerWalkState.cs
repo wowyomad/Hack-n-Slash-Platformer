@@ -2,7 +2,7 @@ using GameActions;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.XR;
-public class PlayerWalkState : PlayerBaseState
+public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
 {
     private float m_VelocitySmoothing = 0.0f;
     private float m_LastInputTime = 0.0f;
@@ -82,7 +82,7 @@ public class PlayerWalkState : PlayerBaseState
     [GameAction(ActionType.Throw)]
     protected void OnThrow()
     {
-        Player.ThrowFirebottle();
+        Player.ThrowKnife();
     }
 
     [GameAction(ActionType.Attack)]

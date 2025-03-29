@@ -1,7 +1,7 @@
 using GameActions;
 using UnityEngine;
 
-public class PlayerIdleState : PlayerBaseState
+public class PlayerIdleState : PlayerBaseState, IPlayerVulnarableState
 {
 
     protected float HorizontalInput => Player.Input.HorizontalMovement;
@@ -46,7 +46,7 @@ public class PlayerIdleState : PlayerBaseState
     [GameAction(ActionType.Throw)]
     protected void OnThrow()
     {
-        Player.ThrowFirebottle();
+        Player.ThrowKnife();
     }
 
     [GameAction(ActionType.Attack)]

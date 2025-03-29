@@ -3,14 +3,14 @@ using UnityEngine;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IStateTrackable, IHittable
 {
 
     [Header("Components")]
-    protected StateMachine m_StateMachine;
+    protected StateMachine<IPlayerState> m_StateMachine;
     public CharacterController2D Controller;
     public Animator Animator;
-    public Animation Animation;
+    public PlayerAnimationEventBehaviour Animation;
     public InputReader Input;
 
     public Vector3 Velocity = Vector3.zero;
@@ -22,18 +22,22 @@ public class Player : MonoBehaviour
     public PlayerAirState AirState;
     public PlayerAttackState AttackState;
 
-    public Action<IState> OnStateChange;
-    public IState CurrentState => m_StateMachine.Current;
+    public event Action<IState, IState> OnStateChange;
+    public event Action OnHit;
+
+    public IState CurrentState => m_StateMachine.CurrentState;
 
     public int FacingDirection { get; private set; }
     public Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
+
+    public bool CanTakeHit => m_StateMachine.CurrentState is IPlayerVulnarableState;
 
     private void Awake()
     {
         Input = Resources.Load<InputReader>("Input/InputReader");
         Controller = GetComponent<CharacterController2D>();
         Animator = GetComponentInChildren<Animator>();
-        Animation = GetComponentInChildren<Animation>();
+        Animation = GetComponentInChildren<PlayerAnimationEventBehaviour>();
     }
 
     private void Start()
@@ -43,14 +47,16 @@ public class Player : MonoBehaviour
 
     private void OnEnable()
     {
-        Input.ListenEvents(this);
-
         InitializeStates();
+        m_StateMachine.OnStateChange += InvokeOnStateChange;
+        m_StateMachine.OnStateChange += LogStateChange;
     }
 
     private void OnDisable()
     {
-        Input.StopListening(this);
+        m_StateMachine.OnStateChange -= InvokeOnStateChange;
+        m_StateMachine.OnStateChange -= LogStateChange;
+
     }
 
     public void Update()
@@ -84,7 +90,7 @@ public class Player : MonoBehaviour
 
     protected void InitializeStates()
     {
-        m_StateMachine = new StateMachine();
+        m_StateMachine = new StateMachine<IPlayerState>();
 
         IdleState = new PlayerIdleState(this);
         WalkState = new PlayerWalkState(this);
@@ -95,19 +101,18 @@ public class Player : MonoBehaviour
         m_StateMachine.ChangeState(IdleState);
     }
 
-    public void ChangeState(IState state)
+    public void ChangeState(IPlayerState state)
     {
         m_StateMachine.ChangeState(state);
-        OnStateChange.Invoke(state);
     }
 
-    public void ThrowFirebottle()
+    public void ThrowKnife()
     {
-        var fireBottlePrefab = Instantiate(Resources.Load<GameObject>("Prefabs/Throwable/FireBottle"));
-        IThrowable fireBottle;
-        if (fireBottlePrefab.TryGetComponent<IThrowable>(out fireBottle))
+        var knifePrefab = Instantiate(Resources.Load<GameObject>("Prefabs/Throwable/Knife"));
+        IThrowable knife;
+        if (knifePrefab.TryGetComponent<IThrowable>(out knife))
         {
-            Throw(fireBottle);
+            Throw(knife);
         }
     }
 
@@ -115,8 +120,26 @@ public class Player : MonoBehaviour
     {
         Vector3 targetPosition = WorldCursorPosition - Velocity;
         Vector3 directionToTarget = (targetPosition - transform.position).normalized;
-        Vector3 originPosition = transform.position + directionToTarget * 1.0f;
-        throwable.Throw(originPosition, WorldCursorPosition);
+        Vector3 origin = transform.position + directionToTarget * 1.0f;
+        throwable.Throw(origin, WorldCursorPosition);
+    }
+
+    private void LogStateChange(IState previous, IState next)
+    {
+        if (previous != null)
+            Debug.Log($"Changing state from {previous} to {next}");
+        else
+            Debug.Log($"Assigning state to {next}");
+    }
+
+    private void InvokeOnStateChange(IState previous, IState next)
+    {
+        OnStateChange?.Invoke(previous, next);
+    }
+
+    public void TakeHit()
+    {
+        OnHit?.Invoke();
     }
 
     #region likely to be removed
@@ -125,17 +148,19 @@ public class Player : MonoBehaviour
         Velocity.y += Movement.Gravity * Time.deltaTime;
         Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
     }
-    protected void At(IState from, IState to, Func<bool> condition)
+    protected void At(IPlayerState from, IPlayerState to, Func<bool> condition)
     {
         m_StateMachine.AddTransition(from, to, condition);
     }
-    protected void At(IState from, IState to, IPredicate predicate)
+    protected void At(IPlayerState from, IPlayerState to, IPredicate predicate)
     {
         m_StateMachine.AddTransition(from, to, predicate);
     }
-    protected void Any(IState from, IState to, IPredicate predicate)
+    protected void Any(IPlayerState from, IPlayerState to, IPredicate predicate)
     {
         m_StateMachine.AddAnyTransition(to, predicate);
     }
+
+
     #endregion
 }
