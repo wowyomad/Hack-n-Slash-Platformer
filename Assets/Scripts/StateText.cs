@@ -31,10 +31,18 @@ public class StateText : MonoBehaviour
     {
         if (m_TrackableState != null)
         {
-            if (m_ObjectToTrack.TryGetComponent(out m_TrackableState))
+            try
             {
-                m_TrackableState.OnStateChange -= UpdateStateText;
+                if (m_ObjectToTrack.TryGetComponent(out m_TrackableState))
+                {
+                    m_TrackableState.OnStateChange -= UpdateStateText;
+                }
+            } catch (MissingReferenceException e)
+            {
+                //It's OK.
+                Debug.Log("Tried to unsubscribe from OnStateChange event, but the object was already destroyed.");
             }
+
         }
     }
 

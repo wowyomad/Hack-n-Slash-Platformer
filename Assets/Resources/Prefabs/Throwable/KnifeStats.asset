@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: KnifeStats
   m_EditorClassIdentifier: 
   Velocity: 25
-  MaximumHits: 3
+  MaximumHits: 10
   CanHitPlayer: 0
   CanHitEnemy: 1
   FalloffOnTarget: 0

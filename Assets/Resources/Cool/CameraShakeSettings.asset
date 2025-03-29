@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ebc94bc6d40a794fbb9d56d5ac18fb5, type: 3}
   m_Name: CameraShakeSettings
   m_EditorClassIdentifier: 
-  ShakeStrength: 0.2
-  SmoothTime: 0.1
-  MaxAffectDistance: 30
-  UseAffectDistance: 1
-  ShakeDuration: 0.2
+  ShakeStrength: 0.75
+  SmoothTime: 0.25
   RandomnessMultiplier: 1
+  OngoingShakeMultiplier: 0.75
+  MaxAffectDistance: 30
+  UseAffectDistance: 0
+  ShakeBias: 0.02
