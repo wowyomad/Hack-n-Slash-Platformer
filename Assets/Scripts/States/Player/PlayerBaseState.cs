@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public abstract class PlayerBaseState : IState
+public abstract class PlayerBaseState : IPlayerState
 {
     protected CharacterController2D Controller => Player.Controller;
     protected InputReader Input => Player.Input;

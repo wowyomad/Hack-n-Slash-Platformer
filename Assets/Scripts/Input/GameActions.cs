@@ -15,7 +15,8 @@ namespace GameActions
         Throw,
         Attack,
         Dash,
-        Run
+        Run,
+        CursorMove
     }
 }
 

@@ -35,6 +35,11 @@ public class SomeThrowable : MonoBehaviour, IThrowable
         m_RigidBody.linearVelocity = Vector3.zero;
     }
 
+    private void OnValidate()
+    {
+        
+    }
+
     private void OnEnable()
     {
         SubscribeEffects();

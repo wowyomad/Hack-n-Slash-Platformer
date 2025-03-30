@@ -18,5 +18,5 @@ MonoBehaviour:
   AccelerationTimeAirborne: 0.3
   AccelerationTimeGrounded: 0.1
   DecelerationTimeAirborne: 0.1
-  DecelerationTimeGrounded: 0.1
-  HorizontalSpeed: 8
+  DecelerationTimeGrounded: 0.15
+  HorizontalSpeed: 18

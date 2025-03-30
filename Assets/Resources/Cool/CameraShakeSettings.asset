@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: CameraShakeSettings
   m_EditorClassIdentifier: 
   ShakeStrength: 0.75
-  SmoothTime: 0.25
+  SmoothTime: 0.35
   RandomnessMultiplier: 1
-  OngoingShakeMultiplier: 0.75
+  OngoingShakeMultiplier: 2
   MaxAffectDistance: 30
   UseAffectDistance: 0
   ShakeBias: 0.02

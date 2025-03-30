@@ -128,7 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 133732379}
-  - component: {fileID: 133732378}
+  - component: {fileID: 133732380}
   m_Layer: 0
   m_Name: CameraPivot
   m_TagString: Untagged
@@ -136,20 +136,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &133732378
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 133732377}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95086a0c10687f846b3eeff303673064, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Target: {fileID: 1629184140}
-  Offset: {x: 0, y: 3}
 --- !u!4 &133732379
 Transform:
   m_ObjectHideFlags: 0
@@ -166,6 +152,28 @@ Transform:
   - {fileID: 519420032}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &133732380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 133732377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2d4a09b8986f4b4ca410e96abc7b0dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Target: {fileID: 133732379}
+  FollowTarget: {fileID: 1629184140}
+  Input: {fileID: 11400000, guid: 452f792e14b2f564da6e091333de0784, type: 2}
+  FollowSmoothTime: 0.3
+  MaxMouseOffset: 2
+  CenterRadius: 1
+  MouseInfluenceSmoothTime: 0.1
+  DefaultOffset: {x: 0, y: 0, z: 0}
+  LeadFactor: 0.5
+  LeadSmoothTime: 0.2
 --- !u!1 &152068605
 GameObject:
   m_ObjectHideFlags: 0

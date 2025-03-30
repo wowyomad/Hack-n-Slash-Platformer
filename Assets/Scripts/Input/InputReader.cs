@@ -19,12 +19,14 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Pause;
     public event Action Resume;
 
+    public event Action<Vector2> CursorMove;
 
     public bool IsJumpPressed {  get; private set; }
     public bool IsDashPressed { get; private set; }
 
     public float HorizontalMovement { get; private set; }
     public Vector2 CursorPosition { get; private set; }
+
 
     private GameInput m_GameInput;
     public void SetGameplay()
@@ -123,6 +125,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public void OnCursor(InputAction.CallbackContext context)
     {
         CursorPosition = context.ReadValue<Vector2>();
+        CursorMove?.Invoke(CursorPosition);
     }
 
     public void OnPause(InputAction.CallbackContext context)
