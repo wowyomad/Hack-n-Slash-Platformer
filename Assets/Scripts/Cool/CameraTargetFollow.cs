@@ -59,7 +59,7 @@ public class CameraTargetFollow : MonoBehaviour
         Vector3 velocity = (currentFollowTargetPosition - m_FollowTargetPreviousPosition) / Time.deltaTime;
         m_FollowTargetPreviousPosition = currentFollowTargetPosition;
 
-        Vector3 targetLeadOffset = new Vector3(-velocity.x * LeadFactor, -velocity.y * LeadFactor, 0f);
+        Vector3 targetLeadOffset = new Vector3(velocity.x * LeadFactor, velocity.y * LeadFactor, 0f);
         m_CameraLeadOffset = Vector3.SmoothDamp(m_CameraLeadOffset, targetLeadOffset, ref m_CameraLeadVelocity, LeadSmoothTime);
 
         float originalZ = Target.position.z;

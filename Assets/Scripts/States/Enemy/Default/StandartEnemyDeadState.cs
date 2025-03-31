@@ -8,6 +8,7 @@ public class StandartEnemyDeadState : EnemyBaseState
 
     public override void Enter(IState from)
     {
+        Self.Velocity.x = 0.0f;
         SpriteRenderer sprite;
         if (Self.TryGetComponent(out sprite))
         {

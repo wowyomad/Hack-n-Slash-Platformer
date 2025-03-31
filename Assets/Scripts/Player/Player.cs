@@ -140,6 +140,7 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     public void TakeHit()
     {
         OnHit?.Invoke();
+        EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
     }
 
     #region likely to be removed
