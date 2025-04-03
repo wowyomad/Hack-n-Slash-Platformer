@@ -9,13 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ebc94bc6d40a794fbb9d56d5ac18fb5, type: 3}
+  m_Script: {fileID: 11500000, guid: b51f0f2b4f7698947a88d30443f4c927, type: 3}
   m_Name: CameraShakeSettings
   m_EditorClassIdentifier: 
-  ShakeStrength: 0.75
-  SmoothTime: 0.35
+  ShakeStrength: 1
+  ShakeBias: 0.01
   RandomnessMultiplier: 1
-  OngoingShakeMultiplier: 2
-  MaxAffectDistance: 30
-  UseAffectDistance: 0
-  ShakeBias: 0.02
+  SmoothTime: 0.15
+  OngoingShakeMultiplier: 0.5
+  IsScaledOnDistance: 1
+  MaxDistance: 30
+  MaxDistanceMultiplier: 0.2
