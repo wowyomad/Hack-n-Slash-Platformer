@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 {
-    private IState m_PreviousState;
-    private float m_FallbackDuration = 0.4375f;
+    private IPlayerState m_PreviousState;
+    private float m_FallbackDuration = 1.0f / 32 * 7; //(Second/SampleRate) * Frames 
     private float m_Timer = 0.0f;
     private Weapon m_Weapon;
     public PlayerAttackState(Player player) : base(player)
@@ -15,7 +15,7 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 
     public override void Enter(IState from)
     {
-        m_PreviousState = from;
+        m_PreviousState = (IPlayerState)from;
         m_Timer = 0.0f;
 
         Player.TurnToCursor();
@@ -29,14 +29,13 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
     {
         Player.Animation.OnAttackMeleeFinished.RemoveListener(OnAnimationFinished);
         Player.Animation.OnAttackMeleeEntered.RemoveListener(OnAnimationEntered);
-
     }
 
     public override void Update()
     {
         if (m_Timer >= m_FallbackDuration)
         {
-            ChangeState(Player.IdleState);
+            ChangeState(m_PreviousState);
             return;
         }
         m_Timer += Time.deltaTime;

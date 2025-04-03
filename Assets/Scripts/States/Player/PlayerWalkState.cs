@@ -47,9 +47,13 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
             Player.Animator.CrossFade(WalkAnimationHash, 0.0f);
         }
 
-        float input = Input.HorizontalMovement;
+        float moveInput = Input.HorizontalMovement;
+        if(moveInput != 0.0f)
+        {
+            Player.Flip(moveInput);
+        }
 
-        float targetVelocityX = Input.HorizontalMovement * Player.Movement.HorizontalSpeed;
+        float targetVelocityX = moveInput * Player.Movement.HorizontalSpeed;
         if (Controller.Collisions.Right)
         {
             targetVelocityX = Mathf.Min(targetVelocityX, 0);
@@ -77,7 +81,6 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
     protected void OnMove(float direction)
     {
         m_LastInputTime = Time.time;
-        Player.Flip(direction);
     }
     [GameAction(ActionType.Throw)]
     protected void OnThrow()
