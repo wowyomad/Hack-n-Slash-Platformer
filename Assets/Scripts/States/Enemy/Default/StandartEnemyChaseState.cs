@@ -12,12 +12,13 @@ public class StandartEnemyChaseState : EnemyBaseState, IEnemyVulnarableState
     }
     public override void Enter(IState state)
     {
-        Self.OnHit += OnTakeHit;
+        Self.Hit += OnTakeHit;
         m_PreviousPlayerDirection = DirectionToPlayer;
+        Self.GetComponent<SpriteRenderer>().color = Color.red;
     }
     public override void Update()
     {
-        Self.ApplyGravity();
+        Self.ApplyGravityToVelocity();
 
         if (DistanceToPlayer > 10.0f || !PlayerIsOnSight)
         {
@@ -59,7 +60,7 @@ public class StandartEnemyChaseState : EnemyBaseState, IEnemyVulnarableState
     }
     public override void Exit()
     {
-        Self.OnHit -= OnTakeHit;
+        Self.Hit -= OnTakeHit;
     }
     protected void OnTakeHit()
     {

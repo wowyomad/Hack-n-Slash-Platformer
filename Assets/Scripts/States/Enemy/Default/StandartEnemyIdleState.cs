@@ -17,7 +17,7 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
         Self.Velocity.x = 0.0f;
 
         Self.OnTakeDamage += OnTakeDamage;
-        Self.OnHit += OnTakeHit;
+        Self.Hit += OnTakeHit;
 
         SpriteRenderer sprite;
         if (Self.TryGetComponent(out sprite))
@@ -28,7 +28,7 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
 
     public override void Update()
     {
-        Self.ApplyGravity();
+        Self.ApplyGravityToVelocity();
 
         if (DistanceToPlayer < 10.0f && PlayerIsOnSight)
         {
@@ -47,7 +47,7 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
     public override void Exit()
     {
         Self.OnTakeDamage -= OnTakeDamage;
-        Self.OnHit -= OnTakeHit;
+        Self.Hit -= OnTakeHit;
 
     }
 
