@@ -218,6 +218,12 @@ namespace Behavior
         }
 
         // --- Leaf Nodes ---
+
+        public BehaviorTreeBuilder Do(Action action)
+        {
+            return Leaf(null, 0, action);
+        }
+
         public BehaviorTreeBuilder Leaf(Action action)
         {
            return Leaf(null, 0, action);

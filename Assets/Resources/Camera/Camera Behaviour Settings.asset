@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FollowSmoothTime: 0.1
   DefaultOffset: {x: 0, y: 2}
-  LeadFactor: {x: 0.15, y: 0.1}
-  LeadSmoothTime: 0.1
-  CenterRadius: 0.3
-  MaxMouseOffset: 0.3
+  LeadFactor: {x: 0.2, y: 0}
+  LeadSmoothTime: 0
+  CenterRadius: 0.5
+  MaxMouseOffset: 0.5
   MouseInfluenceSmoothTime: 0

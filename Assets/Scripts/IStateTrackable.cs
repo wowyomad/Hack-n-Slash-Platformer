@@ -2,5 +2,6 @@ using System;
 
 public interface IStateTrackable
 {
-    public event Action<IState, IState> OnStateChange;
+    //void ChangeState(from, to);
+    public event Action<IState, IState> StateChanged;
 }

@@ -2,10 +2,9 @@ using UnityEngine;
 
 public class ThrowableHitOnImpact : MonoBehaviour, IThrowableImpactEffect
 {
-    public void ApplyImpactEffect(GameObject collidedObject, Vector2 position, Vector2 normal)
+    public void ApplyImpactEffect(GameObject victim, Vector2 point, Vector2 normal)
     {
-        IHittable hittable;
-        if (collidedObject.TryGetComponent<IHittable>(out hittable))
+        if (victim.TryGetComponent<IHittable>(out IHittable hittable))
         {
             hittable.TakeHit();
         }

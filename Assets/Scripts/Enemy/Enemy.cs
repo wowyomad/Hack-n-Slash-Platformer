@@ -59,7 +59,6 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     {
         //StateMachine.Update();
         //Controller.Move(Velocity * Time.deltaTime);
-        Debug.Log($"Direction to Player: {DirectionToPlayer}, FacingToPlayer: {IsFacingToPlayer}, CanSee: {CanSeePlayer}");
 
 
         Tree.Execute();

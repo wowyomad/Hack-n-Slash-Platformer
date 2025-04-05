@@ -144,7 +144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2aec09daa6508764eaa7e3c3baedf4d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CollisionMask:
+  GroundMask:
     serializedVersion: 2
     m_Bits: 2147483648
   PassThroughMask:
@@ -212,3 +212,4 @@ MonoBehaviour:
   Controller: {fileID: 0}
   Movement: {fileID: 11400000, guid: 623819c9415ca6345b3c26df0b7eeadc, type: 2}
   Velocity: {x: 0, y: 0, z: 0}
+  PlayerReference: {fileID: 0}

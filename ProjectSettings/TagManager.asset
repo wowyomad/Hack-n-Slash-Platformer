@@ -33,7 +33,7 @@ TagManager:
   - 
   - 
   - 
-  - PassThroughGround
+  - TransparentGround
   - Particle
   - Enemy
   - Player

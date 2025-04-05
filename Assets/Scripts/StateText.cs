@@ -23,7 +23,7 @@ public class StateText : MonoBehaviour
         {
             if(m_ObjectToTrack.TryGetComponent(out m_TrackableState))
             {
-                m_TrackableState.OnStateChange += UpdateStateText;
+                m_TrackableState.StateChanged += UpdateStateText;
             }
         }
     }
@@ -35,7 +35,7 @@ public class StateText : MonoBehaviour
             {
                 if (m_ObjectToTrack.TryGetComponent(out m_TrackableState))
                 {
-                    m_TrackableState.OnStateChange -= UpdateStateText;
+                    m_TrackableState.StateChanged -= UpdateStateText;
                 }
             } catch (MissingReferenceException e)
             {

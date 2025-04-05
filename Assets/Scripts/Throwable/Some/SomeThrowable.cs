@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static IThrowable;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
@@ -9,14 +10,14 @@ public class SomeThrowable : MonoBehaviour, IThrowable
     private Rigidbody2D m_RigidBody;
     private BoxCollider2D m_Collider;
 
-    public event Action<GameObject, Vector2, Vector2> OnImpact;
-    public event Action<Vector2> OnThrow;
+    public event ImpactEVent Impact;
+    public event ThrownEvent Thrown;
+
     [SerializeField] private ThrowableStats m_Stats;
-    private int m_HitCount = 0;
-    private HashSet<GameObject> m_HitObjects = new();
 
     private Action m_OnReset => () => GameObject.Destroy(gameObject);
-
+    private int m_HitCount = 0;
+    private HashSet<GameObject> m_HitObjects = new();
     private Vector3 m_TargetPosition;
     public float DistanceToTarget => (m_TargetPosition - transform.position).magnitude;
 
@@ -59,7 +60,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
 
         m_TargetPosition = target;
         gameObject.SetActive(true);
-        OnThrow?.Invoke(direction);
+        Thrown?.Invoke(direction);
     }
 
     private void Update()
@@ -71,7 +72,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
         else
         {
             Vector2 displacement = m_RigidBody.linearVelocity * Time.fixedDeltaTime;
-            float distanceThisFrame = displacement.magnitude;
+            float distanceThisFrame = displacement.magnitude * 0.5f;
 
             float currentDistance = DistanceToTarget;
             if (currentDistance < m_ClosestDistance)
@@ -106,7 +107,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
     {
         bool hasHitObstacle = false;
         float angle = m_RigidBody.rotation;
-        RaycastHit2D[] hits = Physics2D.BoxCastAll(transform.position, m_Collider.size * 0.5f, angle, m_RigidBody.linearVelocity.normalized, distance, m_Stats.HitLayer);
+        RaycastHit2D[] hits = Physics2D.BoxCastAll(transform.position, m_Collider.size * 0.1f, 0.0f, m_RigidBody.linearVelocity.normalized, distance, m_Stats.HitLayer);
         foreach (var hit in hits)
         {
             if (hit.collider != null && !m_HitObjects.Contains(hit.collider.gameObject))
@@ -114,7 +115,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
                 m_HitObjects.Add(hit.collider.gameObject);
                 if (CanHitTarget(hit.collider))
                 {
-                    OnImpact?.Invoke(hit.collider.gameObject, hit.point, hit.normal);
+                    Impact?.Invoke(hit.collider.gameObject, hit.point, hit.normal);
                     m_HitCount++;
                 }
                 else
@@ -167,12 +168,12 @@ public class SomeThrowable : MonoBehaviour, IThrowable
         var hitEffects = GetComponents<IThrowableImpactEffect>();
         foreach (var effect in hitEffects)
         {
-            OnImpact += effect.ApplyImpactEffect;
+            Impact += effect.ApplyImpactEffect;
         }
-        var throwEfects = GetComponents<IThrowableThrowEffect>();
+        var throwEfects = GetComponents<IThrowableThrownEffect>();
         foreach (var effect in throwEfects) 
         {
-            OnThrow += effect.ApplyThrowEffect;
+            Thrown += effect.ApplyThrowEffect;
         }
     }
     private void UnsubscribeEffects()
@@ -180,12 +181,12 @@ public class SomeThrowable : MonoBehaviour, IThrowable
         var effects = GetComponents<IThrowableImpactEffect>();
         foreach (var effect in effects)
         {
-            OnImpact -= effect.ApplyImpactEffect;
+            Impact -= effect.ApplyImpactEffect;
         }
-        var throwEfects = GetComponents<IThrowableThrowEffect>();
+        var throwEfects = GetComponents<IThrowableThrownEffect>();
         foreach (var effect in throwEfects)
         {
-            OnThrow -= effect.ApplyThrowEffect;
+            Thrown -= effect.ApplyThrowEffect;
         }
     }
 }

@@ -10,7 +10,7 @@ public class ThrowableEffectSound : MonoBehaviour, IThrowableImpactEffect
         m_AudioSource = GetComponent<AudioSource>();
     }
 
-    public void ApplyImpactEffect(GameObject collidedObject, Vector2 position, Vector2 normal)
+    public void ApplyImpactEffect(GameObject victim, Vector2 point, Vector2 normal)
     {
         if (Sound != null)
         {

@@ -5,12 +5,12 @@ public class RaycastController : MonoBehaviour
     protected RaycastOrigins m_RaycastOrigins;
     protected Collider2D m_Collider;
 
-    [SerializeField] protected LayerMask CollisionMask;
-    [SerializeField] protected LayerMask PassThroughMask;
+    [SerializeField] public LayerMask GroundMask;
+    [SerializeField] public LayerMask TransparentGroundMask;
 
-    [SerializeField][Range(2, 32)] protected int HorizontalRayCount = 4;
-    [SerializeField][Range(2, 32)] protected int VerticalRayCount = 4;
-    [SerializeField][Range(0.001f, 1.0f)] protected float SkinWidth = 0.015f;
+    [SerializeField][Range(2, 32)] public int HorizontalRayCount = 4;
+    [SerializeField][Range(2, 32)] public int VerticalRayCount = 4;
+    [SerializeField][Range(0.001f, 1.0f)] public float SkinWidth = 0.015f;
 
     protected float HorizontalRaySpacing;
     protected float VerticalRaySpacing;

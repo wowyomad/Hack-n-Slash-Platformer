@@ -22,8 +22,8 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     public PlayerAirState AirState;
     public PlayerAttackState AttackState;
 
-    public event Action<IState, IState> OnStateChange;
-    public event Action OnHit;
+    public event Action<IState, IState> StateChanged;
+    public event Action Hit;
 
     public IState CurrentState => m_StateMachine.CurrentState;
 
@@ -134,12 +134,12 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void InvokeOnStateChange(IState previous, IState next)
     {
-        OnStateChange?.Invoke(previous, next);
+        StateChanged?.Invoke(previous, next);
     }
 
     public void TakeHit()
     {
-        OnHit?.Invoke();
+        Hit?.Invoke();
         EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
     }
 
