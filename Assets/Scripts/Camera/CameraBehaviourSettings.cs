@@ -19,7 +19,9 @@ public class CameraBehaviourSettings : ScriptableObject
     public float CenterRadius = 0.1f;
 
     [Range(0f, 1f)]
-    public float MaxMouseOffset = 0.2f;
+    public float MaxMouseOffsetX = 0.2f;
+    [Range(0f, 1f)]
+    public float MaxMouseOffsetY = 0.2f;
 
     [Range(0f, 5f)]
     public float MouseInfluenceSmoothTime = 0.1f;

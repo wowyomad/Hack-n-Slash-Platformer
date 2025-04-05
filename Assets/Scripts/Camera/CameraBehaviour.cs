@@ -97,7 +97,7 @@ public class CameraBehaviour : MonoBehaviour
         Vector2 rawOffsetWorld = new Vector2(mouseWorldPosition.x - screenCenterWorldPosition.x, mouseWorldPosition.y - screenCenterWorldPosition.y);
         Vector2 normalizedMouseOffset = new Vector2(rawOffsetWorld.x / halfWidth, rawOffsetWorld.y / halfHeight);
 
-        Vector2 targetOffsetWorld = Vector2.zero; 
+        Vector2 targetOffsetWorld = Vector2.zero;
 
         float centerRadiusSqr = Settings.CenterRadius * Settings.CenterRadius;
         if (normalizedMouseOffset.sqrMagnitude > centerRadiusSqr)
@@ -113,8 +113,8 @@ public class CameraBehaviour : MonoBehaviour
                                                                     Mathf.Sign(normalizedMouseOffset.y) * influenceFactorY);
 
                 Vector2 baseTargetOffsetWorld = new Vector2(
-                    targetOffsetNormalizedInfluence.x * Settings.MaxMouseOffset * halfWidth,
-                    targetOffsetNormalizedInfluence.y * Settings.MaxMouseOffset * halfHeight
+                    targetOffsetNormalizedInfluence.x * Settings.MaxMouseOffsetX * halfWidth,
+                    targetOffsetNormalizedInfluence.y * Settings.MaxMouseOffsetY * halfHeight 
                 );
 
                 targetOffsetWorld = baseTargetOffsetWorld;
