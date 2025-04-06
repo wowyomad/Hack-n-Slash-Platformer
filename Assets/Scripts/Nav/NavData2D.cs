@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -6,18 +5,19 @@ using static UnityEditor.PlayerSettings;
 
 namespace Nav2D
 {
+    [System.Serializable]
     public struct NavPoint
     {
         public Vector3Int CellPos;
         public Vector2 Position;
         public Type TypeMask;
 
-        [Flags]
+        [System.Flags]
         public enum Type : uint
         {
             None = 0,
-            Walkable = 1 << 0,
-            Jumpable = 1 << 1,
+            Surface = 1 << 0,
+            Edge = 1 << 1,
             Transparent = 1 << 2,
         }
 
@@ -27,38 +27,114 @@ namespace Nav2D
         }
     }
 
+    [System.Serializable]
+    public class NavPointEntry
+    {
+        public Vector3Int Key;
+        public NavPoint Value;
+    }
+
+
     public class NavData2D : MonoBehaviour
     {
-        private List<NavPoint> m_NavPoints = new List<NavPoint>();
+        private Dictionary<Vector3Int, NavPoint> m_NavPointLookup = new Dictionary<Vector3Int, NavPoint>();
+        private List<NavPointEntry> m_SerializedNavPoints = new List<NavPointEntry>();
+
+        [SerializeField] private GameObject TestActor;
 
         [Header("Tilemap")]
         [SerializeField] private Tilemap m_GroundTilemap;
         [SerializeField] private Tilemap m_TransparentGround;
-        [SerializeField] private Vector2 m_ActorSize = new Vector2(1.0f, 2.0f);
         [SerializeField] private LayerMask m_GroundLayerMask;
+        [SerializeField] private LayerMask m_TransparentLayerMask;
 
-        private const float VerySmallFloat = 0.005f;
-        private const float NavPointVerticalOffset = 0.5f + VerySmallFloat;
+        [Header("Actor")]
+        [SerializeField] private Vector2 m_ActorSize = new Vector2(1.0f, 2.0f);
+        [SerializeField] private float m_MaxJumpHeight = 5.0f;
+        [SerializeField] private float m_MaxJumpDistance = 5.0f;
 
-        public void Update()
+        public static readonly float VerySmallFloat = 0.005f;
+        private Vector2 m_TileAnchor;
+        private float m_NavPointVerticalOffset;
+        private Vector2 m_CellSize;
+
+        private void Start()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (TestActor.TryGetComponent<Collider2D>(out Collider2D collider))
+            {
+                m_ActorSize = collider.bounds.size;
+            }
+
+            m_TileAnchor = m_GroundTilemap.tileAnchor;
+            m_NavPointVerticalOffset = m_TileAnchor.y + VerySmallFloat;
+
+            if (m_GroundTilemap.cellSize != m_TransparentGround.cellSize)
+            {
+                string message = "NavData2D: Tilemaps have different cell sizes!";
+                Debug.LogError(message, this);
+                throw new System.ArgumentException(message);
+            }
+
+            if (m_GroundLayerMask == 0 || m_TransparentLayerMask == 0)
+            {
+                string message = "NavData2D: Layer masks are not set!";
+                Debug.LogError(message, this);
+                throw new System.ArgumentException(message);
+            }
+
+            m_CellSize = m_GroundTilemap.cellSize;
+
+            Generate();
+        }
+
+        private void OnEnable()
+        {
+            DeserializeNavPoints();
+        }
+
+        private void OnDisable()
+        {
+            SerializeNavPoints();
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 Generate();
             }
+
+            if (Input.GetKeyDown(KeyCode.F) && TestActor != null)
+            {
+                Vector3 playerPos = TestActor.transform.position;
+                NavPoint? navPoint = GetNavPoint(playerPos);
+                if (navPoint != null)
+                {
+                    Debug.Log($"NavPoint found at {navPoint.Value.Position}. Cell: {navPoint.Value.CellPos}, Type: {navPoint.Value.TypeMask}");
+                }
+                else
+                {
+                    Debug.Log("No NavPoint found.");
+                }
+            }
+
+
         }
 
         public void Generate()
         {
             Debug.Log("Generating NavPoints...");
-            m_NavPoints.Clear();
 
-            GenerateBaseNavPoints(m_GroundTilemap, NavPoint.Type.Walkable);
-            GenerateBaseNavPoints(m_TransparentGround, NavPoint.Type.Walkable | NavPoint.Type.Transparent);
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+            m_NavPointLookup.Clear();
 
-            CalculateJumpableEdges();
+            GenerateBaseNavPoints(m_GroundTilemap, NavPoint.Type.Surface);
+            GenerateBaseNavPoints(m_TransparentGround, NavPoint.Type.Surface | NavPoint.Type.Transparent);
 
-            Debug.Log("NavPoints generated: " + m_NavPoints.Count);
+            stopwatch.Stop();
+            string durationStr = stopwatch.Elapsed.TotalSeconds.ToString("N3");
+            Debug.Log($"Generated {m_NavPointLookup.Count} points in {durationStr}s.");
         }
 
         private void GenerateBaseNavPoints(Tilemap tilemap, NavPoint.Type baseType)
@@ -77,20 +153,17 @@ namespace Nav2D
 
                     if (tilemap.HasTile(cellPos))
                     {
-                        // --- Check 1: Is the cell directly above empty? ---
                         Vector3Int cellAbove = cellPos + Vector3Int.up;
                         if (HasTileInAnyLayer(cellAbove))
                         {
-                            continue; // Skip this tile if there's another tile directly above it
+                            continue;
                         }
 
                         Vector3 tileWorldPos = tilemap.CellToWorld(cellPos);
                         Vector2 tileSurfaceCenter = new Vector2(tileWorldPos.x + tileAnchor.x, tileWorldPos.y + tileAnchor.y);
-                        Vector2 navPointPos = new Vector2(tileSurfaceCenter.x, tileSurfaceCenter.y + NavPointVerticalOffset);
+                        Vector2 tileSurface = new Vector2(tileSurfaceCenter.x, tileSurfaceCenter.y + m_NavPointVerticalOffset);
 
-                        // --- Check 2: Is there enough space above for the actor? ---
-                        // Use original Raycast logic, starting from the nav point position
-                        RaycastHit2D hit = Physics2D.Raycast(navPointPos, Vector2.up, m_ActorSize.y, m_GroundLayerMask);
+                        RaycastHit2D hit = Physics2D.Raycast(tileSurface, Vector2.up, m_ActorSize.y, m_GroundLayerMask);
 
                         if (hit.collider == null)
                         {
@@ -98,41 +171,26 @@ namespace Nav2D
                             {
                                 CellPos = cellPos,
                                 TypeMask = baseType,
-                                Position = navPointPos
+                                Position = new Vector2(tileSurface.x, tileSurface.y + m_ActorSize.y / 2),
                             };
-                            m_NavPoints.Add(navPoint);
+
+                            bool hasNoLeftNeighbor = !HasTileInAnyLayer(cellPos + Vector3Int.left) && !HasTileInAnyLayer(cellPos + Vector3Int.left + Vector3Int.up);
+                            bool hasNoRightNeighbor = !HasTileInAnyLayer(cellPos + Vector3Int.right) && !HasTileInAnyLayer(cellPos + Vector3Int.right + Vector3Int.up);
+
+                            bool isEdge = hasNoLeftNeighbor || hasNoRightNeighbor;
+
+                            if (isEdge && !IsSlopeAtCell(cellPos))
+                            {
+                                navPoint.TypeMask |= NavPoint.Type.Edge;
+                            }
+
+                            m_NavPointLookup[cellPos] = navPoint;
                         }
                     }
                 }
             }
         }
 
-        private void CalculateJumpableEdges()
-        {
-            List<NavPoint> updatedNavPoints = new List<NavPoint>(m_NavPoints.Count);
-
-            for (int i = 0; i < m_NavPoints.Count; i++)
-            {
-                NavPoint currentPoint = m_NavPoints[i];
-                Vector3Int cellPos = currentPoint.CellPos;
-
-                bool hasNoLeftNeighbor = !HasTileInAnyLayer(cellPos + Vector3Int.left);
-                bool hasNoRightNeighbor = !HasTileInAnyLayer(cellPos + Vector3Int.right);
-
-                bool isEdge = hasNoLeftNeighbor || hasNoRightNeighbor;
-
-                if (isEdge)
-                {
-                    if (!IsSlopeAtCell(cellPos))
-                    {
-                        currentPoint.TypeMask |= NavPoint.Type.Jumpable;
-                    }
-                }
-
-                updatedNavPoints.Add(currentPoint);
-            }
-            m_NavPoints = updatedNavPoints;
-        }
 
         private bool HasTileInAnyLayer(Vector3Int cellPos)
         {
@@ -168,14 +226,13 @@ namespace Nav2D
             }
 
             Vector3 worldTilePositoin = tilemap.CellToWorld(cellPos) + tilemap.cellSize / 2;
-            Vector2 raycastOrigin = new Vector2(worldTilePositoin.x, worldTilePositoin.y + 0.5f + 0.1f);
-            float rayLength = 1.0f + 0.1f;
-            RaycastHit2D hit = Physics2D.Raycast(raycastOrigin, Vector2.down, rayLength, LayerMask.GetMask("Ground"));
+            Vector2 raycastOrigin = new Vector2(worldTilePositoin.x, worldTilePositoin.y + m_NavPointVerticalOffset);
+            float rayLength = m_CellSize.y + VerySmallFloat;
+            RaycastHit2D hit = Physics2D.Raycast(raycastOrigin, Vector2.down, rayLength, m_GroundLayerMask);
 
             if (hit.collider != null)
             {
-                //if normal is not straight up, it's a slope
-                if (hit.normal != Vector2.up)
+                if ((hit.normal - Vector2.up).sqrMagnitude >= VerySmallFloat)
                 {
                     return true;
                 }
@@ -183,20 +240,53 @@ namespace Nav2D
             return false;
         }
 
+        public NavPoint? GetNavPoint(Vector3 worldPosition)
+        {
+            Vector3 offset = new Vector3(0, m_ActorSize.y / 2 + m_NavPointVerticalOffset, 0);
+            Vector3Int cellPos = m_GroundTilemap.WorldToCell(worldPosition - offset);
+            if (m_NavPointLookup.TryGetValue(cellPos, out NavPoint navPoint))
+            {
+                return navPoint;
+            }
+            return null;
+        }
+
+        private void SerializeNavPoints()
+        {
+            m_SerializedNavPoints.Clear();
+            foreach (var kvp in m_NavPointLookup)
+            {
+                m_SerializedNavPoints.Add(new NavPointEntry { Key = kvp.Key, Value = kvp.Value });
+            }
+        }
+
+        private void DeserializeNavPoints()
+        {
+            if (m_SerializedNavPoints.Count > 0)
+            {
+                m_NavPointLookup.Clear();
+                foreach (var entry in m_SerializedNavPoints)
+                {
+                    m_NavPointLookup[entry.Key] = entry.Value;
+                }//
+            }
+
+        }
+
         private void OnDrawGizmosSelected()
         {
-            if (m_NavPoints == null) return;
+            if (m_NavPointLookup == null) return;
 
-            foreach (var navPoint in m_NavPoints)
+            foreach (var navPoint in m_NavPointLookup.Values)
             {
-                bool isJumpable = navPoint.HasFlag(NavPoint.Type.Jumpable);
+                bool isEdge = navPoint.HasFlag(NavPoint.Type.Edge);
                 bool isTransparent = navPoint.HasFlag(NavPoint.Type.Transparent);
 
-                if (isJumpable && isTransparent)
+                if (isEdge && isTransparent)
                 {
                     Gizmos.color = Color.cyan;
                 }
-                else if (isJumpable)
+                else if (isEdge)
                 {
                     Gizmos.color = Color.blue;
                 }
@@ -209,7 +299,7 @@ namespace Nav2D
                     Gizmos.color = Color.green;
                 }
 
-                Gizmos.DrawSphere(navPoint.Position, 0.2f);
+                Gizmos.DrawSphere(navPoint.Position, 0.4f);
             }
         }
     }
