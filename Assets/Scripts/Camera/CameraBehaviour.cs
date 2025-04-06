@@ -1,3 +1,4 @@
+using GameActions;
 using UnityEngine;
 
 public class CameraBehaviour : MonoBehaviour
@@ -14,6 +15,9 @@ public class CameraBehaviour : MonoBehaviour
 
     private Camera m_MainCamera;
     private Transform m_Target;
+
+    float m_OriginalOrthographicSize;
+    [SerializeField] private float m_ZoomLevel = 1.0f;
     private Vector2 m_CursorScreenPosition => Input.CursorPosition;
 
     private Vector3 m_FollowVelocity;
@@ -41,6 +45,22 @@ public class CameraBehaviour : MonoBehaviour
         if (m_MainCamera == null) Debug.LogError("CameraBehaviour: Camera component not found!", this);
     }
 
+    private void Start()
+    {
+        m_OriginalOrthographicSize = m_MainCamera.orthographicSize;
+    }
+
+    private void OnEnable()
+    {
+        Input.ListenEvents(this);    
+    }
+
+    private void OnDisable()
+    {
+        Input.StopListening(this);
+    }
+
+
     private void LateUpdate()
     {
         if (FollowTarget == null || Settings == null || Input == null || m_MainCamera == null || !m_MainCamera.orthographic)
@@ -50,6 +70,7 @@ public class CameraBehaviour : MonoBehaviour
         }
 
         UpdateMouseOffset();
+        UpdateZoom();
 
         Vector3 currentFollowTargetPosition = FollowTarget.position;
         Vector3 velocity = Time.deltaTime > Mathf.Epsilon
@@ -97,6 +118,13 @@ public class CameraBehaviour : MonoBehaviour
         Vector2 rawOffsetWorld = new Vector2(mouseWorldPosition.x - screenCenterWorldPosition.x, mouseWorldPosition.y - screenCenterWorldPosition.y);
         Vector2 normalizedMouseOffset = new Vector2(rawOffsetWorld.x / halfWidth, rawOffsetWorld.y / halfHeight);
 
+        Vector3 viewportPoint = m_MainCamera.ScreenToViewportPoint(new Vector3(m_CursorScreenPosition.x, m_CursorScreenPosition.y, zDistance));
+        if (Settings.ResetMouseOffsetOutsideBounds && (viewportPoint.x < 0 || viewportPoint.x > 1 || viewportPoint.y < 0 || viewportPoint.y > 1))
+        {
+            m_CurrentMouseOffset = Vector2.SmoothDamp(m_CurrentMouseOffset, Vector2.zero, ref m_MouseOffsetVelocity, Settings.MouseInfluenceSmoothTime);
+            return;
+        }
+
         Vector2 targetOffsetWorld = Vector2.zero;
 
         float centerRadiusSqr = Settings.CenterRadius * Settings.CenterRadius;
@@ -114,7 +142,7 @@ public class CameraBehaviour : MonoBehaviour
 
                 Vector2 baseTargetOffsetWorld = new Vector2(
                     targetOffsetNormalizedInfluence.x * Settings.MaxMouseOffsetX * halfWidth,
-                    targetOffsetNormalizedInfluence.y * Settings.MaxMouseOffsetY * halfHeight 
+                    targetOffsetNormalizedInfluence.y * Settings.MaxMouseOffsetY * halfHeight
                 );
 
                 targetOffsetWorld = baseTargetOffsetWorld;
@@ -122,5 +150,19 @@ public class CameraBehaviour : MonoBehaviour
         }
 
         m_CurrentMouseOffset = OffsetMultiplier * Vector2.SmoothDamp(m_CurrentMouseOffset, targetOffsetWorld, ref m_MouseOffsetVelocity, Settings.MouseInfluenceSmoothTime);
+    }
+    private void UpdateZoom()
+    {
+        if (m_MainCamera == null || !m_MainCamera.orthographic) return;
+
+        float targetOrthographicSize = m_OriginalOrthographicSize / m_ZoomLevel;
+        m_MainCamera.orthographicSize = targetOrthographicSize;
+    }
+
+    [GameAction(ActionType.Zoom)]
+    private void OnZoom(float value)
+    {
+        m_ZoomLevel -= value * Settings.ZoomStep;
+        m_ZoomLevel = Mathf.Clamp(m_ZoomLevel, Settings.MinZoom, Settings.MaxZoom);
     }
 }

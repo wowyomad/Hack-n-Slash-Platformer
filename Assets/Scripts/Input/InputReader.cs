@@ -9,6 +9,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action<float> Move;
     public event Action<float> MoveStared; //unused
     public event Action<float> MoveCancelled; //unused
+    public event Action<float> Zoom;
 
     public event Action Jump;
     public event Action JumpCancelled;
@@ -83,68 +84,6 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
             }
         }
     }
-
-    #region interface implementation
-    public void OnMove(InputAction.CallbackContext context)
-    {
-        HorizontalMovement = context.ReadValue<float>();
-        if (HorizontalMovement != 0.0f)
-        {
-            Move?.Invoke(context.ReadValue<float>());
-        }
-    }
-
-    public void OnAttack(InputAction.CallbackContext context)
-    {
-        if (InputActionPhase.Performed == context.phase)
-        {
-            Attack?.Invoke();
-        }
-    }
-
-    public void OnJump(InputAction.CallbackContext context)
-    {
-        if (InputActionPhase.Performed == context.phase)
-        {
-            Jump?.Invoke();
-        }
-        if (InputActionPhase.Canceled == context.phase)
-        {
-            JumpCancelled?.Invoke();
-        }
-    }
-
-    public void OnDash(InputAction.CallbackContext context)
-    {
-        if (InputActionPhase.Performed == context.phase)
-        {
-            Dash?.Invoke();
-        }
-    }
-
-    public void OnCursor(InputAction.CallbackContext context)
-    {
-        CursorPosition = context.ReadValue<Vector2>();
-        CursorMove?.Invoke(CursorPosition);
-    }
-
-    public void OnPause(InputAction.CallbackContext context)
-    {
-        if (InputActionPhase.Performed == context.phase)
-        {
-            Pause?.Invoke();
-        }
-    }
-
-    public void OnResume(InputAction.CallbackContext context)
-    {
-        if (InputActionPhase.Performed == context.phase)
-        {
-            Resume?.Invoke();
-        }
-    }
-    #endregion
-
 
     public void ListenEvents(object listener)
     {
@@ -227,4 +166,74 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         }
     }
 
+    #region interface implementation
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        HorizontalMovement = context.ReadValue<float>();
+        if (HorizontalMovement != 0.0f)
+        {
+            Move?.Invoke(context.ReadValue<float>());
+        }
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Attack?.Invoke();
+        }
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Jump?.Invoke();
+        }
+        if (InputActionPhase.Canceled == context.phase)
+        {
+            JumpCancelled?.Invoke();
+        }
+    }
+
+    public void OnDash(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Dash?.Invoke();
+        }
+    }
+
+    public void OnCursor(InputAction.CallbackContext context)
+    {
+        CursorPosition = context.ReadValue<Vector2>();
+        CursorMove?.Invoke(CursorPosition);
+    }
+
+    public void OnPause(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Pause?.Invoke();
+        }
+    }
+
+    public void OnResume(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Resume?.Invoke();
+        }
+    }
+
+    public void OnZoom(InputAction.CallbackContext context)
+    {
+        float value = context.ReadValue<float>();
+        if (value != 0.0f && InputActionPhase.Performed == context.phase)
+        {
+            Zoom?.Invoke(value > 0.0f ? 1.0f : -1.0f);
+        }
+    }
+
+    #endregion
 }

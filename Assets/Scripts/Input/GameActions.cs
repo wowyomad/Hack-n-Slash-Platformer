@@ -16,7 +16,8 @@ namespace GameActions
         Attack,
         Dash,
         Run,
-        CursorMove
+        CursorMove,
+        Zoom
     }
 }
 
