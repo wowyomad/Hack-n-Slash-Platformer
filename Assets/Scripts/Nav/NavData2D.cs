@@ -54,6 +54,8 @@ namespace Nav2D
         [SerializeField] private Vector2 m_ActorSize = new Vector2(1.0f, 2.0f);
         [SerializeField] private float m_MaxJumpHeight = 5.0f;
         [SerializeField] private float m_MaxJumpDistance = 5.0f;
+        [SerializeField] private float m_MaxFallHeight = 10.0f; // New property for max fall height
+        [SerializeField] private float m_MaxFallDistance = 10.0f; // New property for max fall distance
 
         public static readonly float VerySmallFloat = 0.005f;
         private Vector2 m_TileAnchor;
@@ -212,7 +214,8 @@ namespace Nav2D
                 // Connect Edges
                 if (navPoint.HasFlag(NavPoint.Type.Edge))
                 {
-                    ConnectEdges(navPoint);
+                    ConnectJumps(navPoint);
+                    ConnectFalls(navPoint); // Ensure edges connect with surfaces below
                 }
 
                 // Connect Transparent vertically
@@ -231,7 +234,7 @@ namespace Nav2D
             foreach (var offset in neighborOffsets)
             {
                 Vector3Int neighborPos = navPoint.CellPos + offset;
-                if (m_NavPointLookup.TryGetValue(neighborPos, out NavPoint neighbor) && (neighbor.HasFlag(NavPoint.Type.Surface) || neighbor.HasFlag(NavPoint.Type.Slope)))
+                if (m_NavPointLookup.TryGetValue(neighborPos, out NavPoint neighbor) && (neighbor.HasFlag(NavPoint.Type.Surface) || neighbor.HasFlag(NavPoint.Type.Slope) || neighbor.HasFlag(NavPoint.Type.Transparent)))
                 {
                     if (CanJumpTo(navPoint, neighbor))
                     {
@@ -241,12 +244,12 @@ namespace Nav2D
             }
         }
 
-        private void ConnectEdges(NavPoint navPoint)
+        private void ConnectJumps(NavPoint navPoint)
         {
             foreach (var kvp in m_NavPointLookup)
             {
                 NavPoint target = kvp.Value;
-                if ((target.HasFlag(NavPoint.Type.Surface) || target.HasFlag(NavPoint.Type.Slope)) && !IsNeighbor(navPoint, target))
+                if ((target.HasFlag(NavPoint.Type.Surface) || target.HasFlag(NavPoint.Type.Slope) || target.HasFlag(NavPoint.Type.Transparent)) && !IsNeighbor(navPoint, target))
                 {
                     if (CanJumpTo(navPoint, target))
                     {
@@ -288,6 +291,20 @@ namespace Nav2D
             }
         }
 
+        private void ConnectFalls(NavPoint navPoint)
+        {
+            foreach (var kvp in m_NavPointLookup)
+            {
+                NavPoint target = kvp.Value;
+                if ((target.HasFlag(NavPoint.Type.Surface) || target.HasFlag(NavPoint.Type.Slope)) && !IsNeighbor(navPoint, target))
+                {
+                    if (CanFallTo(navPoint, target))
+                    {
+                        navPoint.Connections.Add(target);
+                    }
+                }
+            }
+        }
 
         private bool CanJumpTo(NavPoint from, NavPoint to)
         {
@@ -309,7 +326,36 @@ namespace Nav2D
                 Vector2 checkPosition = from.Position + direction * (i * m_CellSize.y);
                 RaycastHit2D hit = Physics2D.Raycast(checkPosition, Vector2.up, m_ActorSize.y, m_GroundLayerMask | m_TransparentLayerMask);
 
-                Vector3 toPosition = to.Position;
+                if (hit.collider != null && Vector2.Distance(hit.point, to.Position) > VerySmallFloat)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool CanFallTo(NavPoint from, NavPoint to)
+        {
+            // Check if the fall is within the maximum fall height and distance
+            float heightDifference = from.Position.y - to.Position.y;
+            float horizontalDistance = Mathf.Abs(to.Position.x - from.Position.x);
+
+            if (heightDifference > m_MaxFallHeight || horizontalDistance > m_MaxFallDistance)
+            {
+                return false;
+            }
+
+            // Check for obstacles along the fall path
+            Vector2 direction = (to.Position - from.Position).normalized;
+            Vector2 fallOrigin = new Vector2(from.Position.x + direction.x > 0 ? 1 : -1, from.Position.y);
+            float distance = Vector2.Distance(fallOrigin, to.Position);
+            int numChecks = Mathf.CeilToInt(distance / m_CellSize.y);
+            for (int i = 1; i <= numChecks; i++)
+            {
+                Vector2 checkPosition = fallOrigin + direction * (i * m_CellSize.y);
+                RaycastHit2D hit = Physics2D.Raycast(checkPosition, Vector2.down, m_ActorSize.y, m_GroundLayerMask | m_TransparentLayerMask);
+
                 if (hit.collider != null && Vector2.Distance(hit.point, to.Position) > VerySmallFloat)
                 {
                     return false;
@@ -444,7 +490,7 @@ namespace Nav2D
                     {
                         Gizmos.color = Color.blue;
                     }
-                    else if (navPoint.HasFlag(NavPoint.Type.Transparent) && connection.HasFlag(NavPoint.Type.Surface))
+                    else if (navPoint.HasFlag(NavPoint.Type.Transparent) && connection.HasFlag(NavPoint.Type.Transparent))
                     {
                         Gizmos.color = Color.yellow;
                     }
