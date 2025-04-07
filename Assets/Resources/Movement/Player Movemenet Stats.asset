@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Player Movemenet Stats
   m_EditorClassIdentifier: 
   m_JumpHeight: 4.5
-  m_TimeToJumpApex: 0.3
-  m_MaxGravityScale: 0.3
-  AccelerationTimeAirborne: 0.3
-  AccelerationTimeGrounded: 0.1
-  DecelerationTimeAirborne: 0.1
-  DecelerationTimeGrounded: 0.15
-  HorizontalSpeed: 12
+  m_TimeToJumpApex: 0.4
+  m_MaxGravityScale: 0.2
+  AccelerationTimeAirborne: 0
+  AccelerationTimeGrounded: 0
+  DecelerationTimeAirborne: 0
+  DecelerationTimeGrounded: 0
+  HorizontalSpeed: 9

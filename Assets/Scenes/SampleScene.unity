@@ -1238,6 +1238,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedNavPoints: []
+  m_NavWeights: {fileID: 11400000, guid: 8883502f2d5ce6144b56364e2a70ed8b, type: 2}
   TestActor: {fileID: 1629184136}
   m_GroundTilemap: {fileID: 1325092818}
   m_TransparentGround: {fileID: 1361705394}
