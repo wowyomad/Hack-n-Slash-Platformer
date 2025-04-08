@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 using static UnityEditor.PlayerSettings;
 
 namespace Nav2D
@@ -132,7 +135,7 @@ namespace Nav2D
             if (Input.GetKeyDown(KeyCode.F) && TestActor != null)
             {
                 Vector3 playerPos = TestActor.transform.position;
-                NavPoint? navPoint = GetNavPoint(playerPos);
+                NavPoint navPoint = GetNavPoint(playerPos);
                 if (navPoint != null)
                 {
                     Debug.Log($"NavPoint found at {navPoint.Position}. Cell: {navPoint.CellPos}, Type: {navPoint.TypeMask}");
@@ -236,9 +239,9 @@ namespace Nav2D
                 }
 
                 // Connect Edges
-                if (navPoint.HasFlag(NavPoint.Type.Edge))
+                if (navPoint.HasFlag(NavPoint.Type.Surface))
                 {
-                    ConnectJumpsAndFalls(navPoint);
+                    ConnectJumps(navPoint);
                 }
 
                 // Connect Transparent vertically
@@ -327,14 +330,57 @@ namespace Nav2D
             }
         }
 
-        private void ConnectJumpsAndFalls(NavPoint navPoint)
+        private void ConnectJumps(NavPoint navPoint)
         {
+            float fromX = navPoint.CellPos.x;
+            float fromY = navPoint.CellPos.y;
+
+            //fsdfds
+
+
             foreach (var kvp in m_NavPointLookup)
             {
                 NavPoint target = kvp.Value;
-                if ((target.HasFlag(NavPoint.Type.Surface) || target.HasFlag(NavPoint.Type.Slope) || target.HasFlag(NavPoint.Type.Transparent)) && !IsNeighbor(navPoint, target))
+
+                if (!target.HasFlag(NavPoint.Type.Edge)) continue;
+
+                float verticalDistance = Mathf.Abs(navPoint.Position.y - target.Position.y);
+                float horizontalDistance = Mathf.Abs(navPoint.Position.x - target.Position.x);
+
+                float toX = target.CellPos.x;
+                float toY = target.CellPos.y;
+
+                if (verticalDistance > m_MaxJumpHeight || horizontalDistance > m_MaxJumpDistance
+                    || verticalDistance > m_MaxFallHeight || horizontalDistance > m_MaxFallDistance
+                    || horizontalDistance <= float.Epsilon)
                 {
-                    if (CanJumpTo(navPoint, target))
+                    continue;
+                }
+
+                // Проверяем, что прыжок возможен только с правильной стороны
+                bool isLeftEdge = !HasTileInAnyLayer(target.CellPos + Vector3Int.left);
+                bool isRightEdge = !HasTileInAnyLayer(target.CellPos + Vector3Int.right);
+
+                if (!(isLeftEdge && isRightEdge))
+                {
+                    if (isRightEdge && navPoint.Position.x < target.Position.x) continue; // Прыжок слева на правый edge запрещен
+                    if (isLeftEdge && navPoint.Position.x > target.Position.x) continue; // Прыжок справа на левый edge запрещен
+                }
+
+
+                if (IsOnSamePlatform(navPoint, target)) continue;
+
+                Vector2 direction = (target.CellPos - navPoint.CellPos).ToVector2().normalized;
+
+                if (direction.y >= 0)
+                {
+                    if (verticalDistance > m_MaxJumpHeight)
+                    {
+                        continue;
+                    }
+
+                    //1 horizontal distance jump handled specially
+                    if (horizontalDistance <= 1.0f + float.Epsilon)
                     {
                         navPoint.Connections.Add(new Connection
                         {
@@ -342,18 +388,25 @@ namespace Nav2D
                             Type = ConnectionType.Jump,
                             Weight = m_NavWeights.JumpWeight
                         });
-
-                        // Check if a fall connection can be made
-                        if (CanFallTo(navPoint, target))
+                    }
+                    else
+                    {
+                        if (IsPathClear(navPoint.Position, target.Position))
                         {
                             navPoint.Connections.Add(new Connection
                             {
                                 Target = target,
-                                Type = ConnectionType.Fall,
-                                Weight = m_NavWeights.FallWeight
+                                Type = ConnectionType.Jump,
+                                Weight = m_NavWeights.JumpWeight
                             });
                         }
                     }
+
+                }
+                else
+                {
+                    // Fall
+
                 }
             }
         }
@@ -398,74 +451,24 @@ namespace Nav2D
             }
         }
 
-
-        //TODO: make fall possible only in one direction
-        private bool CanJumpTo(NavPoint from, NavPoint to)
+        private bool IsOnSamePlatform(NavPoint a, NavPoint b)
         {
-            // Check if the points are on the same platform
-            if (from.CellPos.y == to.CellPos.y)
+            Vector2 aPos = new Vector2(a.CellPos.x + m_TileAnchor.x, a.CellPos.y + m_TileAnchor.y);
+            Vector2 bPos = new Vector2(b.CellPos.x + m_TileAnchor.x, b.CellPos.y + m_TileAnchor.y);
+
+            Vector2 direction = (aPos - bPos).normalized;
+            float distance = Vector2.Distance(aPos, bPos);
+
+            if (distance <= float.Epsilon) return true;
+
+            int expectedHits = Mathf.CeilToInt(distance / m_CellSize.x);
+            var hits = Physics2D.RaycastAll(aPos, direction, distance, m_GroundLayerMask | m_TransparentLayerMask);
+
+            if (hits.Length == expectedHits)
             {
-                int minX = Mathf.Min(from.CellPos.x, to.CellPos.x);
-                int maxX = Mathf.Max(from.CellPos.x, to.CellPos.x);
-
-                for (int x = minX + 1; x < maxX; x++)
-                {
-                    Vector3Int cellPos = new Vector3Int(x, from.CellPos.y, from.CellPos.z);
-                    if (!m_NavPointLookup.ContainsKey(cellPos))
-                    {
-                        // There is a gap between the points, so they are not on the same platform
-                        break;
-                    }
-                }
-
-                // Points are on the same platform with no gaps
-                return false;
+                return true;
             }
-
-            // Check if the jump is within the maximum jump height and distance
-            float heightDifference = Mathf.Abs(to.Position.y - from.Position.y);
-            float horizontalDistance = Mathf.Abs(to.Position.x - from.Position.x);
-
-            if (heightDifference > m_MaxJumpHeight || horizontalDistance > m_MaxJumpDistance)
-            {
-                return false;
-            }
-
-            // Check for obstacles along the jump path
-            Vector2 direction = (to.Position - from.Position).normalized;
-            float distance = Vector2.Distance(from.Position, to.Position);
-            int numChecks = Mathf.CeilToInt(distance / m_CellSize.y);
-            for (int i = 1; i <= numChecks; i++)
-            {
-                Vector2 checkPosition = from.Position + direction * (i * m_CellSize.y);
-                RaycastHit2D hit = Physics2D.Raycast(checkPosition, Vector2.up, m_ActorSize.y, m_GroundLayerMask | m_TransparentLayerMask);
-
-                if (hit.collider != null && Vector2.Distance(hit.point, to.Position) > VerySmallFloat)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool CanFallTo(NavPoint from, NavPoint to)
-        {
-            if (to.Position.y >= from.Position.y - m_CellSize.y)
-            {
-                return false;
-            }
-
-            // Check if the fall is within the maximum fall height and distance
-            float heightDifference = from.Position.y - to.Position.y;
-            float horizontalDistance = Mathf.Abs(to.Position.x - from.Position.x);
-
-            if (heightDifference > m_MaxFallHeight || horizontalDistance > m_MaxFallDistance)
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         private bool IsNeighbor(NavPoint a, NavPoint b)
@@ -552,6 +555,40 @@ namespace Nav2D
                     m_NavPointLookup[entry.Key] = entry.Value;
                 }
             }
+        }
+
+        private bool IsPathClear(Vector2 from, Vector2 to)
+        {
+            Vector2 pathDirection = (to - from).normalized;
+            float distance = Vector2.Distance(from, to);
+
+            var hits = Physics2D.RaycastAll(from, pathDirection, distance, m_GroundLayerMask | m_TransparentLayerMask);
+
+            foreach (var hit in hits)
+            {
+                if (Mathf.Abs(hit.point.x - to.x) <= m_ActorSize.x / 2 + m_TileAnchor.x &&
+                    Mathf.Abs(hit.point.y - to.y) <= m_ActorSize.y / 2 + m_TileAnchor.y)
+                {
+                    continue;
+                }
+
+                if (Mathf.Abs(to.y - from.y) > Mathf.Abs(to.x - from.x)) // Главная ось — Y
+                {
+                    if (Mathf.Abs(hit.point.x - to.x) > m_ActorSize.x / 2 + m_TileAnchor.x + VerySmallFloat)
+                    {
+                        return false;
+                    }
+                }
+                else // Главная ось — X
+                {
+                    if (Mathf.Abs(hit.point.y - to.y) > m_ActorSize.y / 2 + m_TileAnchor.y + VerySmallFloat)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private void OnDrawGizmosSelected()
