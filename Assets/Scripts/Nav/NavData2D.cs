@@ -75,8 +75,8 @@ namespace Nav2D
         [SerializeField] private Vector2 m_ActorSize = new Vector2(1.0f, 2.0f);
         [SerializeField] private float m_MaxJumpHeight = 5.0f;
         [SerializeField] private float m_MaxJumpDistance = 5.0f;
-        [SerializeField] private float m_MaxFallHeight = 10.0f; // New property for max fall height
-        [SerializeField] private float m_MaxFallDistance = 10.0f; // New property for max fall distance
+        [SerializeField] private float m_MaxFallHeight = 10.0f; 
+        [SerializeField] private float m_MaxFallDistance = 10.0f;
 
         public static readonly float VerySmallFloat = 0.005f;
         private Vector2 m_TileAnchor;
@@ -236,12 +236,13 @@ namespace Nav2D
                 if (navPoint.HasFlag(NavPoint.Type.Surface))
                 {
                     ConnectSurfaceNeighbors(navPoint);
+                    ConnectJumps(navPoint);
                 }
 
                 // Connect Edges
-                if (navPoint.HasFlag(NavPoint.Type.Surface))
+                if (navPoint.HasFlag(NavPoint.Type.Edge))
                 {
-                    ConnectJumps(navPoint);
+                    ConnectFalls(navPoint);
                 }
 
                 // Connect Transparent vertically
@@ -351,7 +352,6 @@ namespace Nav2D
                 float toY = target.CellPos.y;
 
                 if (verticalDistance > m_MaxJumpHeight || horizontalDistance > m_MaxJumpDistance
-                    || verticalDistance > m_MaxFallHeight || horizontalDistance > m_MaxFallDistance
                     || horizontalDistance <= float.Epsilon)
                 {
                     continue;
@@ -391,7 +391,7 @@ namespace Nav2D
                     }
                     else
                     {
-                        if (IsPathClear(navPoint.Position, target.Position))
+                        if (IsJumpPathClear(navPoint.Position, target.Position))
                         {
                             navPoint.Connections.Add(new Connection
                             {
@@ -403,13 +403,57 @@ namespace Nav2D
                     }
 
                 }
-                else
-                {
-                    // Fall
+            }
+        }
 
+        private void ConnectFalls(NavPoint navPoint)
+        {
+            if (!navPoint.HasFlag(NavPoint.Type.Edge)) return;
+
+            foreach (var kvp in m_NavPointLookup)
+            {
+                NavPoint target = kvp.Value;
+
+                // Falls are only possible from edges
+
+                float verticalDistance = Mathf.Abs(navPoint.Position.y - target.Position.y);
+                float horizontalDistance = Mathf.Abs(navPoint.Position.x - target.Position.x);
+
+                // Ensure the target is not on the same Y-level and within fall distances
+                if (target.Position.y >= navPoint.Position.y
+                    || Mathf.Abs(target.Position.x - navPoint.Position.x) <= float.Epsilon
+                    || verticalDistance > m_MaxFallHeight
+                    || horizontalDistance > m_MaxFallDistance)
+                {
+                    continue;
+                }
+
+                // Check if the fall is valid based on the edge type
+                bool isLeftEdge = !HasTileInAnyLayer(navPoint.CellPos + Vector3Int.left);
+                bool isRightEdge = !HasTileInAnyLayer(navPoint.CellPos + Vector3Int.right);
+
+                if (!(isLeftEdge && isRightEdge))
+                {
+                    if (isRightEdge && target.Position.x < navPoint.Position.x) continue; // Fall to the left from a right edge is invalid
+                    if (isLeftEdge && target.Position.x > navPoint.Position.x) continue; // Fall to the right from a left edge is invalid
+                }
+
+                // Add the fall connection
+                Vector2 adjustedFallPosition = navPoint.Position;
+                if (isRightEdge) adjustedFallPosition.x += m_CellSize.x; // Move 1 unit to the right
+                if (isLeftEdge) adjustedFallPosition.x -= m_CellSize.x;  // Move 1 unit to the left
+                if (IsFallPathClear(adjustedFallPosition, target.Position))
+                {
+                    navPoint.Connections.Add(new Connection
+                    {
+                        Target = target,
+                        Type = ConnectionType.Fall,
+                        Weight = m_NavWeights.FallWeight
+                    });
                 }
             }
         }
+
 
         private void ConnectTransparentVertically(NavPoint navPoint)
         {
@@ -557,7 +601,7 @@ namespace Nav2D
             }
         }
 
-        private bool IsPathClear(Vector2 from, Vector2 to)
+        private bool IsJumpPathClear(Vector2 from, Vector2 to)
         {
             Vector2 pathDirection = (to - from).normalized;
             float distance = Vector2.Distance(from, to);
@@ -588,6 +632,17 @@ namespace Nav2D
                 }
             }
 
+            return true;
+        }
+
+        private bool IsFallPathClear(Vector2 from, Vector2 to)
+        {
+            Vector2 pathDirection = (to - from).normalized;
+            float distance = Vector2.Distance(from, to);
+
+            var hits = Physics2D.RaycastAll(from, pathDirection, distance, m_GroundLayerMask | m_TransparentLayerMask);
+            if (hits.Length > 0)
+                return false;
             return true;
         }
 
