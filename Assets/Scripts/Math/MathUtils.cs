@@ -28,5 +28,5 @@ public static class MathUtils
     public static Vector3 ToVector3(this Vector2Int vector)
     {
         return new Vector3(vector.x, vector.y);
-    }
+    }   
 }
