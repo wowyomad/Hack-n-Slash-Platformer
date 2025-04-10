@@ -27,46 +27,66 @@ namespace Behavior
         }
     }
 
-    public class PrioritySelector : Node
+    public class UntilSuccess : SingleChildNode
     {
-        private List<Node> m_SortedChildren;
-        public List<Node> SortedChildren => m_SortedChildren ?? Children.OrderByDescending(child => child.Priority).ToList();
+        public UntilSuccess(Node child) : this(null, child) { }
+        public UntilSuccess(string name, Node child) : this(name, 0, child) { }
+        public UntilSuccess(string name, int priority, Node child) : base(name, priority, child) { }
+        public UntilSuccess(string name, int priority) : base(name, priority) { }
 
-        public PrioritySelector(params Node[] children) : this(null, children) { }
-        public PrioritySelector(string name, params Node[] children) : this(name, 0, children) { }
-
-        public PrioritySelector(string name, int priority, params Node[] children) : base(name, priority, children) { }
 
         public override Status Execute()
         {
-            foreach (var child in SortedChildren)
+            var status = Children[0].Execute();
+            if (status == Status.Success)
             {
-                var status = child.Execute();
-                switch (status)
-                {
-                    case Status.Success:
-                        Reset();
-                        return Status.Success;
-                    case Status.Running:
-                        return Status.Running;
-                    case Status.Failure:
-                        continue;
-
-                }
+                Reset();
+                return Status.Success;
             }
 
-            Reset();
-            return Status.Failure;
+            return Status.Running;
         }
-        public override void Reset()
+    }
+
+    public class UntilFail : SingleChildNode
+    {
+        public UntilFail(Node child) : this(null, child) { }
+        public UntilFail(string name, Node child) : base(name, 0, child) { }
+        public UntilFail(string name, int priority, Node child) : base(name, priority, child) { }
+        public UntilFail(string name, int priority) : base(name, priority) { }
+        public override Status Execute()
         {
-            base.Reset();
+            var status = Children[0].Execute();
+            if (status == Status.Failure)
+            {
+                Reset();
+                return Status.Success;
+            }
+
+            return Status.Running;
+        }
+    }
+
+    public class Inverter : SingleChildNode
+    {
+        public Inverter(Node child) : this(null, child) { }
+        public Inverter(string name, Node child) : this(name, 0, child) { }
+        public Inverter(string name, int priority, Node child) : base(name, priority, child) { }
+        public override Status Execute()
+        {
+            var status = Children[0].Execute();
+            return status switch
+            {
+                Status.Running => Status.Running,
+                Status.Success => Status.Failure,
+                Status.Failure => Status.Success,
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 
     public class Selector : Node
     {
-
         public Selector(params Node[] children) : this(null, children) { }
         public Selector(string name, params Node[] children) : this(name, 0, children) { }
         public Selector(string name, int priority, params Node[] children) : base(name, priority, children) { }
@@ -93,6 +113,61 @@ namespace Behavior
             return Status.Failure;
         }
     }
+
+    public class PrioritySelector : Selector
+    {
+        private List<Node> m_SortedChildren;
+        public virtual List<Node> SortedChildren => m_SortedChildren ?? Children.OrderByDescending(child => child.Priority).ToList();
+
+        public PrioritySelector(params Node[] children) : this(null, children) { }
+        public PrioritySelector(string name, params Node[] children) : this(name, 0, children) { }
+
+        public PrioritySelector(string name, int priority, params Node[] children) : base(name, priority, children) { }
+
+        public override Status Execute()
+        {
+            foreach (var child in SortedChildren)
+            {
+                var status = child.Execute();
+                switch (status)
+                {
+                    case Status.Success:
+                        Reset();
+                        return Status.Success;
+                    case Status.Running:
+                        return Status.Running;
+                    case Status.Failure:
+                        continue;
+                }
+            }
+
+            Reset();
+            return Status.Failure;
+        }
+        public override void AddChild(Node child)
+        {
+            base.AddChild(child);
+            m_SortedChildren = null;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+        }
+    }
+
+    public class RandomSelector : PrioritySelector
+    {
+        private System.Random m_Rng = new System.Random();
+        public override List<Node> SortedChildren => Children.OrderBy(_ => m_Rng.Next()).ToList();
+
+        public RandomSelector(params Node[] children) : this(null, children) { }
+        public RandomSelector(string name, params Node[] children) : this(name, 0, children) { }
+
+        public RandomSelector(string name, int priority, params Node[] children) : base(name, priority, children) { }
+    }
+
+
 
     public class Sequence : Node
     {
@@ -125,6 +200,24 @@ namespace Behavior
         }
     }
 
+    public class SingleChildNode : Node
+    {
+        public SingleChildNode(Node child) : this(null, child) { }
+        public SingleChildNode(string name, Node child) : this(name, 0, child) { }
+        public SingleChildNode(string name, int priority, Node child) : base(name, priority, child) { }
+        public SingleChildNode(string name, int priority) : base(name, priority) { }
+
+        public override Status Execute() => Children[0].Execute();
+        public override void AddChild(Node child)
+        {
+            if (Children.Count > 0)
+            {
+                throw new InvalidOperationException($"{Name} can only have one child.");
+            }
+            base.AddChild(child);
+        }
+    }
+
     public class Leaf : Node
     {
         private readonly IStrategy m_Strategy;
@@ -154,10 +247,13 @@ namespace Behavior
         {
             Name = name ?? GetType().Name;
             Priority = priority;
-            Children = new List<Node>(children);
+            if (children.All(child => child != null))
+                Children = new List<Node>(children);
+            else
+                Children = new List<Node>();
         }
 
-        public void AddChild(Node child) => Children.Add(child);
+        public virtual void AddChild(Node child) => Children.Add(child);
         public virtual Status Execute() => Children[CurrentChildIndex].Execute();
 
         public virtual void Reset()
@@ -209,15 +305,19 @@ namespace Behavior
 
         public BehaviorTreeBuilder PrioritySelector(string name = null, int priority = 0)
         {
-            // Note: The PrioritySelector itself sorts children during Execute.
-            // The builder just adds them in the order defined.
             var prioritySelector = new PrioritySelector(name, priority);
             AddNodeToCurrentParent(prioritySelector);
             m_ParentStack.Push(prioritySelector);
             return this;
         }
 
-        // --- Leaf Nodes ---
+        public BehaviorTreeBuilder UntilFail(string name = null, int priority = 0)
+        {
+            var untilFail = new UntilFail(name, priority);
+            AddNodeToCurrentParent(untilFail);
+            m_ParentStack.Push(untilFail);
+            return this;
+        }
 
         public BehaviorTreeBuilder Do(Action action)
         {
@@ -226,11 +326,11 @@ namespace Behavior
 
         public BehaviorTreeBuilder Leaf(Action action)
         {
-           return Leaf(null, 0, action);
+            return Leaf(null, 0, action);
         }
         public BehaviorTreeBuilder Leaf(string name, Action action)
         {
-           return Leaf(name, 0, action);
+            return Leaf(name, 0, action);
         }
 
         public BehaviorTreeBuilder Leaf(string name, int priority, Action action)
@@ -309,10 +409,12 @@ namespace Behavior
             {
                 Node parent = m_ParentStack.Peek();
                 parent.AddChild(node);
+
+                if (parent is SingleChildNode)
+                    End();
             }
             else
             {
-                // This shouldn't happen if initialized correctly with a root
                 throw new InvalidOperationException("Cannot add node, no parent node on the stack.");
             }
         }

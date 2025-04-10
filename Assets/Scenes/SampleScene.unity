@@ -6885,6 +6885,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3373287855803197122, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: TransparentGroundMask.m_Bits
+      value: 134217728
+      objectReference: {fileID: 0}
+    - target: {fileID: 7212074060561574547, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: BehaviorConfig
+      value: 
+      objectReference: {fileID: 11400000, guid: 445d29f2ecbf54740a59228d235f4aa5, type: 2}
     - target: {fileID: 7212074060561574547, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
       propertyPath: m_WayPoints.Array.size
       value: 3

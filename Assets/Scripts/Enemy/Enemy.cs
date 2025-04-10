@@ -12,10 +12,12 @@ public interface IDestroyable
 
 
 [RequireComponent(typeof(CharacterController2D))]
+[RequireComponent(typeof(SpriteRenderer))]
 public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 {
     [HideInInspector] public CharacterController2D Controller;
     public CharacterMovementStats Movement;
+    public EnemyBehaviorConfigSO BehaviorConfig;
     public StateMachine<IEnemyState> StateMachine;
     public BehaviorTree Tree;
 
@@ -23,9 +25,10 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     [HideInInspector]
     public GameObject PlayerReference;
+    [HideInInspector]
+    public SpriteRenderer Sprite;
 
     [SerializeField] private List<Transform> m_WayPoints;
-
     public bool CanTakeHit => StateMachine.CurrentState is IEnemyVulnarableState;
     public float DistanceToPlayer => Vector3.Distance(transform.position, PlayerReference.transform.position);
     public Vector2 DirectionToPlayer => (PlayerReference.transform.position - transform.position).normalized;
@@ -48,6 +51,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     {
         Controller = GetComponent<CharacterController2D>();
         PlayerReference = GameObject.FindWithTag("Player");
+        Sprite = GetComponent<SpriteRenderer>();
     }
 
     private void Start()
@@ -75,20 +79,20 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         //StateMachine.ChangeState(new StandartEnemyIdleState(this));
 
         Tree = new BehaviorTreeBuilder("Enemy")
-            .PrioritySelector("Simple Selector")
-                .Sequence("GoToPlayer", 1)
-                    .Condition("IsPlayerNearby", () =>
-                        CanSeePlayer && ((DistanceToPlayer < 12.0f && IsFacingToPlayer)
-                        || DistanceToPlayer < 5.0f))
-                    .Leaf("ChangeColorToDangerous", () => GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.2f, 0.3f))
-                    .PrioritySelector()
-                        .Leaf("SeekPlayer", 1, new SeekStrategy(gameObject, PlayerReference.transform, Movement.HorizontalSpeed * 1.5f, 0.1f, 12.0f))
-                        .Leaf("ChangeColorBackToNormal", 0, () => GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f))
-                        .End()
-                    .End()
-                .Leaf("Patrol", 0, new PatrolStrategy(gameObject, m_WayPoints, Movement.HorizontalSpeed))
-                .End()
-        .Build();
+             .PrioritySelector("Simple Selector")
+                 .Sequence("GoToPlayer", 1)
+                     .Condition("IsPlayerNearby", () =>
+                         CanSeePlayer && ((DistanceToPlayer < BehaviorConfig.VisualSeekDistance && IsFacingToPlayer)
+                         || DistanceToPlayer < BehaviorConfig.CloseDetectionDistance))
+                     .Leaf("ChangeColorToDangerous", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
+                     .UntilFail("UntilPlayerOutOfSight")
+                         .Leaf("SeekPlayer", 1, new SeekStrategy(gameObject, PlayerReference.transform, BehaviorConfig.SeekSpeed, BehaviorConfig.SeekStoppingDistance, BehaviorConfig.VisualSeekDistance))
+                     .End()
+                     .Leaf("ChangeColorBackToNormal", 0, () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
+                 .End()
+                 .Leaf("Patrol", 0, new PatrolStrategy(gameObject, m_WayPoints, BehaviorConfig.PatrolSpeed))
+             .End()
+         .Build();
     }
 
     public void TakeDamage(float value, Vector2 normal)
