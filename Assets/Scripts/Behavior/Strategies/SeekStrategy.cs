@@ -39,7 +39,7 @@ namespace Behavior
                 return Node.Status.Failure;
             }
 ;
-            if (distance <= Config.SeekStoppingDistance)
+            if (horizontalDistance <= Config.SeekReachDistance)
             {
                 return Node.Status.Success;
             }
@@ -52,7 +52,6 @@ namespace Behavior
             {
                 displacement = horizontalDirection * distance;
             }
-
 
             m_ChracterController.Move(displacement);
 

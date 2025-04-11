@@ -7,7 +7,7 @@ public class EnemyBehaviorConfigSO : ScriptableObject
     public float SeekSpeed = 8.5f;
 
     public float VisualSeekDistance = 12.0f;
-    public float CloseDetectionDistance = 5.0f;
+    public float CloseSeekDistance = 5.0f;
 
-    public float SeekStoppingDistance = 0.5f;
+    public float SeekReachDistance = 0.5f;
 }

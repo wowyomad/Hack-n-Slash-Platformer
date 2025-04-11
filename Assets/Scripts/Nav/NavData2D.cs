@@ -80,6 +80,8 @@ namespace Nav2D
         [SerializeField] private float m_MaxFallHeight = 10.0f;
         [SerializeField] private float m_MaxFallDistance = 10.0f;
 
+        [SerializeField] private bool m_DrawGizmos = true;
+
 
         public static readonly float VerySmallFloat = 0.005f;
         private Vector2 m_TileAnchor;
@@ -256,20 +258,17 @@ namespace Nav2D
             {
                 NavPoint navPoint = m_NavPointLookup[key];
 
-                // Connect Surface neighbors
                 if (navPoint.HasFlag(NavPoint.Type.Surface))
                 {
                     ConnectSurfaceNeighbors(navPoint);
                     ConnectJumps(navPoint);
                 }
 
-                // Connect Edges
                 if (navPoint.HasFlag(NavPoint.Type.Edge))
                 {
                     ConnectFalls(navPoint);
                 }
 
-                // Connect Transparent vertically
                 if (navPoint.HasFlag(NavPoint.Type.Transparent))
                 {
                     ConnectTransparentVertically(navPoint);
@@ -381,14 +380,13 @@ namespace Nav2D
                     continue;
                 }
 
-                // Проверяем, что прыжок возможен только с правильной стороны
                 bool isLeftEdge = !HasTileInAnyLayer(target.CellPos + Vector3Int.left);
                 bool isRightEdge = !HasTileInAnyLayer(target.CellPos + Vector3Int.right);
 
                 if (!(isLeftEdge && isRightEdge))
                 {
-                    if (isRightEdge && navPoint.Position.x < target.Position.x) continue; // Прыжок слева на правый edge запрещен
-                    if (isLeftEdge && navPoint.Position.x > target.Position.x) continue; // Прыжок справа на левый edge запрещен
+                    if (isRightEdge && navPoint.Position.x < target.Position.x) continue;
+                    if (isLeftEdge && navPoint.Position.x > target.Position.x) continue; //
                 }
 
 
@@ -402,8 +400,8 @@ namespace Nav2D
                     {
                         continue;
                     }
-
-                    //1 horizontal distance jump handled specially
+                    
+                    //Tak Nado.
                     if (horizontalDistance <= 1.0f + float.Epsilon)
                     {
                         navPoint.Connections.Add(new Connection
@@ -437,8 +435,6 @@ namespace Nav2D
             foreach (var kvp in m_NavPointLookup)
             {
                 NavPoint target = kvp.Value;
-
-                // Falls are only possible from edges
 
                 float verticalDistance = Mathf.Abs(navPoint.Position.y - target.Position.y);
                 float horizontalDistance = Mathf.Abs(navPoint.Position.x - target.Position.x);
@@ -644,14 +640,14 @@ namespace Nav2D
                     continue;
                 }
 
-                if (Mathf.Abs(to.y - from.y) > Mathf.Abs(to.x - from.x)) // Главная ось — Y
+                if (Mathf.Abs(to.y - from.y) > Mathf.Abs(to.x - from.x))
                 {
                     if (Mathf.Abs(hit.point.x - to.x) > m_ActorSize.x / 2 + m_TileAnchor.x + VerySmallFloat)
                     {
                         return false;
                     }
                 }
-                else // Главная ось — X
+                else
                 {
                     if (Mathf.Abs(hit.point.y - to.y) > m_ActorSize.y / 2 + m_TileAnchor.y + VerySmallFloat)
                     {
@@ -674,9 +670,10 @@ namespace Nav2D
             return true;
         }
 
-        private void OnDrawGizmosSelected()
+        private void OnDrawGizmos()
         {
             if (m_NavPointLookup == null) return;
+            if (!m_DrawGizmos) return;
 
             foreach (var navPoint in m_NavPointLookup.Values)
             {

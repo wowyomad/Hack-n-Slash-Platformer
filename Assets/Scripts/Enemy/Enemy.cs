@@ -81,18 +81,18 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         //StateMachine.ChangeState(new StandartEnemyIdleState(this));
 
         Tree = new BehaviorTreeBuilder("Enemy")
-             .PrioritySelector("Simple Selector")
-                 .Sequence("GoToPlayer", 1)
-                     .Condition("IsPlayerNearby", () =>
+            .PrioritySelector()
+                .Sequence("Chase player", 1)
+                    .Condition("Is player nearby?", () =>
                          CanSeePlayer && ((DistanceToPlayer < BehaviorConfig.VisualSeekDistance && IsFacingToPlayer)
-                         || DistanceToPlayer < BehaviorConfig.CloseDetectionDistance))
-                     .Do("ChangeColorToDangerous", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
-                     .UntilFail().Do("SeekPlayer", 1, new SeekStrategy(this, PlayerReference.transform))
-                     .Do("ChangeColorBackToNormal", 0, () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
-                 .End()
-                 .Do("Patrol", 0, new PatrolStrategy(this, m_WayPoints))
-             .End()
-         .Build();
+                         || DistanceToPlayer < BehaviorConfig.CloseSeekDistance))
+                    .Do("Change color to red", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
+                    .UntilFail().Do("Seek player", new SeekStrategy(this, PlayerReference.transform))
+                    .Do("Change color back to normal", () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
+                .End()
+                .Do("Patrol", 0, new PatrolStrategy(this, m_WayPoints))
+            .End()
+        .Build();
     }
 
     public void TakeDamage(float value, Vector2 normal)

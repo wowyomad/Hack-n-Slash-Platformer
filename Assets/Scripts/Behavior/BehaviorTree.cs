@@ -380,6 +380,11 @@ namespace Behavior
             return Leaf(name, priority, new Condition(condition));
         }
 
+        public BehaviorTreeBuilder Condition(string name, int priority, Func<bool> condition)
+        {
+            return Leaf(name, priority, new Condition(condition));
+        }
+
 
         public BehaviorTreeBuilder End()
         {
