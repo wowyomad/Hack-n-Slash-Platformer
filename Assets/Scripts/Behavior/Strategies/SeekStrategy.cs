@@ -8,47 +8,45 @@ namespace Behavior
         private Transform m_Transform;
         private Transform TargetTransofrm;
         private CharacterController2D m_ChracterController;
-        private float m_Speed;
-        private float m_ReachDistance;
-        private float m_MaxSeekDistance;
+        private EnemyBehaviorConfigSO Config;
         private Enemy Self;
 
-        public SeekStrategy(GameObject self, Transform targetTransform, float speed, float reachDistance, float maxSeekDistance)
+        private bool CanSeePlayer => Self.CanSeePlayer;
+
+        public SeekStrategy(Enemy self, Transform target)
         {
             if (!self.TryGetComponent(out m_ChracterController))
             {
                 throw new MissingComponentException("SeekStrategy requires CharacterController2D component");
             }
             m_Transform = self.transform;
-            TargetTransofrm = targetTransform;
-            m_ReachDistance = reachDistance;
-            m_Speed = speed;
-            m_MaxSeekDistance = maxSeekDistance;
+            TargetTransofrm = target;
             Self = self.GetComponent<Enemy>();
+            Config = self.BehaviorConfig;
         }
 
         public Node.Status Execute()
         {
             float distance = Vector3.Distance(m_Transform.position, TargetTransofrm.position);
             float horizontalDistance = Mathf.Abs(m_Transform.position.x - TargetTransofrm.position.x);
-            if (horizontalDistance >= m_MaxSeekDistance)
+            if (horizontalDistance >= Config.VisualSeekDistance)
             {
                 return Node.Status.Failure;
             }
 
-            if (!Self.CanSeePlayer)
+            if (!CanSeePlayer)
             {
                 return Node.Status.Failure;
             }
 ;
-            if (distance <= m_ReachDistance)
+            if (distance <= Config.SeekStoppingDistance)
             {
                 return Node.Status.Success;
             }
 
             Vector3 direction = (TargetTransofrm.position - m_Transform.position).normalized;
             Vector3 horizontalDirection = direction.x > 0 ? Vector3.right : Vector3.left;
-            Vector3 displacement = horizontalDirection * m_Speed * Time.deltaTime;
+            Vector3 displacement = horizontalDirection * Config.SeekSpeed * Time.deltaTime;
 
             if (displacement.magnitude > distance)
             {

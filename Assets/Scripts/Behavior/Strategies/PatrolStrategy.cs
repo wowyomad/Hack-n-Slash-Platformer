@@ -5,24 +5,24 @@ namespace Behavior
 {
     public class PatrolStrategy : IStrategy
     {
+        private EnemyBehaviorConfigSO Config;
         private readonly Transform m_Transform;
         private readonly List<Transform> m_PatrolPoints;
         private CharacterController2D m_ChracterController;
-        private float m_Speed;
         private int m_CurrentPointIndex = 0;
 
         private static readonly float DistanceBias = 0.025f;
 
-        public PatrolStrategy(GameObject entity, List<Transform> patrolPoints, float speed)
+        public PatrolStrategy(Enemy self, List<Transform> patrolPoints)
         {
-            if(!entity.TryGetComponent(out m_ChracterController))
+            Config = self.BehaviorConfig;
+            if (!self.TryGetComponent(out m_ChracterController))
             {
                 throw new MissingComponentException("PatrolStrategy requires CharacterController2D component");
             }
 
-            m_Transform = entity.transform;
+            m_Transform = self.transform;
             m_PatrolPoints = patrolPoints;
-            m_Speed = speed;
         }
 
         public Node.Status Execute()
@@ -58,7 +58,7 @@ namespace Behavior
         {
             destination.y = m_Transform.position.y;
             Vector3 direction = (destination - m_Transform.position).normalized;
-            Vector3 displacement = direction * m_Speed * Time.deltaTime;
+            Vector3 displacement = direction * Config.PatrolSpeed * Time.deltaTime;
 
             float distanceToDestination = Vector3.Distance(m_Transform.position, destination);
 

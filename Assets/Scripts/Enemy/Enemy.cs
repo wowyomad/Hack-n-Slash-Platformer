@@ -32,7 +32,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     public bool CanTakeHit => StateMachine.CurrentState is IEnemyVulnarableState;
     public float DistanceToPlayer => Vector3.Distance(transform.position, PlayerReference.transform.position);
     public Vector2 DirectionToPlayer => (PlayerReference.transform.position - transform.position).normalized;
-    public bool IsFacingToPlayer => FacingDirection == (DirectionToPlayer.x > 0.0f ? 1 : 0);
+    public bool IsFacingToPlayer => FacingDirection == (DirectionToPlayer.x > 0.0f ? 1 : -1);
     public bool CanSeePlayer => IsPlayerOnSight();
     public int FacingDirection { get; private set; }
 
@@ -70,7 +70,9 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Controller.Move(Velocity * Time.deltaTime);
 
         Flip(Controller.LastDisplacement.x);
-
+        string facing = FacingDirection > 0 ? "Right" : "Left";
+        string direction = DirectionToPlayer.x > 0 ? "Right" : "Left";
+        Debug.Log($"Facing: {facing}, ToPlayer: {IsFacingToPlayer} (Direction To Player: {direction}");
     }
 
     public void Initialize()
@@ -86,11 +88,11 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
                          || DistanceToPlayer < BehaviorConfig.CloseDetectionDistance))
                      .Leaf("ChangeColorToDangerous", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
                      .UntilFail("UntilPlayerOutOfSight")
-                         .Leaf("SeekPlayer", 1, new SeekStrategy(gameObject, PlayerReference.transform, BehaviorConfig.SeekSpeed, BehaviorConfig.SeekStoppingDistance, BehaviorConfig.VisualSeekDistance))
+                         .Leaf("SeekPlayer", 1, new SeekStrategy(this, PlayerReference.transform))
                      .End()
                      .Leaf("ChangeColorBackToNormal", 0, () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
                  .End()
-                 .Leaf("Patrol", 0, new PatrolStrategy(gameObject, m_WayPoints, BehaviorConfig.PatrolSpeed))
+                 .Leaf("Patrol", 0, new PatrolStrategy(this, m_WayPoints))
              .End()
          .Build();
     }
