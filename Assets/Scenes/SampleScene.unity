@@ -284,8 +284,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95086a0c10687f846b3eeff303673064, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Target: {fileID: 1629184140}
-  Offset: {x: 0, y: 2}
 --- !u!1001 &168310897
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1253,6 +1251,7 @@ MonoBehaviour:
   m_MaxJumpDistance: 4
   m_MaxFallHeight: 12
   m_MaxFallDistance: 3
+  m_DrawGizmos: 1
   references:
     version: 2
     RefIds: []
@@ -6989,6 +6988,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: GroundMask.m_Bits
+      value: 2147483648
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: TransparentGroundMask.m_Bits
+      value: 134217728
+      objectReference: {fileID: 0}
     - target: {fileID: 7854407663255006659, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -7010,6 +7017,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 658088851126239683, guid: f36ea0749937ce148ad548932f7d724b, type: 3}
+      propertyPath: GroundMask.m_Bits
+      value: 2147483648
+      objectReference: {fileID: 0}
+    - target: {fileID: 658088851126239683, guid: f36ea0749937ce148ad548932f7d724b, type: 3}
+      propertyPath: TransparentGroundMask.m_Bits
+      value: 134217728
+      objectReference: {fileID: 0}
     - target: {fileID: 1261984061374707658, guid: f36ea0749937ce148ad548932f7d724b, type: 3}
       propertyPath: m_Name
       value: Player
@@ -7062,7 +7077,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2413239190061346994, guid: f36ea0749937ce148ad548932f7d724b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using Behavior;
 using System.Collections.Generic;
-using static UnityEngine.UI.Image;
 using Unity.VisualScripting;
 
 public interface IDestroyable
@@ -41,11 +40,18 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     public event Action Hit;
     public event Action<IDestroyable> OnDestroyed;
 
+    [SerializeField] private ActionTimer Timer;
+
     private void OnEnable()
     {
         Initialize();
+        Timer.SetCallback(OnTimerFinished);
     }
-
+    private void OnDisable()
+    {
+        Initialize();
+        Timer.SetCallback(null);
+    }
 
     private void Awake()
     {
@@ -57,6 +63,15 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
+
+        Timer = new ActionTimer(OnTimerFinished, true);
+        Timer.Start(3);
+    }
+
+    private void OnTimerFinished()
+    {
+        Debug.Log("Timer finished");
+        Timer.Restart();
     }
 
     private void Update()
@@ -64,21 +79,23 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         //StateMachine.Update();
         //Controller.Move(Velocity * Time.deltaTime);
 
-
         Tree.Execute();
         ApplyGravityToVelocity();
         Controller.Move(Velocity * Time.deltaTime);
 
         Flip(Controller.LastDisplacement.x);
-        string facing = FacingDirection > 0 ? "Right" : "Left";
-        string direction = DirectionToPlayer.x > 0 ? "Right" : "Left";
-        Debug.Log($"Facing: {facing}, ToPlayer: {IsFacingToPlayer} (Direction To Player: {direction}");
+
+        Timer.Tick();
     }
 
     public void Initialize()
     {
         //StateMachine = new StateMachine<IEnemyState>();
         //StateMachine.ChangeState(new StandartEnemyIdleState(this));
+
+        //StateMachine.AddTransition(idle, chase, () => Tree.CurrentBehavior is SeekStrategy;
+        //StateMachine.AddTransition(chase, idle, () => Tree.CurrentBehavior is PatrolStrategy);
+
 
         Tree = new BehaviorTreeBuilder("Enemy")
             .PrioritySelector()

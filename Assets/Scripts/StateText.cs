@@ -37,7 +37,7 @@ public class StateText : MonoBehaviour
                 {
                     m_TrackableState.StateChanged -= UpdateStateText;
                 }
-            } catch (MissingReferenceException e)
+            } catch (MissingReferenceException)
             {
                 //It's OK.
                 Debug.Log("Tried to unsubscribe from OnStateChange event, but the object was already destroyed.");

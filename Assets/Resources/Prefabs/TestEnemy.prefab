@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 7422530541216369370}
   - component: {fileID: 7854407663255006659}
   - component: {fileID: 4007656548591449110}
-  - component: {fileID: 3373287855803197122}
   - component: {fileID: 8458670258682666614}
   - component: {fileID: 7212074060561574547}
+  - component: {fileID: 7759476804614851918}
   m_Layer: 29
   m_Name: TestEnemy
   m_TagString: Untagged
@@ -132,44 +132,6 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1, y: 2}
   m_Direction: 0
---- !u!114 &3373287855803197122
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9010687280914475461}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2aec09daa6508764eaa7e3c3baedf4d7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GroundMask:
-    serializedVersion: 2
-    m_Bits: 2147483648
-  PassThroughMask:
-    serializedVersion: 2
-    m_Bits: 134217728
-  HorizontalRayCount: 4
-  VerticalRayCount: 4
-  SkinWidth: 0.015
-  m_Collisions:
-    Above: 0
-    Below: 0
-    Left: 0
-    Right: 0
-    ClimbingSlope: 0
-    DescendingSlope: 0
-    SlopeAngle: 0
-    PreviousSlopeAngle: 0
-  m_IsGrounded: 0
-  m_IsFacingWallLeft: 0
-  m_IsFacingWallRight: 0
-  m_IsPassingThrough: 0
-  m_CanPassthroughGround: 0
-  m_MaxSlopeAngle: 80
-  m_MaxDescendAngle: 80
-  m_DisplayDebugRays: 0
 --- !u!50 &8458670258682666614
 Rigidbody2D:
   serializedVersion: 5
@@ -211,5 +173,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Controller: {fileID: 0}
   Movement: {fileID: 11400000, guid: 623819c9415ca6345b3c26df0b7eeadc, type: 2}
+  BehaviorConfig: {fileID: 0}
   Velocity: {x: 0, y: 0, z: 0}
   PlayerReference: {fileID: 0}
+  Sprite: {fileID: 0}
+  m_WayPoints: []
+--- !u!114 &7759476804614851918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9010687280914475461}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02abf18ce8de46c4ba970569e735d70d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GroundMask:
+    serializedVersion: 2
+    m_Bits: 134217728
+  TransparentGroundMask:
+    serializedVersion: 2
+    m_Bits: 2147483648
+  HorizontalRayCount: 4
+  VerticalRayCount: 4
+  SkinWidth: 0.015
+  m_Collisions:
+    Above: 0
+    Below: 0
+    Left: 0
+    Right: 0
+    ClimbingSlope: 0
+    DescendingSlope: 0
+    SlopeAngle: 0
+    PreviousSlopeAngle: 0
+  m_IsGrounded: 0
+  m_IsFacingWallLeft: 0
+  m_IsFacingWallRight: 0
+  m_IsPassingThrough: 0
+  m_CanPasstTransparentGround: 0
+  m_MaxSlopeAngle: 80
+  m_MaxDescendAngle: 80
+  m_DisplayDebugRays: 0
