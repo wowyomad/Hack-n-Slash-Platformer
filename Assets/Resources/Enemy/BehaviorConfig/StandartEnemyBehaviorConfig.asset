@@ -15,5 +15,5 @@ MonoBehaviour:
   PatrolSpeed: 6
   SeekSpeed: 8.5
   VisualSeekDistance: 12
-  CloseDetectionDistance: 5
+  CloseDetectionDistance: 3
   SeekStoppingDistance: 0.5

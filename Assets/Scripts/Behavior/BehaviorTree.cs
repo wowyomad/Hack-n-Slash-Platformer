@@ -273,7 +273,6 @@ namespace Behavior
         }
     }
 
-    // --- The Builder ---
     public class BehaviorTreeBuilder
     {
         private Node m_RootNode;
@@ -284,8 +283,6 @@ namespace Behavior
             m_RootNode = new BehaviorTree(treeName);
             m_ParentStack.Push(m_RootNode);
         }
-
-        // --- Composite Nodes ---
 
         public BehaviorTreeBuilder Sequence(string name = null, int priority = 0)
         {
@@ -357,52 +354,40 @@ namespace Behavior
             return this;
         }
 
-        /// <summary>
-        /// Adds a Leaf node that evaluates a condition (Func<bool>).
-        /// </summary>
+
         public BehaviorTreeBuilder Condition(string name, Func<bool> condition, int priority = 0)
         {
             return Leaf(name, priority, new Condition(condition));
         }
 
-        // --- Structure Management ---
 
-        /// <summary>
-        /// Signals the end of defining children for the current composite node (Sequence, Selector, etc.).
-        /// Moves the context back up to the parent node.
-        /// </summary>
         public BehaviorTreeBuilder End()
         {
-            if (m_ParentStack.Count > 1) // Don't pop the root node
+            if (m_ParentStack.Count > 1) 
             {
                 m_ParentStack.Pop();
             }
             else
             {
-                // Optional: Log a warning or throw if End() is called too many times
-                Debug.LogWarning("BehaviorTreeBuilder: End() called with no parent node on the stack (already at root).");
+                Debug.LogWarning("End() called with no parent node on the stack");
             }
             return this;
         }
 
-        /// <summary>
-        /// Completes the building process and returns the root BehaviorTree node.
-        /// </summary>
         public BehaviorTree Build()
         {
-            // Ensure we are back at the root level
-            while (m_ParentStack.Count > 1)
+            if (m_ParentStack.Count > 1)
             {
-                End();
+                throw new InvalidOperationException($"Not all nodes have been closed (Node in stack: {m_ParentStack.Count})");
             }
             if (m_RootNode is BehaviorTree tree)
             {
+                End();
                 return tree;
             }
             throw new InvalidOperationException("The root node is not a BehaviorTree.");
         }
 
-        // --- Helper ---
         private void AddNodeToCurrentParent(Node node)
         {
             if (m_ParentStack.Count > 0)
