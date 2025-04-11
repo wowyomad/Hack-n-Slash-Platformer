@@ -86,11 +86,11 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
                      .Condition("IsPlayerNearby", () =>
                          CanSeePlayer && ((DistanceToPlayer < BehaviorConfig.VisualSeekDistance && IsFacingToPlayer)
                          || DistanceToPlayer < BehaviorConfig.CloseDetectionDistance))
-                     .Leaf("ChangeColorToDangerous", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
-                     .UntilFail().Leaf("SeekPlayer", 1, new SeekStrategy(this, PlayerReference.transform))
-                     .Leaf("ChangeColorBackToNormal", 0, () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
+                     .Do("ChangeColorToDangerous", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
+                     .UntilFail().Do("SeekPlayer", 1, new SeekStrategy(this, PlayerReference.transform))
+                     .Do("ChangeColorBackToNormal", 0, () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
                  .End()
-                 .Leaf("Patrol", 0, new PatrolStrategy(this, m_WayPoints))
+                 .Do("Patrol", 0, new PatrolStrategy(this, m_WayPoints))
              .End()
          .Build();
     }

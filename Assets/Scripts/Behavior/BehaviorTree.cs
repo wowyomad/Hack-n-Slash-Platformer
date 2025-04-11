@@ -316,11 +316,6 @@ namespace Behavior
             return this;
         }
 
-        public BehaviorTreeBuilder Do(Action action)
-        {
-            return Leaf(null, 0, action);
-        }
-
         public BehaviorTreeBuilder Leaf(Action action)
         {
             return Leaf(null, 0, action);
@@ -337,14 +332,14 @@ namespace Behavior
             return this;
         }
 
-        public BehaviorTreeBuilder Leaf(string name, IStrategy strategy)
-        {
-            return Leaf(name, 0, strategy);
-        }
-
         public BehaviorTreeBuilder Leaf(IStrategy strategy)
         {
             return Leaf(null, 0, strategy);
+        }
+
+        public BehaviorTreeBuilder Leaf(string name, IStrategy strategy)
+        {
+            return Leaf(name, 0, strategy);
         }
 
         public BehaviorTreeBuilder Leaf(string name, int priority, IStrategy strategy)
@@ -353,6 +348,18 @@ namespace Behavior
             AddNodeToCurrentParent(leaf);
             return this;
         }
+
+        public BehaviorTreeBuilder Do(Action action) => Leaf(action);
+
+        public BehaviorTreeBuilder Do(string name, Action action) => Leaf(name, action);
+
+        public BehaviorTreeBuilder Do(string name, int priority, Action action) => Leaf(name, priority, action);
+
+        public BehaviorTreeBuilder Do(IStrategy strategy) => Leaf(strategy);
+
+        public BehaviorTreeBuilder Do(string name, IStrategy strategy) => Leaf(name, strategy);
+
+        public BehaviorTreeBuilder Do(string name, int priority, IStrategy strategy) => Leaf(name, strategy);
 
 
         public BehaviorTreeBuilder Condition(string name, Func<bool> condition, int priority = 0)
