@@ -72,6 +72,8 @@ namespace Behavior
         public Inverter(Node child) : this(null, child) { }
         public Inverter(string name, Node child) : this(name, 0, child) { }
         public Inverter(string name, int priority, Node child) : base(name, priority, child) { }
+        public Inverter(string name, int priority) : base(name, priority) { }
+
         public override Status Execute()
         {
             var status = Children[0].Execute();
@@ -283,7 +285,18 @@ namespace Behavior
             m_RootNode = new BehaviorTree(treeName);
             m_ParentStack.Push(m_RootNode);
         }
+        public BehaviorTreeBuilder Inverter(int priority = 0)
+        {
+            return Inverter(null, priority);
+        }
 
+        public BehaviorTreeBuilder Inverter(string name, int priority = 0)
+        {
+            var inverter = new Inverter(name, priority);
+            AddNodeToCurrentParent(inverter);
+            m_ParentStack.Push(inverter);
+            return this;
+        }
         public BehaviorTreeBuilder Sequence(string name = null, int priority = 0)
         {
             var sequence = new Sequence(name, priority);
