@@ -82,7 +82,6 @@ public class CameraBehaviour : MonoBehaviour
         Vector3 scaledTargetLeadOffset = baseTargetLeadOffset * OffsetMultiplier;
         m_CameraLeadOffset = Vector3.SmoothDamp(m_CameraLeadOffset, scaledTargetLeadOffset, ref m_CameraLeadVelocity, Settings.LeadSmoothTime);
 
-        // Target position uses the smoothed & scaled offsets
         Vector3 targetPosition = new Vector3(
             FollowTarget.position.x + Settings.DefaultOffset.x + m_CurrentMouseOffset.x + m_CameraLeadOffset.x,
             FollowTarget.position.y + Settings.DefaultOffset.y + m_CurrentMouseOffset.y + m_CameraLeadOffset.y,

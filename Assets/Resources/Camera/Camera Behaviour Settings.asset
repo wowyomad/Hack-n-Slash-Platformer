@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 797f9bf256cd75b43b9381de4f245192, type: 3}
   m_Name: Camera Behaviour Settings
   m_EditorClassIdentifier: 
-  FollowSmoothTime: 0.1
+  FollowSmoothTime: 0.05
   DefaultOffset: {x: 0, y: 2.5}
-  LeadFactor: {x: 0.15, y: 0}
-  LeadSmoothTime: 0.15
+  LeadFactor: {x: 0.2, y: 0}
+  LeadSmoothTime: 0.3
   CenterRadius: 0.25
-  MaxMouseOffsetX: 0.4
-  MaxMouseOffsetY: 0.5
+  MaxMouseOffsetX: 0
+  MaxMouseOffsetY: 0
   MouseInfluenceSmoothTime: 0
   ResetMouseOffsetOutsideBounds: 1
   MinZoom: 0.5

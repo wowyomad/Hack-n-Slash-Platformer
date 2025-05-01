@@ -40,17 +40,9 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     public event Action Hit;
     public event Action<IDestroyable> OnDestroyed;
 
-    [SerializeField] private ActionTimer Timer;
-
     private void OnEnable()
     {
         Initialize();
-        Timer.SetCallback(OnTimerFinished);
-    }
-    private void OnDisable()
-    {
-        Initialize();
-        Timer.SetCallback(null);
     }
 
     private void Awake()
@@ -63,16 +55,8 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
-
-        Timer = new ActionTimer(OnTimerFinished, true);
-        Timer.Start(3);
     }
 
-    private void OnTimerFinished()
-    {
-        Debug.Log("Timer finished");
-        Timer.Restart();
-    }
 
     private void Update()
     {
@@ -80,12 +64,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         //Controller.Move(Velocity * Time.deltaTime);
 
         Tree.Execute();
-        ApplyGravityToVelocity();
-        Controller.Move(Velocity * Time.deltaTime);
-
         Flip(Controller.LastDisplacement.x);
-
-        Timer.Tick();
     }
 
     public void Initialize()
