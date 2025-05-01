@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: NavWeights
   m_EditorClassIdentifier: 
   SurfaceWeight: 1
-  JumpWeight: 10
-  FallWeight: 10
+  JumpWeight: 4
+  FallWeight: 4
   TransparentJumpWeight: 10
   TransparentFallWeight: 5
-  SlopeUpWeight: 3
-  SlopeDownWeight: 2
+  SlopeWeight: 1
+  SlopeUpMultiplier: 1.5
+  SlopeDownMultiplier: 0.5

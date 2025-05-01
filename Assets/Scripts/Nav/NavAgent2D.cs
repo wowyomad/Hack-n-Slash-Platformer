@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Nav2D;
+using NUnit.Framework.Constraints;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
@@ -8,7 +11,6 @@ public class NavAgent2D : MonoBehaviour
 {
     [SerializeField] private NavData2D m_NavData;
     CharacterController2D m_Controller;
-    private NavPoint m_LastNavPoint = null;
 
     private bool m_IsFollowing = false;
     public bool IsFollowing => m_IsFollowing;
@@ -27,6 +29,8 @@ public class NavAgent2D : MonoBehaviour
     public bool PathCalculated { get; private set; } = false;
     private bool m_PathfindingInProgress = false;
 
+    private ActionTimer m_PathfindingTimer = new(true, false);
+
     private void Awake()
     {
         if (m_NavData == null)
@@ -34,27 +38,26 @@ public class NavAgent2D : MonoBehaviour
             DebugEx.LogAndThrow("NavWeights is not assigned", message => new NullReferenceException(message));
         }
         m_Controller = GetComponent<CharacterController2D>();
+
+        Transform playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+
+        m_PathfindingTimer.SetCallback(() =>
+        {
+            var start = Time.realtimeSinceStartup;
+            m_CurrentPath = m_NavData.GetPath(transform.position, playerTransform.position);
+            var finished = Time.realtimeSinceStartup;
+            Debug.Log($"Pathfinding took {finished - start} seconds");
+        });
+
+        m_PathfindingTimer.Start(0.1f);
     }
+
 
     private void Update()
     {
-        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        if (Input.GetMouseButtonDown(0))
-        {
-            NavPoint targetNavPoint = GetClosestNavpoint(mousePosition);
-            if (targetNavPoint != null)
-            {
-                DebugEx.DrawArrow(mousePosition, targetNavPoint.Position, Color.green, m_DebugDrawDuration);
-
-                Debug.Log($"NavPoint {targetNavPoint.Position} has {targetNavPoint.Connections.Count} connections.");
-                foreach (var connection in targetNavPoint.Connections)
-                {
-                    DebugEx.DrawArrow(targetNavPoint.Position, connection.Point.Position, Color.blue, m_DebugDrawDuration);
-                }
-            }
-        }
+        m_PathfindingTimer.Tick();
     }
-
+    
     public NavPoint GetClosestNavpoint(Vector2 target)
     {
         return m_NavData.GetClosestNavPoint(target);
@@ -63,18 +66,12 @@ public class NavAgent2D : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (m_LastNavPoint != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, m_LastNavPoint.Position);
-        }
-        // Draw path
         if (m_CurrentPath != null && m_CurrentPath.Count > 1)
         {
             Gizmos.color = Color.cyan;
-            for (int i = 0; i < m_CurrentPath.Count - 1; i++)
+            for (int i = 1; i < m_CurrentPath.Count; i++)
             {
-                Gizmos.DrawLine(m_CurrentPath[i].Position, m_CurrentPath[i + 1].Position);
+                GizmosEx.DrawArrow(m_CurrentPath[i - 1].Position, m_CurrentPath[i].Position, Color.green);
             }
         }
     }

@@ -90,14 +90,6 @@ namespace Nav2D
             Generate();
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Generate();
-            }
-        }
-
         private float GetConnectionWeight(Connection connection, NavPoint from, NavPoint to)
         {
             switch (connection.Type)
@@ -125,9 +117,73 @@ namespace Nav2D
             }
         }
 
-        public void GetPath(Vector2 from, Vector2 to)
+        public List<NavPoint> GetPath(Vector2 from, Vector2 to)
         {
+            NavPoint startNavPoint = GetClosestNavPoint(from);
+            NavPoint endNavPoint = GetClosestNavPoint(to);
 
+            if (startNavPoint == null || endNavPoint == null)
+                return null;
+
+            float initialDistance = Vector2.Distance(startNavPoint.Position, endNavPoint.Position);
+            if (initialDistance < 1.0f)
+                return new List<NavPoint> { startNavPoint, endNavPoint };
+
+            // A* algorithm with List as open set
+            var openSet = new List<NavPoint> { startNavPoint };
+            var cameFrom = new Dictionary<NavPoint, NavPoint>();
+            var gScore = new Dictionary<NavPoint, float> { [startNavPoint] = 0f };
+            var fScore = new Dictionary<NavPoint, float> { [startNavPoint] = initialDistance };
+
+            while (openSet.Count > 0)
+            {
+                // Find node in openSet with lowest fScore
+                NavPoint current = openSet[0];
+                float minF = fScore.ContainsKey(current) ? fScore[current] : float.PositiveInfinity;
+                foreach (var node in openSet)
+                {
+                    float f = fScore.ContainsKey(node) ? fScore[node] : float.PositiveInfinity;
+                    if (f < minF)
+                    {
+                        minF = f;
+                        current = node;
+                    }
+                }
+
+                if (current == endNavPoint)
+                {
+                    // Reconstruct path
+                    var path = new List<NavPoint> { current };
+                    while (cameFrom.ContainsKey(current))
+                    {
+                        current = cameFrom[current];
+                        path.Add(current);
+                    }
+                    path.Reverse();
+                    return path;
+                }
+
+                openSet.Remove(current);
+
+                foreach (var connection in current.Connections)
+                {
+                    var neighbor = connection.Point;
+                    float tentativeGScore = gScore[current] + GetConnectionWeight(connection, current, neighbor);
+
+                    if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
+                    {
+                        cameFrom[neighbor] = current;
+                        gScore[neighbor] = tentativeGScore;
+                        float hScore = Vector2.Distance(neighbor.Position, endNavPoint.Position);
+                        fScore[neighbor] = tentativeGScore + hScore;
+                        // Always add neighbor to openSet, even if already present
+                        openSet.Add(neighbor);
+                    }
+                }
+            }
+
+            // No path found
+            return null;
         }
 
         public NavPoint GetClosestNavPoint(Vector2 target)
@@ -541,7 +597,7 @@ namespace Nav2D
             }
         }
 
-         private void ConnectTransparentFallBelow(NavPoint navPoint)
+        private void ConnectTransparentFallBelow(NavPoint navPoint)
         {
             Vector2 cellPosition = new Vector3(navPoint.CellPos.x + m_TileAnchor.x, navPoint.CellPos.y + m_TileAnchor.y, navPoint.CellPos.z);
             Vector2 belowRaycastOrigin = new Vector2(cellPosition.x, cellPosition.y - m_NavPointVerticalOffset);
@@ -711,6 +767,16 @@ namespace Nav2D
 
         private bool IsJumpPathClear(Vector2 from, Vector2 to)
         {
+            var point = GetNavPoint(to, true);
+
+            if (point != null)
+            {
+                if (!point.HasFlag(NavPoint.Type.LeftEdge) && from.x < to.x)
+                    return false;
+                if (!point.HasFlag(NavPoint.Type.RightEdge) && from.x > to.x)
+                    return false;
+            }
+
             Vector2 pathDirection = (to - from).normalized;
             float distance = Vector2.Distance(from, to);
 
@@ -786,6 +852,7 @@ namespace Nav2D
 
                 foreach (var connection in navPoint.Connections)
                 {
+                    if (ConnectionType.Fall == connection.Type) continue;
                     Gizmos.color = connection.Type switch
                     {
                         ConnectionType.Surface => Color.green,

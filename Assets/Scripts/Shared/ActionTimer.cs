@@ -14,15 +14,18 @@ class ActionTimer
     private float m_Duration = 0.0f;
     private float m_PreviousDuration = 0.0f;
     private bool m_IsUnscaled = false;
-    public ActionTimer(Action onTimerFinished, bool unscaled = false)
+    private bool m_IsRepeating = false;
+    public ActionTimer(Action onTimerFinished, bool repeating, bool unscaled = false)
     {
         m_IsUnscaled = unscaled;
+        m_IsRepeating = repeating;
         SetCallback(onTimerFinished);
     }
 
-    public ActionTimer(bool unscaled = false)
+    public ActionTimer(bool repeating = false, bool unscaled = false)
     {
         m_IsUnscaled = unscaled;
+        m_IsRepeating = repeating;
     }
 
     public void SetCallback(Action onTimerFinsihed)
@@ -62,7 +65,7 @@ class ActionTimer
     public void Tick()
     {
         if (m_IsRunning)
-        {
+        {   
             m_ElapsedTime += m_IsUnscaled ? Time.unscaledDeltaTime : Time.deltaTime;
 
             if (m_ElapsedTime >= m_Duration)
@@ -70,6 +73,10 @@ class ActionTimer
                 Reset();
 
                 m_TimerFinishedCallback?.Invoke();
+                if (m_IsRepeating)
+                {
+                    Start(m_Duration);
+                }
             }
         }
     }

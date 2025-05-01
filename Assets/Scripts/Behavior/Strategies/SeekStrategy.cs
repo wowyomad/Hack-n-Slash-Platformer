@@ -22,7 +22,7 @@ namespace Behavior
             Config = self.BehaviorConfig;
             if (!self.TryGetComponent(out m_ChracterController))
                 throw new MissingComponentException("SeekStrategy requires CharacterController2D component");
-            if (!self.TryGetComponent(out m_NavAgent))
+            if (!self.TryGetComponent(out m_NavAgent) && false)
                 throw new MissingComponentException("SeekStrategy requires NavAgent2D component");
         }
 
