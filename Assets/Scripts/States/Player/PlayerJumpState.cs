@@ -13,7 +13,7 @@ public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
     {
         Input.ListenEvents(this);
         Player.Animator.CrossFade(JumpAnimationHash, 0.0f);
-        Player.Velocity.y = JumpVelocity;
+        Controller.Velocity.y = JumpVelocity;
     }
     public override void Exit()
     {
@@ -21,14 +21,7 @@ public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
     }
     public override void Update()
     {
-        Player.ApplyGravity();
-
-        if (Controller.Collisions.Above)
-        {
-            Player.Velocity.y = 0.0f;
-        }
-
-        if (Player.Velocity.y <= 0.0f)
+        if (Controller.Velocity.y <= 0.0f || Controller.Collisions.Above)
         {
             Player.ChangeState(Player.AirState); return;
         }
@@ -44,7 +37,7 @@ public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
         {
             targetVelocityX = Mathf.Max(targetVelocityX, 0);
         }
-        Player.Velocity.x = Mathf.SmoothDamp(Player.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
+        Controller.Velocity.x = Mathf.SmoothDamp(Controller.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
 
     }
 

@@ -18,12 +18,10 @@ public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
 
     public override void Update()
     {
-        if (Player.Controller.IsGrounded)
+        if (Controller.IsGrounded)
         {
             Player.ChangeState(Player.IdleState); return;
         }
-
-        Player.ApplyGravity();
 
         float input = Input.HorizontalMovement;
 
@@ -36,7 +34,8 @@ public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
         {
             targetVelocityX = Mathf.Max(targetVelocityX, 0);
         }
-        Player.Velocity.x = Mathf.SmoothDamp(Player.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
+
+        Controller.Velocity.x = Mathf.SmoothDamp(Controller.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
     }
 
     [GameAction(ActionType.Throw)]

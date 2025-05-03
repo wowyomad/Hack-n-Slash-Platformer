@@ -31,9 +31,9 @@ public class PlayerIdleState : PlayerBaseState, IPlayerVulnarableState
             ChangeState(Player.WalkState); return;
         }
 
-        if (Mathf.Abs(Player.Velocity.x) > 0.0f)
+        if (Mathf.Abs(Controller.Velocity.x) > 0.0f)
         {
-            Player.Velocity.x = 0.0f;
+            Controller.Velocity.x = 0.0f;
         }
     }
 

@@ -13,9 +13,9 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
     public override void Enter(IState state)
     {
         Input.ListenEvents(this);
-
         m_VelocitySmoothing = 0.0f;
-        Player.Velocity.y = 0.0f; //TODO: Be better
+        Player.Animator.CrossFade(WalkAnimationHash, 0.0f);
+        //Controller.Velocity.y = 0.0f; //TODO: Be better
     }
 
     public override void Exit()
@@ -38,7 +38,7 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
         }
 
         //Abomination
-        if (Mathf.Abs(Player.Velocity.x) <= 3.0f)
+        if (Mathf.Abs(Controller.Velocity.x) <= 3.0f)
         {
             Player.Animator.CrossFade(IdleAnimationHash, 0.0f);
         }
@@ -63,9 +63,9 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
             targetVelocityX = Mathf.Max(targetVelocityX, 0);
         }
 
-        Player.Velocity.x = Mathf.SmoothDamp(Player.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeGrounded);
+        Controller.Velocity.x = Mathf.SmoothDamp(Controller.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeGrounded);
 
-        if (Mathf.Abs(Player.Velocity.x) <= m_VeloctiyThreshold && Time.time - m_LastInputTime > m_InputThreashold)
+        if (Mathf.Abs(Controller.Velocity.x) <= m_VeloctiyThreshold && Time.time - m_LastInputTime > m_InputThreashold)
         {
             ChangeState(Player.IdleState); return;
         }

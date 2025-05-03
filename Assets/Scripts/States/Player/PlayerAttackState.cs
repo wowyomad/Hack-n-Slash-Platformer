@@ -39,7 +39,6 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
             return;
         }
         m_Timer += Time.deltaTime;
-        Player.ApplyGravity();
     }
     protected void OnAnimationEntered()
     {

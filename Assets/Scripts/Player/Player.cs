@@ -43,6 +43,10 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
+
+        Controller.ApplyGravity = true;
+        Controller.Gravity = Movement.Gravity;
+        Controller.MaxGravityVelocity = Movement.MaxGravityVelocity;
     }
 
     private void OnEnable()
@@ -144,11 +148,6 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     }
 
     #region likely to be removed
-    public void ApplyGravity()
-    {
-        Velocity.y += Movement.Gravity * Time.deltaTime;
-        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
-    }
     protected void At(IPlayerState from, IPlayerState to, Func<bool> condition)
     {
         m_StateMachine.AddTransition(from, to, condition);
@@ -161,7 +160,5 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     {
         m_StateMachine.AddAnyTransition(to, predicate);
     }
-
-
     #endregion
 }
