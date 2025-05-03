@@ -1,6 +1,9 @@
+using NUnit.Framework.Constraints;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEngine.GraphicsBuffer;
 
 namespace Nav2D
 {
@@ -22,18 +25,17 @@ namespace Nav2D
 
         [Header("Actor")]
         [SerializeField] private Vector2 m_ActorSize = new Vector2(1.0f, 2.0f);
-        [SerializeField] private float m_MaxJumpHeight = 5.0f;
-        [SerializeField] private float m_MaxJumpDistance = 5.0f;
-        [SerializeField] private float m_MaxFallHeight = 10.0f;
-        [SerializeField] private float m_MaxFallDistance = 10.0f;
-        [SerializeField] private bool m_DrawGizmos = true;
+        [SerializeField] private float m_JumpHeight = 4.0f;
+        [SerializeField] private float m_FallHeight = 8.0f;
+        [SerializeField] private float m_FallJumpDistance = 5.0f;
 
         [Header("Raycast")]
-        [SerializeField] private float m_ConeAngle = 60f;
-        [SerializeField] private int m_NumberOfRays = 10;
-        [SerializeField] private float m_CastDistance = 8f;
+        [SerializeField] private float m_ConeAngle = 150.0f;
+        [SerializeField] private int m_NumberOfRays = 11;
+        [SerializeField] private float m_CastDistance = 32.0f;
 
-
+        [Header("Debug")]
+        [SerializeField] private bool m_DrawGizmos = true;
 
         public static readonly float VERY_SMALL_FLOAT = 0.005f;
         private const float GROUND_NORMAL_THRESHOLD = 0.5f; //cos 60
@@ -87,6 +89,8 @@ namespace Nav2D
 
         private void OnValidate()
         {
+            if (!Application.isPlaying) return;
+
             Generate();
         }
 
@@ -125,11 +129,16 @@ namespace Nav2D
             if (startNavPoint == null || endNavPoint == null)
                 return null;
 
-            float initialDistance = Vector2.Distance(startNavPoint.Position, endNavPoint.Position);
-            if (initialDistance < 1.0f)
-                return new List<NavPoint> { startNavPoint, endNavPoint };
+            if (Vector2.Distance(startNavPoint.Position, new Vector2(from.x, startNavPoint.Position.y)) < 1.0f)
+            {
+                startNavPoint = new NavPoint { Position = new Vector2(from.x, startNavPoint.Position.y), CellPos = startNavPoint.CellPos, Connections = startNavPoint.Connections, TypeMask = startNavPoint.TypeMask };
+            }
 
-            // A* algorithm with List as open set
+            float initialDistance = Vector2.Distance(startNavPoint.Position, endNavPoint.Position);
+            if (initialDistance < m_TileAnchor.x * 3.0f)
+                return new List<NavPoint> { new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y) } };
+
+
             var openSet = new List<NavPoint> { startNavPoint };
             var cameFrom = new Dictionary<NavPoint, NavPoint>();
             var gScore = new Dictionary<NavPoint, float> { [startNavPoint] = 0f };
@@ -137,7 +146,6 @@ namespace Nav2D
 
             while (openSet.Count > 0)
             {
-                // Find node in openSet with lowest fScore
                 NavPoint current = openSet[0];
                 float minF = fScore.ContainsKey(current) ? fScore[current] : float.PositiveInfinity;
                 foreach (var node in openSet)
@@ -152,14 +160,20 @@ namespace Nav2D
 
                 if (current == endNavPoint)
                 {
-                    // Reconstruct path
                     var path = new List<NavPoint> { current };
                     while (cameFrom.ContainsKey(current))
                     {
                         current = cameFrom[current];
                         path.Add(current);
                     }
+
                     path.Reverse();
+
+                    if (Vector2.Distance(new Vector2(to.x, endNavPoint.Position.y), endNavPoint.Position) < 1.0f)
+                    {
+                        path[path.Count - 1] = new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y), CellPos = endNavPoint.CellPos, Connections = endNavPoint.Connections, TypeMask = endNavPoint.TypeMask };
+                    }
+
                     return path;
                 }
 
@@ -176,13 +190,11 @@ namespace Nav2D
                         gScore[neighbor] = tentativeGScore;
                         float hScore = Vector2.Distance(neighbor.Position, endNavPoint.Position);
                         fScore[neighbor] = tentativeGScore + hScore;
-                        // Always add neighbor to openSet, even if already present
                         openSet.Add(neighbor);
                     }
                 }
             }
 
-            // No path found
             return null;
         }
 
@@ -493,7 +505,7 @@ namespace Nav2D
                 float toX = target.CellPos.x;
                 float toY = target.CellPos.y;
 
-                if (verticalDistance > m_MaxJumpHeight || horizontalDistance > m_MaxJumpDistance
+                if (verticalDistance > m_JumpHeight || horizontalDistance > m_FallJumpDistance
                     || horizontalDistance <= float.Epsilon)
                 {
                     continue;
@@ -515,7 +527,7 @@ namespace Nav2D
 
                 if (direction.y >= 0)
                 {
-                    if (verticalDistance > m_MaxJumpHeight)
+                    if (verticalDistance > m_JumpHeight)
                     {
                         continue;
                     }
@@ -560,8 +572,8 @@ namespace Nav2D
 
                 if (target.Position.y >= navPoint.Position.y
                     || Mathf.Abs(target.Position.x - navPoint.Position.x) <= float.Epsilon
-                    || verticalDistance > m_MaxFallHeight
-                    || horizontalDistance > m_MaxFallDistance)
+                    || verticalDistance > m_FallHeight
+                    || horizontalDistance > m_FallJumpDistance)
                 {
                     continue;
                 }
@@ -624,7 +636,7 @@ namespace Nav2D
             Vector2 cellPosition = new Vector3(fromNavPoint.CellPos.x + m_TileAnchor.x, fromNavPoint.CellPos.y + m_TileAnchor.y, fromNavPoint.CellPos.z);
             Vector2 aboveRaycastOrigin = new Vector2(cellPosition.x, cellPosition.y + m_NavPointVerticalOffset + 0.1f);
 
-            RaycastHit2D hitAbove = Physics2D.Raycast(aboveRaycastOrigin, Vector2.up, m_MaxJumpHeight, m_TransparentLayerMask);
+            RaycastHit2D hitAbove = Physics2D.Raycast(aboveRaycastOrigin, Vector2.up, m_JumpHeight, m_TransparentLayerMask);
             if (hitAbove.collider != null)
             {
                 Vector3Int abovePos = m_GroundTilemap.WorldToCell(new Vector3(hitAbove.point.x, hitAbove.point.y + m_NavPointVerticalOffset));

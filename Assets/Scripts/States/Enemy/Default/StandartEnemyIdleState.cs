@@ -28,8 +28,6 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
 
     public override void Update()
     {
-        Self.ApplyGravityToVelocity();
-
         if (DistanceToPlayer < 10.0f && PlayerIsOnSight)
         {
             m_ChaseTimer += Time.deltaTime;

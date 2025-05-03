@@ -85,7 +85,6 @@ public class CharacterController2D : RaycastController
         }
 
         m_Grounded = Grounded();
-        Debug.Log("Grounded: " + m_Grounded);
         m_CanPasstTransparentGround = CanPassThrough();
         (m_IsFacingWallLeft, m_IsFacingWallRight) = IsFacingWall();
 

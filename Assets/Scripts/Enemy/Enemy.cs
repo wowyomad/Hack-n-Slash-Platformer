@@ -15,9 +15,10 @@ public interface IDestroyable
 public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 {
     [HideInInspector] public CharacterController2D Controller;
-    public CharacterMovementStats Movement;
+    public CharacterMovementStatsSO MovementStats;
     public EnemyBehaviorConfigSO BehaviorConfig;
     public StateMachine<IEnemyState> StateMachine;
+    public NavAgent2D Agent;
     public BehaviorTree Tree;
 
     public Vector3 Velocity;
@@ -47,24 +48,24 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     private void Awake()
     {
+        Agent = GetComponent<NavAgent2D>();
         Controller = GetComponent<CharacterController2D>();
         PlayerReference = GameObject.FindWithTag("Player");
         Sprite = GetComponent<SpriteRenderer>();
+
+        m_NavigationTimer = new ActionTimer(() =>
+        {
+            if (Input.GetMouseButton(0))
+            {
+                Agent.SetDestination(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            }
+        }, true);
+        m_NavigationTimer.Start(0.1f);
     }
 
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
-    }
-
-
-    private void Update()
-    {
-        //StateMachine.Update();
-        //Controller.Move(Velocity * Time.deltaTime);
-
-        Tree.Execute();
-        Flip(Controller.LastDisplacement.x);
     }
 
     public void Initialize()
@@ -75,21 +76,17 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         //StateMachine.AddTransition(idle, chase, () => Tree.CurrentBehavior is SeekStrategy;
         //StateMachine.AddTransition(chase, idle, () => Tree.CurrentBehavior is PatrolStrategy);
 
-
-        Tree = new BehaviorTreeBuilder("Enemy")
-            .PrioritySelector()
-                .Sequence("Chase player", 1)
-                    .Condition("Is player nearby?", () =>
-                         CanSeePlayer && ((DistanceToPlayer < BehaviorConfig.VisualSeekDistance && IsFacingToPlayer)
-                         || DistanceToPlayer < BehaviorConfig.CloseSeekDistance))
-                    .Do("Change color to red", () => Sprite.color = new Color(1.0f, 0.2f, 0.3f))
-                    .UntilFail().Do("Seek player", new SeekStrategy(this, PlayerReference.transform))
-                    .Do("Change color back to normal", () => Sprite.color = new Color(1.0f, 1.0f, 1.0f))
-                .End()
-                .Do("Patrol", 0, new PatrolStrategy(this, m_WayPoints))
-            .End()
-        .Build();
+        Tree = new BehaviorTree();
     }
+    private ActionTimer m_NavigationTimer;
+    private void Update()
+    {
+        Tree.Execute();
+        Flip(Controller.LastDisplacement.x);
+
+        m_NavigationTimer.Tick();
+    }
+
 
     public void TakeDamage(float value, Vector2 normal)
     {
@@ -104,37 +101,9 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         }
     }
 
-    public void ApplyGravityToVelocity()
-    {
-        Velocity.y += Movement.Gravity * Time.deltaTime;
-        Velocity.y = Mathf.Max(Velocity.y, Velocity.y, Movement.MaxGravityVelocity);
-        if (Controller.IsGrounded)
-        {
-            Velocity.y = 0.0f;
-        }
-    }
-
     private void OnDestroy()
     {
         OnDestroyed?.Invoke(this);
-    }
-
-
-
-    private void MoveToPlayer()
-    {
-        float distance = DistanceToPlayer;
-        if (distance > 0.01f)
-        {
-            Vector3 direction = (PlayerReference.transform.position - transform.position).normalized;
-            Vector3 displacement = direction * Movement.HorizontalSpeed * Time.deltaTime;
-            if (displacement.magnitude > distance)
-            {
-                displacement = direction * distance;
-            }
-
-            Controller.Move(displacement);
-        }
     }
 
     public void Flip(int direction)

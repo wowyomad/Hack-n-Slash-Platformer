@@ -14,7 +14,7 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     public InputReader Input;
 
     public Vector3 Velocity = Vector3.zero;
-    public CharacterMovementStats Movement;
+    public CharacterMovementStatsSO Movement;
 
     public PlayerIdleState IdleState;
     public PlayerWalkState WalkState;

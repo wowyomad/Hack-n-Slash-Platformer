@@ -1,77 +1,117 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using Nav;
 using Nav2D;
-using NUnit.Framework.Constraints;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
 public class NavAgent2D : MonoBehaviour
 {
+    [Header("Components")]
     [SerializeField] private NavData2D m_NavData;
-    CharacterController2D m_Controller;
+    [SerializeField] private NavActorSO m_NavActor;
 
-    private bool m_IsFollowing = false;
-    public bool IsFollowing => m_IsFollowing;
-    public bool IsPathReady => PathCalculated && m_CurrentPath != null && m_CurrentPath.Count > 0;
-    public Vector3? CurrentPathTarget => (IsPathReady && m_CurrentPathIndex < m_CurrentPath.Count) ? m_CurrentPath[m_CurrentPathIndex].Position : (Vector3?)null;
 
-    [SerializeField] private LayerMask m_Mask => m_NavData.CollisionMask;
+    [Header("Debug")]
     [SerializeField] private float m_DebugDrawDuration = 5.0f;
 
-    [SerializeField] private float m_MoveSpeed = 5f;
-    [SerializeField] private float m_JumpHeight = 3f;
-    [SerializeField] private float m_JumpDuration = 0.5f;
-
-    private List<NavPoint> m_CurrentPath = null;
-    private int m_CurrentPathIndex = 0;
+    public bool IsJumping => m_Jumping;
+    public bool IsFollowing => m_Following;
+    public bool IsPathReady => PathCalculated && m_Path != null && m_Path.Count > 0;
+    public Vector3? CurrentPathTarget => (IsPathReady && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
     public bool PathCalculated { get; private set; } = false;
-    private bool m_PathfindingInProgress = false;
+
+
+    private CharacterController2D m_Controller;
+    private bool m_Following = false;
+    private bool m_Jumping = false;
+
+    private List<NavPoint> m_Path = null;
+    private int m_CurrentPointIndex = 0;
+    private Vector2 m_Target = Vector2.zero;
 
     private ActionTimer m_PathfindingTimer = new(true, false);
+
+    static private readonly float REACH_BIAS = 0.0001f;
 
     private void Awake()
     {
         if (m_NavData == null)
         {
-            DebugEx.LogAndThrow("NavWeights is not assigned", message => new NullReferenceException(message));
+            throw new NullReferenceException("NavData2D is not assigned");
         }
-        m_Controller = GetComponent<CharacterController2D>();
-
-        Transform playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
-
-        m_PathfindingTimer.SetCallback(() =>
+        if (m_NavActor == null)
         {
-            var start = Time.realtimeSinceStartup;
-            m_CurrentPath = m_NavData.GetPath(transform.position, playerTransform.position);
-            var finished = Time.realtimeSinceStartup;
-            Debug.Log($"Pathfinding took {finished - start} seconds");
-        });
+            throw new NullReferenceException("NavActor is not assigned");
+        }
 
-        m_PathfindingTimer.Start(0.1f);
+        m_Controller = GetComponent<CharacterController2D>();
     }
 
 
     private void Update()
     {
-        m_PathfindingTimer.Tick();
+        if (!m_Following) return;
+
+        if (m_Path == null || m_Path.Count == 0 || m_CurrentPointIndex >= m_Path.Count)
+        {
+            m_Following = false;
+            return;
+        }
+
+        if (m_Jumping)
+        {
+            Debug.LogWarning("Supposed to jump here but not implemented yet(((");
+        }
+        else if (m_Controller.IsGrounded)
+        {
+            Vector3 target = m_Path[m_CurrentPointIndex].Position;
+            target.y = transform.position.y; // ignore y axis horizontal movement
+            Vector2 direction = (target - transform.position).normalized;
+            float distance = Vector2.Distance(transform.position, target);
+            if (distance < REACH_BIAS)
+            {
+                m_CurrentPointIndex++;
+                if (m_CurrentPointIndex >= m_Path.Count)
+                {
+                    m_Following = false;
+                    return;
+                }
+            }
+            else
+            {
+                float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, distance);
+                m_Controller.Move(direction * displacement);
+            }
+        }
+        //wait until grounded?
     }
-    
+
     public NavPoint GetClosestNavpoint(Vector2 target)
     {
         return m_NavData.GetClosestNavPoint(target);
     }
 
+    public void SetDestination(Vector2 target)
+    {
+        if (m_NavData == null)
+        {
+            throw new NullReferenceException("NavData2D is not assigned");
+        }
+        m_Path = m_NavData.GetPath(transform.position, target);
+        PathCalculated = m_Path != null && m_Path.Count > 0;
+        m_CurrentPointIndex = 0;
+        m_Following = true;
+    }
 
     private void OnDrawGizmos()
     {
-        if (m_CurrentPath != null && m_CurrentPath.Count > 1)
+        if (m_Path != null && m_Path.Count > 1)
         {
             Gizmos.color = Color.cyan;
-            for (int i = 1; i < m_CurrentPath.Count; i++)
+            for (int i = 1; i < m_Path.Count; i++)
             {
-                GizmosEx.DrawArrow(m_CurrentPath[i - 1].Position, m_CurrentPath[i].Position, Color.green);
+                GizmosEx.DrawArrow(m_Path[i - 1].Position, m_Path[i].Position, Color.green);
             }
         }
     }

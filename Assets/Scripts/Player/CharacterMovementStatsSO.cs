@@ -2,7 +2,7 @@ using UnityEngine;
 
 
 [CreateAssetMenu(menuName = "Character Movement Stats")]
-public class CharacterMovementStats : ScriptableObject
+public class CharacterMovementStatsSO : ScriptableObject
 {
     [Header("Movement")]
     [SerializeField] private float m_JumpHeight = 4.0f;

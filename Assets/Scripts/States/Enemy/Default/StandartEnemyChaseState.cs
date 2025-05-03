@@ -18,7 +18,6 @@ public class StandartEnemyChaseState : EnemyBaseState, IEnemyVulnarableState
     }
     public override void Update()
     {
-        Self.ApplyGravityToVelocity();
 
         if (DistanceToPlayer > 10.0f || !PlayerIsOnSight)
         {
@@ -37,7 +36,7 @@ public class StandartEnemyChaseState : EnemyBaseState, IEnemyVulnarableState
                     m_TurnTimer = 0.0f;
                 }
             }
-            Self.Velocity.x = m_PreviousPlayerDirection * Self.Movement.HorizontalSpeed;
+            Self.Velocity.x = m_PreviousPlayerDirection * Self.MovementStats.HorizontalSpeed;
         }
         else
         {

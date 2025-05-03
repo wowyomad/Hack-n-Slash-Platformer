@@ -75,7 +75,7 @@ class ActionTimer
                 m_TimerFinishedCallback?.Invoke();
                 if (m_IsRepeating)
                 {
-                    Start(m_Duration);
+                    Start(m_PreviousDuration);
                 }
             }
         }
