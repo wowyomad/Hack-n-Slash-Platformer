@@ -5,14 +5,14 @@ using UnityEngine;
 public class CharacterController2D : RaycastController
 {
     [SerializeField] protected CollisionInfo m_Collisions;
-    [SerializeField] protected bool m_IsGrounded;
+    [SerializeField] protected bool m_Grounded;
     [SerializeField] protected bool m_IsFacingWallLeft;
     [SerializeField] protected bool m_IsFacingWallRight;
     [SerializeField] protected bool m_IsPassingThrough;
     [SerializeField] protected bool m_CanPasstTransparentGround;
     public bool IsFacingWallLeft => m_IsFacingWallLeft;
     public bool IsFacingWallRight => m_IsFacingWallRight;
-    public bool IsGrounded => m_IsGrounded || Collisions.DescendingSlope;//Hack to make 'Descending' state count as Grounded. TODO: Be better.
+    public bool IsGrounded => m_Grounded;//Hack to make 'Descending' state count as Grounded. TODO: Be better.
     public bool CanPassTransparentGround => m_CanPasstTransparentGround;
     public CollisionInfo Collisions => m_Collisions;
 
@@ -31,7 +31,7 @@ public class CharacterController2D : RaycastController
     [SerializeField] protected bool DisplayDebugRays;
 
     static protected readonly float EPSILON = 0.00001f;
-    static protected readonly float MAGIC_RAY_MULTIPLIER = 1.15f;
+    static protected readonly float MAGIC_RAY_MULTIPLIER = 7.5f;
 
     public virtual void Move(Vector3 displacement)
     {
@@ -84,7 +84,8 @@ public class CharacterController2D : RaycastController
             VerticalCollisions();
         }
 
-        m_IsGrounded = Grounded();
+        m_Grounded = Grounded();
+        Debug.Log("Grounded: " + m_Grounded);
         m_CanPasstTransparentGround = CanPassThrough();
         (m_IsFacingWallLeft, m_IsFacingWallRight) = IsFacingWall();
 
@@ -228,7 +229,7 @@ public class CharacterController2D : RaycastController
         for (int i = 0; i < HorizontalRayCount; i++)
         {
             Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.up * (HorizontalRaySpacing * i);
-            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.left, SkinWidth * 1.1f, GroundMask);
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.left, SkinWidth * MAGIC_RAY_MULTIPLIER, GroundMask);
             if (hit && Vector2.Angle(hit.normal, Vector2.up) > m_MaxSlopeAngle)
             {
                 left = true;
@@ -239,7 +240,7 @@ public class CharacterController2D : RaycastController
         for (int i = 0; i < HorizontalRayCount; i++)
         {
             Vector2 origin = m_RaycastOrigins.BottomRight + Vector2.up * (HorizontalRaySpacing * i);
-            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.right, SkinWidth * 1.1f, GroundMask);
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.right, SkinWidth * MAGIC_RAY_MULTIPLIER, GroundMask);
             if (hit && Vector2.Angle(hit.normal, Vector2.up) > m_MaxSlopeAngle)
             {
                 right = true;
@@ -280,7 +281,9 @@ public class CharacterController2D : RaycastController
 
     protected bool Grounded()
     {
-        float rayLength = MAGIC_RAY_MULTIPLIER * SkinWidth + Displacement.y;
+        if (m_Collisions.Below) return true;
+
+        float rayLength = MAGIC_RAY_MULTIPLIER * SkinWidth;
         for (int i = 0; i < VerticalRayCount; i++)
         {
             Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.right * (VerticalRaySpacing * i + Displacement.x);
