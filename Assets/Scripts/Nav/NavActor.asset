@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4718ee9443993c445b445e91142ed44d, type: 3}
   m_Name: NavActor
   m_EditorClassIdentifier: 
-  MinFallJumpDuration: 0.2
-  MaxFallJumpDuration: 1
-  BaseSpeed: 8
+  BaseSpeed: 12
+  MaxJumpHeight: 6
+  TimeToJumpApex: 0.5
+  MaxGravityScale: 1.5

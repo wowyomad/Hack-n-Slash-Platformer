@@ -130,6 +130,7 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void LogStateChange(IState previous, IState next)
     {
+        return;
         if (previous != null)
             Debug.Log($"Changing state from {previous} to {next}");
         else

@@ -78,7 +78,6 @@ public class NavAgent2D : MonoBehaviour
         m_StuckCheckTimer += Time.deltaTime;
         if (m_StuckCheckTimer >= m_StuckCheckInterval)
         {
-            // Check distance moved over the interval
             float distanceMoved = Vector3.Distance(transform.position, m_LastPosition);
             if (distanceMoved < m_StuckThreshold)
             {
@@ -86,7 +85,6 @@ public class NavAgent2D : MonoBehaviour
                 RecalculatePath();
             }
 
-            // Reset the timer and update the last position
             m_StuckCheckTimer = 0.0f;
             m_LastPosition = transform.position;
         }
@@ -96,6 +94,7 @@ public class NavAgent2D : MonoBehaviour
             float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
             float horizontalDistance = Mathf.Abs(m_Path[m_CurrentPointIndex].Position.x - transform.position.x);
 
+            //Костыль distance^2 вместо distance потому что потому.
             if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
             {
                 m_Jumping = false;
@@ -106,12 +105,15 @@ public class NavAgent2D : MonoBehaviour
                     m_Following = false;
                     return;
                 }
+
+                var previousPoint = m_Path[m_CurrentPointIndex - 1];
+                var currentPoint = m_Path[m_CurrentPointIndex];
+                HandleConnection(previousPoint, currentPoint);
             }
-            if (m_JumpDirection != 0)
+            else if (m_JumpDirection != 0)
             {
                 if (horizontalDistance > REACH_THRESHOLD)
                 {
-                    Debug.Log("Horizontal distance: " + horizontalDistance);
                     Vector2 direction = m_JumpDirection > 0 ? Vector2.right : Vector2.left;
                     float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, horizontalDistance);
                     m_Controller.Move(direction * displacement);
@@ -134,28 +136,10 @@ public class NavAgent2D : MonoBehaviour
                     m_Following = false;
                     return;
                 }
-                else
-                {
-                    var previousPoint = m_Path[m_CurrentPointIndex - 1];
-                    var currentPoint = m_Path[m_CurrentPointIndex];
 
-                    var connection = previousPoint.Connections.Find(conn =>
-                        conn.Point.CellPos == currentPoint.CellPos);
-
-                    if (connection != null)
-                    {
-                        if (connection.Type >= ConnectionType.Jump && connection.Type <= ConnectionType.TransparentFall)
-                        {
-                            m_Jumping = true;
-                            Debug.Log($"Jump found between {previousPoint.CellPos} and {currentPoint.CellPos} ({connection.Type})");
-                            Jump(previousPoint, currentPoint, connection.Type);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"No valid connection found between {previousPoint.CellPos} and {currentPoint.CellPos}");
-                    }
-                }
+                var previousPoint = m_Path[m_CurrentPointIndex - 1];
+                var currentPoint = m_Path[m_CurrentPointIndex];
+                HandleConnection(previousPoint, currentPoint);
             }
             else
             {
@@ -231,5 +215,36 @@ public class NavAgent2D : MonoBehaviour
         PathCalculated = m_Path != null && m_Path.Count > 0;
         m_CurrentPointIndex = 0;
         m_Jumping = false;
+    }
+
+    private ConnectionType GetConnectionType(NavPoint a, NavPoint b)
+    {
+        var connection = a.Connections.Find(conn =>
+            conn.Point.CellPos == b.CellPos);
+        if (connection != null)
+        {
+            return connection.Type;
+        }
+        return ConnectionType.None;
+    }
+
+    private void HandleConnection(NavPoint previousPoint, NavPoint currentPoint)
+    {
+        var connection = GetConnectionType(previousPoint, currentPoint);
+
+        if (connection != ConnectionType.None)
+        {
+            if (connection >= ConnectionType.Jump && connection <= ConnectionType.TransparentFall)
+            {
+                m_Jumping = true;
+                Debug.Log($"Jump found between {previousPoint.CellPos} and {currentPoint.CellPos} ({connection})");
+                Jump(previousPoint, currentPoint, connection);
+            }
+        }
+        else
+        {
+            //Shouldn't even reach here. NEVER!
+            Debug.LogError($"No valid connection found between {previousPoint.CellPos} and {currentPoint.CellPos}");
+        }
     }
 }

@@ -72,12 +72,12 @@ public class StateMachine <TState> where TState : class, IState
     {
         if (CurrentState?.GetType() == state.GetType())
         {
-            Debug.LogWarning($"State {state} is already active");
+            //Debug.LogWarning($"State {state} is already active");
             return;
         }
         if (m_PendingState != null)
         {
-            Debug.LogWarning($"State Machine already has a pending state: {state}");
+            //Debug.LogWarning($"State Machine already has a pending state: {state}");
             return;
         }
         m_PendingState = state;
@@ -110,7 +110,7 @@ public class StateMachine <TState> where TState : class, IState
     {
         if (m_Current == null)
         {
-            Debug.LogWarning("Current state is null");
+            //Debug.LogWarning("Current state is null");
             return null;
         }
         foreach (var transition in m_AnyTransitions)
@@ -152,7 +152,7 @@ public class StateMachine <TState> where TState : class, IState
         }
         public void AddTransition(TState to, IPredicate condition)
         {
-            Debug.Log($"Added transition from {State.GetType()} to {to.GetType()}");
+            //Debug.Log($"Added transition from {State.GetType()} to {to.GetType()}");
             Transitions.Add(new Transition<TState>(to, condition));
         }
     }

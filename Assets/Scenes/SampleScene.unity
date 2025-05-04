@@ -1237,7 +1237,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SerializedNavPoints: []
   m_NavWeights: {fileID: 11400000, guid: 8883502f2d5ce6144b56364e2a70ed8b, type: 2}
-  TestActor: {fileID: 1629184136}
   m_GroundTilemap: {fileID: 1325092818}
   m_TransparentGround: {fileID: 1361705394}
   m_GroundLayerMask:
@@ -1247,13 +1246,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 134217728
   m_ActorSize: {x: 1, y: 2}
-  m_JumpHeight: 4
+  m_JumpHeight: 5
   m_FallHeight: 8
   m_FallJumpDistance: 5
   m_ConeAngle: 60
   m_NumberOfRays: 11
   m_CastDistance: 50
-  m_DrawGizmos: 1
+  m_DrawGizmos: 0
   references:
     version: 2
     RefIds: []
@@ -6888,6 +6887,12 @@ MonoBehaviour:
   m_NavData: {fileID: 1270165169}
   m_NavActor: {fileID: 11400000, guid: 857bf71452bf5da419eeace7b0799efd, type: 2}
   m_DebugDrawDuration: 5
+  m_StuckCheckInterval: 0.5
+  m_StuckThreshold: 0.1
+  m_Following: 0
+  m_Jumping: 0
+  m_JumpDirection: 0
+  m_CurrentPointIndex: 0
 --- !u!1 &1629184136 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1261984061374707658, guid: f36ea0749937ce148ad548932f7d724b, type: 3}
