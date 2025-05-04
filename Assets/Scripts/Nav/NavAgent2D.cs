@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using Nav;
 using Nav2D;
 using UnityEngine;
@@ -181,12 +182,20 @@ public class NavAgent2D : MonoBehaviour
         {
             throw new NullReferenceException("NavData2D is not assigned");
         }
-        m_Path = m_NavData.GetPath(transform.position, target);
+        var path = m_NavData.GetPath(transform.position, target);
+        if (path == null)
+        {
+            Debug.LogWarning($"Couldn't get path from NavAgent ({new Vector2(transform.position.x, transform.position.y)}) target {target}");
+            return;
+        }
+        m_Path = path;
         m_Target = target;
         PathCalculated = m_Path != null && m_Path.Count > 0;
         m_CurrentPointIndex = 0;
         m_Following = true;
         m_Jumping = false;
+
+        Debug.Log($"Starting point: {m_Path[0].Position}, tranform: {transform.position}");
     }
 
     private void OnDrawGizmos()

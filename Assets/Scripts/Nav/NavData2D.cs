@@ -164,14 +164,30 @@ namespace Nav2D
                     }
 
                     if (Vector2.Distance(path[0].Position, new Vector2(from.x, path[0].Position.y)) < 1.0f
-                        && path.Count >= 2
-                        && null != path[0].Connections.Find(c => c.Point.CellPos == path[1].CellPos && c.Type >= ConnectionType.Jump && c.Type <= ConnectionType.TransparentFall))
+                        && path.Count >= 2)
                     {
-                        path[0] = new NavPoint { Position = new Vector2(from.x, path[0].Position.y), CellPos = path[0].CellPos, Connections = path[0].Connections, TypeMask = path[0].TypeMask };
+                        var firstConnection = path[0].Connections.Find(c => c.Point.CellPos == path[1].CellPos);
+
+                        // Adjust the starting point unless the connection type is a jump
+                        if (firstConnection == null ||
+                            (firstConnection.Type != ConnectionType.Jump &&
+                            firstConnection.Type != ConnectionType.Fall &&
+                             firstConnection.Type != ConnectionType.TransparentJump &&
+                             firstConnection.Type != ConnectionType.TransparentFall))
+                        {
+                            path[0] = new NavPoint
+                            {
+                                Position = new Vector2(from.x, path[0].Position.y),
+                                CellPos = path[0].CellPos,
+                                Connections = path[0].Connections,
+                                TypeMask = path[0].TypeMask
+                            };
+                        }
                     }
 
 
                     return path;
+                    
                 }
 
                 openSet.Remove(current);

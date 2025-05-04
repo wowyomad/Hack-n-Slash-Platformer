@@ -3,6 +3,7 @@ using UnityEngine;
 using Behavior;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using Unity.VisualScripting.FullSerializer;
 
 public interface IDestroyable
 {
@@ -23,18 +24,18 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     public Vector3 Velocity;
 
-    [HideInInspector]
     public GameObject PlayerReference;
     [HideInInspector]
     public SpriteRenderer Sprite;
 
-    [SerializeField] private List<Transform> m_WayPoints;
     public bool CanTakeHit => StateMachine.CurrentState is IEnemyVulnarableState;
     public float DistanceToPlayer => Vector3.Distance(transform.position, PlayerReference.transform.position);
     public Vector2 DirectionToPlayer => (PlayerReference.transform.position - transform.position).normalized;
     public bool IsFacingToPlayer => FacingDirection == (DirectionToPlayer.x > 0.0f ? 1 : -1);
     public bool CanSeePlayer => IsPlayerOnSight();
     public int FacingDirection { get; private set; }
+
+    private Vector3 m_LastPlayerPosition;
 
 
     public event Action<float, Vector2> OnTakeDamage;
@@ -57,28 +58,46 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
+
+        m_FollowPlayerTimer.SetCallback(SetDestinationToPlayer);
+        m_FollowPlayerTimer.Start(0.25f);
     }
 
     public void Initialize()
     {
-        //StateMachine = new StateMachine<IEnemyState>();
-        //StateMachine.ChangeState(new StandartEnemyIdleState(this));
-
-        //StateMachine.AddTransition(idle, chase, () => Tree.CurrentBehavior is SeekStrategy;
-        //StateMachine.AddTransition(chase, idle, () => Tree.CurrentBehavior is PatrolStrategy);
-
         Tree = new BehaviorTree();
     }
+
+    private ActionTimer m_FollowPlayerTimer = new ActionTimer(true, false);
     private void Update()
     {
         Tree.Execute();
-        Flip(Controller.LastDisplacement.x);
+        m_FollowPlayerTimer.Tick();
 
-        if (Input.GetMouseButtonDown(0))
+        if (CanSeePlayer)
         {
-            Agent.SetDestination(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            m_LastPlayerPosition = PlayerReference.transform.position;
+        }
+
+        Flip(Controller.LastDisplacement.x);
+    }
+
+    void SetDestinationToPlayer()
+    {
+
+        if (!Controller.IsGrounded) return;
+
+        if (CanSeePlayer || DistanceToPlayer <= 5.0f)
+        {
+            Agent.SetDestination(PlayerReference.transform.position);
+        }
+        else if (Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
+        {
+            Agent.SetDestination(m_LastPlayerPosition);
         }
     }
+
+
 
 
     public void TakeDamage(float value, Vector2 normal)
@@ -137,15 +156,4 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Flip(direction > 0.0f ? 1 : -1);
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = new Color(0.2f, 1.0f, 0.3f, 1.0f);
-        foreach (var point in m_WayPoints)
-        {
-            Gizmos.DrawSphere(point.position, 0.25f);
-        }
-
-        Gizmos.color = new Color(0.2f, 0.8f, 0.3f, 0.75f);
-        Gizmos.DrawLineStrip(m_WayPoints.ConvertAll(point => point.position).ToArray(), false);
-    }
 }
