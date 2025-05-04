@@ -15,6 +15,13 @@ public class NavAgent2D : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private float m_DebugDrawDuration = 5.0f;
 
+
+    private float m_StuckCheckTimer = 0.0f;
+    private Vector3 m_LastPosition;
+    [SerializeField] private float m_StuckCheckInterval = 0.5f;
+    [SerializeField] private float m_StuckThreshold = 0.01f;
+
+
     public bool IsJumping => m_Jumping;
     public bool IsFollowing => m_Following;
     public bool IsPathReady => PathCalculated && m_Path != null && m_Path.Count > 0;
@@ -23,16 +30,18 @@ public class NavAgent2D : MonoBehaviour
 
 
     private CharacterController2D m_Controller;
-    private bool m_Following = false;
-    private bool m_Jumping = false;
+    [SerializeField] private bool m_Following = false;
+    [SerializeField] private bool m_Jumping = false;
+    [SerializeField] private int m_JumpDirection = 0;
+
 
     private List<NavPoint> m_Path = null;
-    private int m_CurrentPointIndex = 0;
+    [SerializeField] private int m_CurrentPointIndex = 0;
     private Vector2 m_Target = Vector2.zero;
 
     private ActionTimer m_PathfindingTimer = new(true, false);
 
-    static private readonly float REACH_BIAS = 0.0001f;
+    static private readonly float REACH_THRESHOLD = 0.005f;
 
     private void Awake()
     {
@@ -49,6 +58,13 @@ public class NavAgent2D : MonoBehaviour
     }
 
 
+    private void Start()
+    {
+        m_Controller.Gravity = m_NavActor.Gravity;
+        m_Controller.MaxGravityVelocity = m_NavActor.MaxGravityVelocity;
+        m_Controller.ApplyGravity = true;
+    }
+
     private void Update()
     {
         if (!m_Following) return;
@@ -59,23 +75,86 @@ public class NavAgent2D : MonoBehaviour
             return;
         }
 
+        m_StuckCheckTimer += Time.deltaTime;
+        if (m_StuckCheckTimer >= m_StuckCheckInterval)
+        {
+            // Check distance moved over the interval
+            float distanceMoved = Vector3.Distance(transform.position, m_LastPosition);
+            if (distanceMoved < m_StuckThreshold)
+            {
+                Debug.LogWarning("Agent is stuck! Recalculating path...");
+                RecalculatePath();
+            }
+
+            // Reset the timer and update the last position
+            m_StuckCheckTimer = 0.0f;
+            m_LastPosition = transform.position;
+        }
+
         if (m_Jumping)
         {
-            Debug.LogWarning("Supposed to jump here but not implemented yet(((");
+            float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
+            float horizontalDistance = Mathf.Abs(m_Path[m_CurrentPointIndex].Position.x - transform.position.x);
+
+            if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
+            {
+                m_Jumping = false;
+                m_JumpDirection = 0;
+                m_CurrentPointIndex++;
+                if (m_CurrentPointIndex >= m_Path.Count)
+                {
+                    m_Following = false;
+                    return;
+                }
+            }
+            if (m_JumpDirection != 0)
+            {
+                if (horizontalDistance > REACH_THRESHOLD)
+                {
+                    Debug.Log("Horizontal distance: " + horizontalDistance);
+                    Vector2 direction = m_JumpDirection > 0 ? Vector2.right : Vector2.left;
+                    float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, horizontalDistance);
+                    m_Controller.Move(direction * displacement);
+                }
+            }
+            return;
         }
-        else if (m_Controller.IsGrounded)
+
+        if (m_Controller.IsGrounded && !m_Jumping)
         {
             Vector3 target = m_Path[m_CurrentPointIndex].Position;
-            target.y = transform.position.y; // ignore y axis horizontal movement
+            target.y = transform.position.y;
             Vector2 direction = (target - transform.position).normalized;
             float distance = Vector2.Distance(transform.position, target);
-            if (distance < REACH_BIAS)
+            if (distance < REACH_THRESHOLD)
             {
                 m_CurrentPointIndex++;
                 if (m_CurrentPointIndex >= m_Path.Count)
                 {
                     m_Following = false;
                     return;
+                }
+                else
+                {
+                    var previousPoint = m_Path[m_CurrentPointIndex - 1];
+                    var currentPoint = m_Path[m_CurrentPointIndex];
+
+                    var connection = previousPoint.Connections.Find(conn =>
+                        conn.Point.CellPos == currentPoint.CellPos);
+
+                    if (connection != null)
+                    {
+                        if (connection.Type >= ConnectionType.Jump && connection.Type <= ConnectionType.TransparentFall)
+                        {
+                            m_Jumping = true;
+                            Debug.Log($"Jump found between {previousPoint.CellPos} and {currentPoint.CellPos} ({connection.Type})");
+                            Jump(previousPoint, currentPoint, connection.Type);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"No valid connection found between {previousPoint.CellPos} and {currentPoint.CellPos}");
+                    }
                 }
             }
             else
@@ -84,7 +163,27 @@ public class NavAgent2D : MonoBehaviour
                 m_Controller.Move(direction * displacement);
             }
         }
-        //wait until grounded?
+    }
+
+    private void Jump(NavPoint from, NavPoint to, ConnectionType connection)
+    {
+        float jumpVelocity = m_NavActor.JumpVelocity;
+        float maxJumpHeight = m_NavActor.MaxJumpHeight;
+        Vector2 direction = (to.Position - from.Position).normalized;
+
+        m_JumpDirection = direction.x > 0 ? 1 : -1;
+
+        if (ConnectionType.TransparentFall == connection)
+        {
+            m_Controller.PassThrough();
+            return;
+        }
+        else if (ConnectionType.Fall == connection)
+        {
+            jumpVelocity /= 4.0f;
+        }
+
+        m_Controller.Velocity.y = jumpVelocity;
     }
 
     public NavPoint GetClosestNavpoint(Vector2 target)
@@ -99,9 +198,11 @@ public class NavAgent2D : MonoBehaviour
             throw new NullReferenceException("NavData2D is not assigned");
         }
         m_Path = m_NavData.GetPath(transform.position, target);
+        m_Target = target;
         PathCalculated = m_Path != null && m_Path.Count > 0;
         m_CurrentPointIndex = 0;
         m_Following = true;
+        m_Jumping = false;
     }
 
     private void OnDrawGizmos()
@@ -109,10 +210,26 @@ public class NavAgent2D : MonoBehaviour
         if (m_Path != null && m_Path.Count > 1)
         {
             Gizmos.color = Color.cyan;
-            for (int i = 1; i < m_Path.Count; i++)
+            int startIndex = m_CurrentPointIndex;
+
+
+            for (int i = startIndex; i < m_Path.Count - 1; i++)
             {
-                GizmosEx.DrawArrow(m_Path[i - 1].Position, m_Path[i].Position, Color.green);
+                GizmosEx.DrawArrow(m_Path[i].Position, m_Path[i + 1].Position, Color.green);
+            }
+
+            if (m_Path != null && m_CurrentPointIndex < m_Path.Count)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawSphere(m_Path[m_CurrentPointIndex].Position, 0.3f);
             }
         }
+    }
+    private void RecalculatePath()
+    {
+        m_Path = m_NavData.GetPath(transform.position, m_Target);
+        PathCalculated = m_Path != null && m_Path.Count > 0;
+        m_CurrentPointIndex = 0;
+        m_Jumping = false;
     }
 }

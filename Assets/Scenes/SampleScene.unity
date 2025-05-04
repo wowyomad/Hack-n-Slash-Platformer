@@ -1247,14 +1247,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 134217728
   m_ActorSize: {x: 1, y: 2}
-  m_MaxJumpHeight: 5
-  m_MaxJumpDistance: 5
-  m_MaxFallHeight: 12
-  m_MaxFallDistance: 5
-  m_DrawGizmos: 0
+  m_JumpHeight: 4
+  m_FallHeight: 8
+  m_FallJumpDistance: 5
   m_ConeAngle: 60
   m_NumberOfRays: 11
   m_CastDistance: 50
+  m_DrawGizmos: 1
   references:
     version: 2
     RefIds: []
@@ -6887,41 +6886,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_NavData: {fileID: 1270165169}
+  m_NavActor: {fileID: 11400000, guid: 857bf71452bf5da419eeace7b0799efd, type: 2}
   m_DebugDrawDuration: 5
-  m_MoveSpeed: 5
-  m_JumpHeight: 3
-  m_JumpDuration: 0.5
---- !u!114 &1420246955
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1420246947}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: efe58df89b5b74a97a123b5ed2b70422, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _data:
-    _json: '{"nest":{"source":"Macro","macro":0,"embed":null}}'
-    _objectReferences:
-    - {fileID: 11400000, guid: c201d77ace3d9bd4488013f8bfb8c067, type: 2}
---- !u!114 &1420246956
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1420246947}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e741851cba3ad425c91ecf922cc6b379, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _data:
-    _json: '{"declarations":{"Kind":"Object","collection":{"$content":[],"$version":"A"},"$version":"A"}}'
-    _objectReferences: []
 --- !u!1 &1629184136 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1261984061374707658, guid: f36ea0749937ce148ad548932f7d724b, type: 3}
@@ -7045,8 +7011,24 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: Gravity
+      value: -9.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: ApplyGravity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
       propertyPath: GroundMask.m_Bits
       value: 2147483648
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
+      propertyPath: MaxGravityVelocity
+      value: -29.4
       objectReference: {fileID: 0}
     - target: {fileID: 7759476804614851918, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
       propertyPath: TransparentGroundMask.m_Bits
@@ -7067,12 +7049,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9010687280914475461, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1420246954}
-    - targetCorrespondingSourceObject: {fileID: 9010687280914475461, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1420246956}
-    - targetCorrespondingSourceObject: {fileID: 9010687280914475461, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1420246955}
   m_SourcePrefab: {fileID: 100100000, guid: 1e97447333d1e5e419501f0a8d8ccb54, type: 3}
 --- !u!1 &1736231809
 GameObject:

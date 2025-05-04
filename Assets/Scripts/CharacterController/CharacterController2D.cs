@@ -38,6 +38,7 @@ public class CharacterController2D : RaycastController
         Displacement += displacement;
     }
 
+
     public void SetVelocity(Vector3 velocity)
     {
         Velocity = velocity;

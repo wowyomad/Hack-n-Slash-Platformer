@@ -52,15 +52,6 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Controller = GetComponent<CharacterController2D>();
         PlayerReference = GameObject.FindWithTag("Player");
         Sprite = GetComponent<SpriteRenderer>();
-
-        m_NavigationTimer = new ActionTimer(() =>
-        {
-            if (Input.GetMouseButton(0))
-            {
-                Agent.SetDestination(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            }
-        }, true);
-        m_NavigationTimer.Start(0.1f);
     }
 
     private void Start()
@@ -78,13 +69,15 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
         Tree = new BehaviorTree();
     }
-    private ActionTimer m_NavigationTimer;
     private void Update()
     {
         Tree.Execute();
         Flip(Controller.LastDisplacement.x);
 
-        m_NavigationTimer.Tick();
+        if (Input.GetMouseButtonDown(0))
+        {
+            Agent.SetDestination(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+        }
     }
 
 

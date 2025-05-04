@@ -13,7 +13,6 @@ namespace Nav2D
         private Dictionary<Vector3Int, NavPoint> m_NavPointLookup = new Dictionary<Vector3Int, NavPoint>();
         [SerializeField] private List<NavPointEntry> m_SerializedNavPoints = new List<NavPointEntry>();
         [SerializeField] private NavWeights m_NavWeights;
-        [SerializeField] private GameObject TestActor;
 
         [Header("Tilemap")]
         [SerializeField] private Tilemap m_GroundTilemap;
@@ -47,11 +46,6 @@ namespace Nav2D
 
         private void OnEnable()
         {
-            if (TestActor.TryGetComponent<Collider2D>(out Collider2D collider))
-            {
-                m_ActorSize = collider.bounds.size;
-            }
-
             m_TileAnchor = m_GroundTilemap.tileAnchor;
             m_NavPointVerticalOffset = m_TileAnchor.y + VERY_SMALL_FLOAT;
 
@@ -129,11 +123,6 @@ namespace Nav2D
             if (startNavPoint == null || endNavPoint == null)
                 return null;
 
-            if (Vector2.Distance(startNavPoint.Position, new Vector2(from.x, startNavPoint.Position.y)) < 1.0f)
-            {
-                startNavPoint = new NavPoint { Position = new Vector2(from.x, startNavPoint.Position.y), CellPos = startNavPoint.CellPos, Connections = startNavPoint.Connections, TypeMask = startNavPoint.TypeMask };
-            }
-
             float initialDistance = Vector2.Distance(startNavPoint.Position, endNavPoint.Position);
             if (initialDistance < m_TileAnchor.x * 3.0f)
                 return new List<NavPoint> { new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y) } };
@@ -173,6 +162,14 @@ namespace Nav2D
                     {
                         path[path.Count - 1] = new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y), CellPos = endNavPoint.CellPos, Connections = endNavPoint.Connections, TypeMask = endNavPoint.TypeMask };
                     }
+
+                    if (Vector2.Distance(path[0].Position, new Vector2(from.x, path[0].Position.y)) < 1.0f
+                        && path.Count >= 2
+                        && null != path[0].Connections.Find(c => c.Point.CellPos == path[1].CellPos && c.Type >= ConnectionType.Jump && c.Type <= ConnectionType.TransparentFall))
+                    {
+                        path[0] = new NavPoint { Position = new Vector2(from.x, path[0].Position.y), CellPos = path[0].CellPos, Connections = path[0].Connections, TypeMask = path[0].TypeMask };
+                    }
+
 
                     return path;
                 }
@@ -487,11 +484,10 @@ namespace Nav2D
 
         private void ConnectJumps(NavPoint navPoint)
         {
+            if (navPoint.TypeMask.HasFlag(NavPoint.Type.Slope)) return;
+
             float fromX = navPoint.CellPos.x;
             float fromY = navPoint.CellPos.y;
-
-            //fsdfds
-
 
             foreach (var kvp in m_NavPointLookup)
             {
@@ -522,6 +518,18 @@ namespace Nav2D
 
 
                 if (IsOnSamePlatform(navPoint, target)) continue;
+
+                //If there's surface neighbor that is closer to the target, skip 
+
+                var closerPoint = navPoint.Connections.Find(connection =>
+                {
+                    return connection.Type == ConnectionType.Surface && !connection.Point.HasFlag(NavPoint.Type.Slope)
+                    && Mathf.Abs(connection.Point.Position.x - target.Position.x) <= horizontalDistance;
+                });
+                if (closerPoint != null)
+                {
+                    continue;
+                }
 
                 Vector2 direction = (target.CellPos - navPoint.CellPos).ToVector2().normalized;
 
@@ -561,11 +569,13 @@ namespace Nav2D
 
         private void ConnectFalls(NavPoint navPoint)
         {
-            if (!navPoint.HasFlag(NavPoint.Type.Edge)) return;
+            if (navPoint.TypeMask.HasFlag(NavPoint.Type.Slope)) return;
 
             foreach (var kvp in m_NavPointLookup)
             {
                 NavPoint target = kvp.Value;
+
+                if (target.HasFlag(NavPoint.Type.Slope)) continue;
 
                 float verticalDistance = Mathf.Abs(navPoint.Position.y - target.Position.y);
                 float horizontalDistance = Mathf.Abs(navPoint.Position.x - target.Position.x);
@@ -828,7 +838,10 @@ namespace Nav2D
 
             var hits = Physics2D.RaycastAll(from, pathDirection, distance, m_GroundLayerMask | m_TransparentLayerMask);
             if (hits.Length > 0)
+            {
                 return false;
+            }
+
             return true;
         }
 
@@ -864,7 +877,6 @@ namespace Nav2D
 
                 foreach (var connection in navPoint.Connections)
                 {
-                    if (ConnectionType.Fall == connection.Type) continue;
                     Gizmos.color = connection.Type switch
                     {
                         ConnectionType.Surface => Color.green,
@@ -880,6 +892,7 @@ namespace Nav2D
             }
         }
     }
+
 
     [System.Serializable]
     public class NavPoint
@@ -916,6 +929,7 @@ namespace Nav2D
 
     public enum ConnectionType
     {
+        None,
         Surface,
         Jump,
         Fall,

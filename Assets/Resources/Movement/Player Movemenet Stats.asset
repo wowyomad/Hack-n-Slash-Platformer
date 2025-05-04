@@ -9,14 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42fa82c4ffd90564fa345724f486f9bd, type: 3}
+  m_Script: {fileID: 11500000, guid: 42a77b2a81b087a499ae80c64182444d, type: 3}
   m_Name: Player Movemenet Stats
   m_EditorClassIdentifier: 
-  m_JumpHeight: 5.2
-  m_TimeToJumpApex: 0.35
-  m_MaxGravityScale: 0.2
-  AccelerationTimeAirborne: 0
-  AccelerationTimeGrounded: 0
-  DecelerationTimeAirborne: 0
-  DecelerationTimeGrounded: 0
-  HorizontalSpeed: 9
+  m_JumpHeight: 4
+  m_TimeToJumpApex: 0.4
+  m_MaxGravityScale: 1.5
+  AccelerationTimeAirborne: 0.25
+  AccelerationTimeGrounded: 0.1
+  DecelerationTimeAirborne: 0.1
+  DecelerationTimeGrounded: 0.1
+  HorizontalSpeed: 8
