@@ -121,7 +121,10 @@ namespace Nav2D
             NavPoint endNavPoint = GetClosestNavPoint(to);
 
             if (startNavPoint == null || endNavPoint == null)
+            {
+                Debug.LogWarning($"NavData2D: No path found. Start ({startNavPoint}) or end {endNavPoint} point is null: ");
                 return null;
+            }
 
             float initialDistance = Vector2.Distance(startNavPoint.Position, endNavPoint.Position);
             if (initialDistance < m_TileAnchor.x * 3.0f)
@@ -158,9 +161,26 @@ namespace Nav2D
 
                     path.Reverse();
 
-                    if (Vector2.Distance(new Vector2(to.x, endNavPoint.Position.y), endNavPoint.Position) < 1.0f)
+                    if (Vector2.Distance(new Vector2(to.x, endNavPoint.Position.y), endNavPoint.Position) < 1.0f
+                        && path.Count >= 2)
                     {
-                        path[path.Count - 1] = new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y), CellPos = endNavPoint.CellPos, Connections = endNavPoint.Connections, TypeMask = endNavPoint.TypeMask };
+                        var lastConnection = path[path.Count - 2].Connections.Find(c => c.Point.CellPos == path[path.Count - 1].CellPos);
+
+                        // Adjust the ending point unless the connection type is a jump
+                        if (lastConnection == null ||
+                            (lastConnection.Type != ConnectionType.Jump &&
+                             lastConnection.Type != ConnectionType.Fall &&
+                             lastConnection.Type != ConnectionType.TransparentJump &&
+                             lastConnection.Type != ConnectionType.TransparentFall))
+                        {
+                            path[path.Count - 1] = new NavPoint
+                            {
+                                Position = new Vector2(to.x, endNavPoint.Position.y),
+                                CellPos = endNavPoint.CellPos,
+                                Connections = endNavPoint.Connections,
+                                TypeMask = endNavPoint.TypeMask
+                            };
+                        }
                     }
 
                     if (Vector2.Distance(path[0].Position, new Vector2(from.x, path[0].Position.y)) < 1.0f
@@ -171,7 +191,7 @@ namespace Nav2D
                         // Adjust the starting point unless the connection type is a jump
                         if (firstConnection == null ||
                             (firstConnection.Type != ConnectionType.Jump &&
-                            firstConnection.Type != ConnectionType.Fall &&
+                             firstConnection.Type != ConnectionType.Fall &&
                              firstConnection.Type != ConnectionType.TransparentJump &&
                              firstConnection.Type != ConnectionType.TransparentFall))
                         {
@@ -276,23 +296,43 @@ namespace Nav2D
                 }
                 else
                 {
-                    //костыль для кривых, если точка находится скраю.
-
-                    tilePosition = new Vector3(closestPoint.x - 0.5f, closestPoint.y - 0.01f, 0f);
-                    navPoint = GetNavPoint(tilePosition, false);
-                    if (navPoint != null)
+                    //Make a list of 8 tile position around tilePosition with offset of 1.0 for each direction.
+                    List<Vector3> offsets = new List<Vector3>
                     {
-                        return navPoint;
-                    }
-                    else
+                        new Vector3(-0.5f, 0.0f, 0.0f),
+                        new Vector3(0.5f, 0.0f, 0.0f),
+                        new Vector3(0.0f, -0.5f, 0.0f),
+                        new Vector3(0.0f, 0.5f, 0.0f),
+                        new Vector3(-0.5f, -0.5f, 0.0f),
+                        new Vector3(0.5f, -0.5f, 0.0f),
+                        new Vector3(-0.5f, 0.5f, 0.0f),
+                        new Vector3(0.5f, 0.5f, 0.0f)
+                    };
+                    foreach (var offset in offsets)
                     {
-                        tilePosition = new Vector3(closestPoint.x + 0.5f, closestPoint.y - 0.01f, 0f);
+                        tilePosition = new Vector3(closestPoint.x + offset.x, closestPoint.y + offset.y, 0f);
                         navPoint = GetNavPoint(tilePosition, false);
                         if (navPoint != null)
                         {
                             return navPoint;
                         }
                     }
+
+                    //tilePosition = new Vector3(closestPoint.x - 0.5f, closestPoint.y - 0.01f, 0f);
+                    //navPoint = GetNavPoint(tilePosition, false);
+                    //if (navPoint != null)
+                    //{
+                    //    return navPoint;
+                    //}
+                    //else
+                    //{
+                    //    tilePosition = new Vector3(closestPoint.x + 0.5f, closestPoint.y - 0.01f, 0f);
+                    //    navPoint = GetNavPoint(tilePosition, false);
+                    //    if (navPoint != null)
+                    //    {
+                    //        return navPoint;
+                    //    }
+                    //}
                 }
             }
 
