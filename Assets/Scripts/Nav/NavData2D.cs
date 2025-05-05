@@ -11,6 +11,8 @@ namespace Nav2D
     public class NavData2D : MonoBehaviour
     {
         private Dictionary<Vector3Int, NavPoint> m_NavPointLookup = new Dictionary<Vector3Int, NavPoint>();
+        private Dictionary<Vector3Int, TileType> m_TileTypeLookup = new Dictionary<Vector3Int, TileType>();
+
         [SerializeField] private List<NavPointEntry> m_SerializedNavPoints = new List<NavPointEntry>();
         [SerializeField] private NavWeights m_NavWeights;
 
@@ -40,6 +42,7 @@ namespace Nav2D
         private const float GROUND_NORMAL_THRESHOLD = 0.5f; //cos 60
 
         private Vector2 m_TileAnchor;
+        private float m_TileSize => m_TileAnchor.x * 2.0f;
         private float m_NavPointVerticalOffset;
         public float VerticalTileOffset => m_NavPointVerticalOffset;
         private Vector2 m_CellSize;
@@ -115,11 +118,25 @@ namespace Nav2D
             }
         }
 
+
         public List<NavPoint> GetPath(Vector2 from, Vector2 to)
         {
+            List<NavPoint> buffer = new List<NavPoint>();
+            return GetPath(from, to, buffer);
+        }
+
+        public List<NavPoint> GetPath(Vector2 from, Vector2 to, List<NavPoint> buffer)
+        {
+            buffer.Clear();
+
             NavPoint startNavPoint = GetClosestNavPoint(from);
             NavPoint endNavPoint = GetClosestNavPoint(to);
 
+            return GetPath_ThreadSafe(startNavPoint, endNavPoint, from, to, buffer);
+        }
+
+        public List<NavPoint> GetPath_ThreadSafe(NavPoint startNavPoint, NavPoint endNavPoint, Vector2 from, Vector2 to, List<NavPoint> buffer)
+        {
             if (startNavPoint == null || endNavPoint == null)
             {
                 Debug.LogWarning($"NavData2D: No path found. Start ({startNavPoint}) or end {endNavPoint} point is null: ");
@@ -128,8 +145,10 @@ namespace Nav2D
 
             float initialDistance = Vector2.Distance(startNavPoint.Position, endNavPoint.Position);
             if (initialDistance < m_TileAnchor.x * 3.0f)
-                return new List<NavPoint> { new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y) } };
-
+            {
+                buffer.Add(new NavPoint { Position = new Vector2(to.x, endNavPoint.Position.y) });
+                return buffer;
+            }
 
             var openSet = new List<NavPoint> { startNavPoint };
             var cameFrom = new Dictionary<NavPoint, NavPoint>();
@@ -152,28 +171,26 @@ namespace Nav2D
 
                 if (current == endNavPoint)
                 {
-                    var path = new List<NavPoint> { current };
+                    buffer.Add(current);
                     while (cameFrom.ContainsKey(current))
                     {
                         current = cameFrom[current];
-                        path.Add(current);
+                        buffer.Add(current);
                     }
-
-                    path.Reverse();
+                    buffer.Reverse();
 
                     if (Vector2.Distance(new Vector2(to.x, endNavPoint.Position.y), endNavPoint.Position) < 1.0f
-                        && path.Count >= 2)
+                        && buffer.Count >= 2)
                     {
-                        var lastConnection = path[path.Count - 2].Connections.Find(c => c.Point.CellPos == path[path.Count - 1].CellPos);
+                        var lastConnection = buffer[buffer.Count - 2].Connections.Find(c => c.Point.CellPos == buffer[buffer.Count - 1].CellPos);
 
-                        // Adjust the ending point unless the connection type is a jump
                         if (lastConnection == null ||
                             (lastConnection.Type != ConnectionType.Jump &&
                              lastConnection.Type != ConnectionType.Fall &&
                              lastConnection.Type != ConnectionType.TransparentJump &&
                              lastConnection.Type != ConnectionType.TransparentFall))
                         {
-                            path[path.Count - 1] = new NavPoint
+                            buffer[buffer.Count - 1] = new NavPoint
                             {
                                 Position = new Vector2(to.x, endNavPoint.Position.y),
                                 CellPos = endNavPoint.CellPos,
@@ -183,31 +200,28 @@ namespace Nav2D
                         }
                     }
 
-                    if (Vector2.Distance(path[0].Position, new Vector2(from.x, path[0].Position.y)) < 1.0f
-                        && path.Count >= 2)
+                    if (Vector2.Distance(buffer[0].Position, new Vector2(from.x, buffer[0].Position.y)) < 1.0f
+                        && buffer.Count >= 2)
                     {
-                        var firstConnection = path[0].Connections.Find(c => c.Point.CellPos == path[1].CellPos);
+                        var firstConnection = buffer[0].Connections.Find(c => c.Point.CellPos == buffer[1].CellPos);
 
-                        // Adjust the starting point unless the connection type is a jump
                         if (firstConnection == null ||
                             (firstConnection.Type != ConnectionType.Jump &&
                              firstConnection.Type != ConnectionType.Fall &&
                              firstConnection.Type != ConnectionType.TransparentJump &&
                              firstConnection.Type != ConnectionType.TransparentFall))
                         {
-                            path[0] = new NavPoint
+                            buffer[0] = new NavPoint
                             {
-                                Position = new Vector2(from.x, path[0].Position.y),
-                                CellPos = path[0].CellPos,
-                                Connections = path[0].Connections,
-                                TypeMask = path[0].TypeMask
+                                Position = new Vector2(from.x, buffer[0].Position.y),
+                                CellPos = buffer[0].CellPos,
+                                Connections = buffer[0].Connections,
+                                TypeMask = buffer[0].TypeMask
                             };
                         }
                     }
 
-
-                    return path;
-                    
+                    return buffer;
                 }
 
                 openSet.Remove(current);
@@ -230,6 +244,8 @@ namespace Nav2D
 
             return null;
         }
+
+
 
         public NavPoint GetClosestNavPoint(Vector2 target)
         {
@@ -374,7 +390,13 @@ namespace Nav2D
 
                     if (tilemap.HasTile(cellPos))
                     {
+                        if (!m_TileTypeLookup.ContainsKey(cellPos))
+                        {
+                            m_TileTypeLookup[cellPos] = (baseType & NavPoint.Type.Transparent) != 0 ? TileType.Transparent : TileType.Ground;
+                        }
+
                         Vector3Int cellAbove = cellPos + Vector3Int.up;
+
                         if (HasTileInAnyLayer(cellAbove))
                         {
                             continue;
@@ -558,7 +580,7 @@ namespace Nav2D
                 float toY = target.CellPos.y;
 
                 if (verticalDistance > m_JumpHeight || horizontalDistance > m_FallJumpDistance
-                    || horizontalDistance <= float.Epsilon)
+                    || horizontalDistance <= VERY_SMALL_FLOAT)
                 {
                     continue;
                 }
@@ -572,22 +594,25 @@ namespace Nav2D
                     if (isLeftEdge && navPoint.Position.x > target.Position.x) continue; //
                 }
 
-
                 if (IsOnSamePlatform(navPoint, target)) continue;
 
-                //If there's surface neighbor that is closer to the target, skip 
+                Vector2 direction = (target.CellPos - navPoint.CellPos).ToVector2().normalized;
 
+
+                //If there's surface neighbor that is closer to the target, skip 
                 var closerPoint = navPoint.Connections.Find(connection =>
                 {
+                    var offset = direction.x > 0 ? -m_TileSize : m_TileSize;
                     return connection.Type == ConnectionType.Surface && !connection.Point.HasFlag(NavPoint.Type.Slope)
                     && Mathf.Abs(connection.Point.Position.x - target.Position.x) <= horizontalDistance;
                 });
                 if (closerPoint != null)
                 {
-                    continue;
+                    //Костылевский
+                    if (closerPoint.Point.CellPos.x != target.CellPos.x)
+                        continue;
                 }
 
-                Vector2 direction = (target.CellPos - navPoint.CellPos).ToVector2().normalized;
 
                 if (direction.y >= 0)
                 {
@@ -747,16 +772,17 @@ namespace Nav2D
 
         public bool HasTileInAnyLayer(Vector3Int cellPos)
         {
-            return HasGroundTile(cellPos) || HasTransparentGroundTile(cellPos);
+            return m_TileTypeLookup.ContainsKey(cellPos) && m_TileTypeLookup[cellPos] != TileType.None;
+
         }
 
         public bool HasGroundTile(Vector3Int cellPos)
         {
-            return m_GroundTilemap != null && m_GroundTilemap.HasTile(cellPos);
+            return m_TileTypeLookup.TryGetValue(cellPos, out var type) && type == TileType.Ground;
         }
         public bool HasTransparentGroundTile(Vector3Int cellPos)
         {
-            return m_TransparentGround != null && m_TransparentGround.HasTile(cellPos);
+            return m_TileTypeLookup.TryGetValue(cellPos, out var type) && type == TileType.Transparent;
         }
 
         public bool HasGroundTile(Vector3 cellPos)
@@ -1000,6 +1026,14 @@ namespace Nav2D
     {
         public Vector3Int Key;
         public NavPoint Value;
+    }
+
+
+    public enum TileType
+    {
+        None,
+        Ground,
+        Transparent
     }
 
 

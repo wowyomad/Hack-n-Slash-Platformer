@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Nav;
 using Nav2D;
+using UnityEditor.MemoryProfiler;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
@@ -13,36 +15,34 @@ public class NavAgent2D : MonoBehaviour
     [SerializeField] private NavActorSO m_NavActor;
 
 
-    [Header("Debug")]
-    [SerializeField] private float m_DebugDrawDuration = 5.0f;
-
-
     private float m_StuckCheckTimer = 0.0f;
     private Vector3 m_LastPosition;
     [SerializeField] private float m_StuckCheckInterval = 0.5f;
     [SerializeField] private float m_StuckThreshold = 0.01f;
 
-
-    public bool IsJumping => m_Jumping;
-    public bool IsFollowing => m_Following;
-    public bool IsPathReady => PathCalculated && m_Path != null && m_Path.Count > 0;
+    public AgentState State => m_State;
+    public bool IsJumping => m_State == AgentState.Jumping;
+    public bool IsFollowing => m_State >= AgentState.Moving;
+    public bool IsPathReady => !m_PathPending;
     public Vector3? CurrentPathTarget => (IsPathReady && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
-    public bool PathCalculated { get; private set; } = false;
-
 
     private CharacterController2D m_Controller;
-    [SerializeField] private bool m_Following = false;
-    [SerializeField] private bool m_Jumping = false;
     [SerializeField] private int m_JumpDirection = 0;
+    [SerializeField] private int m_CurrentPointIndex = 0;
 
 
     private List<NavPoint> m_Path = null;
-    [SerializeField] private int m_CurrentPointIndex = 0;
     private Vector2 m_Target = Vector2.zero;
+    private AgentState m_State;
+    private bool m_PathPending = false;
 
-    private ActionTimer m_PathfindingTimer = new(true, false);
+    private List<NavPoint> m_PathBuffer = new List<NavPoint>();
+    private bool m_NewPathReady = false;
+    private object m_PathLock = new object();
 
     static private readonly float REACH_THRESHOLD = 0.005f;
+
+    private bool m_IsShortJump = false;
 
     private void Awake()
     {
@@ -68,50 +68,66 @@ public class NavAgent2D : MonoBehaviour
 
     private void Update()
     {
-        if (!m_Following) return;
+        HandleAsyncPathResult();
 
-        if (m_Path == null || m_Path.Count == 0 || m_CurrentPointIndex >= m_Path.Count)
+        if (!IsFollowing) return;
+
+        if (IsPathInvalid())
         {
-            m_Following = false;
+            m_State = AgentState.Stopped;
             return;
         }
 
-        m_StuckCheckTimer += Time.deltaTime;
-        if (m_StuckCheckTimer >= m_StuckCheckInterval)
+        if (IsStuck())
         {
-            float distanceMoved = Vector3.Distance(transform.position, m_LastPosition);
-            if (distanceMoved < m_StuckThreshold)
-            {
-                Debug.LogWarning("Agent is stuck! Recalculating path...");
-                RecalculatePath();
-            }
-
-            m_StuckCheckTimer = 0.0f;
-            m_LastPosition = transform.position;
+            RecalculatePath();
+            return;
         }
 
-        if (m_Jumping)
+        if (IsJumping)
         {
-            float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
-            float horizontalDistance = Mathf.Abs(m_Path[m_CurrentPointIndex].Position.x - transform.position.x);
+            HandleJumping();
+        }
+        else if (m_Controller.IsGrounded)
+        {
+            HandleWalking();
+        }
+    }
 
-            //Костыль distance^2 вместо distance потому что потому.
-            if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
+    private void HandleAsyncPathResult()
+    {
+        if (m_NewPathReady)
+        {
+            lock (m_PathLock)
             {
-                m_Jumping = false;
-                m_JumpDirection = 0;
-                m_CurrentPointIndex++;
-                if (m_CurrentPointIndex >= m_Path.Count)
-                {
-                    m_Following = false;
-                    return;
-                }
-
-                var previousPoint = m_Path[m_CurrentPointIndex - 1];
-                var currentPoint = m_Path[m_CurrentPointIndex];
-                HandleConnection(previousPoint, currentPoint);
+                m_NewPathReady = false;
+                HandlePathResult(m_PathBuffer);
             }
-            else if (m_JumpDirection != 0)
+        }
+    }
+
+    private bool IsPathInvalid()
+    {
+        return m_Path == null || m_Path.Count == 0 || m_CurrentPointIndex >= m_Path.Count;
+    }
+
+    private void HandleJumping()
+    {
+        float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
+        float horizontalDistance = Mathf.Abs(m_Path[m_CurrentPointIndex].Position.x - transform.position.x);
+
+        //Костыль distance^2 вместо distance потому что потому. 
+        if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
+        {
+            m_State = AgentState.Moving;
+            m_JumpDirection = 0;
+            m_IsShortJump = false; // Reset flag
+            GoNext();
+        }
+        else if (m_JumpDirection != 0)
+        {
+            // For short jump, only move horizontally after reaching peak (falling)
+            if (!m_IsShortJump || (m_IsShortJump && m_Controller.Velocity.y <= 0))
             {
                 if (horizontalDistance > REACH_THRESHOLD)
                 {
@@ -120,43 +136,81 @@ public class NavAgent2D : MonoBehaviour
                     m_Controller.Move(direction * displacement);
                 }
             }
+        }
+    }
+
+    private void HandleWalking()
+    {
+        Vector3 target = m_Path[m_CurrentPointIndex].Position;
+        target.y = transform.position.y;
+        float distance = Vector2.Distance(transform.position, target);
+        if (distance < REACH_THRESHOLD)
+        {
+            GoNext();
+        }
+        else
+        {
+            Vector2 direction = (target - transform.position).normalized;
+            float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, distance);
+            m_Controller.Move(direction * displacement);
+        }
+    }
+
+    private void GoNext()
+    {
+        m_CurrentPointIndex++;
+        if (m_CurrentPointIndex >= m_Path.Count)
+        {
+            m_State = AgentState.Stopped;
             return;
         }
-
-        if (m_Controller.IsGrounded && !m_Jumping)
+        var previousPoint = m_Path[m_CurrentPointIndex - 1];
+        var currentPoint = m_Path[m_CurrentPointIndex];
+        var connection = GetConnectionType(previousPoint, currentPoint);
+        if (connection >= ConnectionType.Jump && connection <= ConnectionType.TransparentFall)
         {
-            Vector3 target = m_Path[m_CurrentPointIndex].Position;
-            target.y = transform.position.y;
-            Vector2 direction = (target - transform.position).normalized;
-            float distance = Vector2.Distance(transform.position, target);
-            if (distance < REACH_THRESHOLD)
-            {
-                m_CurrentPointIndex++;
-                if (m_CurrentPointIndex >= m_Path.Count)
-                {
-                    m_Following = false;
-                    return;
-                }
-
-                var previousPoint = m_Path[m_CurrentPointIndex - 1];
-                var currentPoint = m_Path[m_CurrentPointIndex];
-                HandleConnection(previousPoint, currentPoint);
-            }
-            else
-            {
-                float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, distance);
-                m_Controller.Move(direction * displacement);
-            }
+            Jump(previousPoint, currentPoint, connection);
+            m_State = AgentState.Jumping;
         }
+        else
+        {
+            m_State = AgentState.Moving;
+        }
+    }
+
+    private bool IsStuck()
+    {
+        bool isStuck = false;
+        m_StuckCheckTimer += Time.deltaTime;
+        if (m_StuckCheckTimer >= m_StuckCheckInterval)
+        {
+            float distanceMoved = Vector3.Distance(transform.position, m_LastPosition);
+            if (distanceMoved < m_StuckThreshold)
+            {
+                Debug.LogWarning("Agent is stuck! Recalculating path...");
+                isStuck = true;
+            }
+
+            m_StuckCheckTimer = 0.0f;
+            m_LastPosition = transform.position;
+        }
+        return isStuck;
     }
 
     private void Jump(NavPoint from, NavPoint to, ConnectionType connection)
     {
+        if (connection < ConnectionType.Jump || connection > ConnectionType.TransparentFall)
+            return;
+
         float jumpVelocity = m_NavActor.JumpVelocity;
         float maxJumpHeight = m_NavActor.MaxJumpHeight;
         Vector2 direction = (to.Position - from.Position).normalized;
 
         m_JumpDirection = direction.x > 0 ? 1 : -1;
+
+        // Detect short jump
+        float jumpHorizontalDistance = Mathf.Abs(from.Position.x - to.Position.x);
+        m_IsShortJump = (jumpHorizontalDistance <= 1.0f + float.Epsilon);
 
         if (ConnectionType.TransparentFall == connection)
         {
@@ -171,31 +225,62 @@ public class NavAgent2D : MonoBehaviour
         m_Controller.Velocity.y = jumpVelocity;
     }
 
-    public NavPoint GetClosestNavpoint(Vector2 target)
-    {
-        return m_NavData.GetClosestNavPoint(target);
-    }
-
     public void SetDestination(Vector2 target)
     {
         if (m_NavData == null)
-        {
             throw new NullReferenceException("NavData2D is not assigned");
-        }
-        var path = m_NavData.GetPath(transform.position, target);
-        if (path == null)
-        {
-            Debug.LogWarning($"Couldn't get path from NavAgent ({new Vector2(transform.position.x, transform.position.y)}) target {target}");
-            return;
-        }
-        m_Path = path;
-        m_Target = target;
-        PathCalculated = m_Path != null && m_Path.Count > 0;
-        m_CurrentPointIndex = 0;
-        m_Following = true;
-        m_Jumping = false;
 
-        Debug.Log($"Starting point: {m_Path[0].Position}, tranform: {transform.position}");
+        m_Target = target;
+        m_Path = m_Path ?? new List<NavPoint>();
+        var path = m_NavData.GetPath(transform.position, target, m_Path);
+        HandlePathResult(path);
+    }
+
+    public void SetDestinationAsync(Vector2 target)
+    {
+        if (m_NavData == null)
+            throw new NullReferenceException("NavData2D is not assigned");
+
+        if (m_PathPending) return;
+
+        m_PathPending = true;
+        m_Target = target;
+        Vector2 position = transform.position;
+
+        NavPoint startPoint = m_NavData.GetClosestNavPoint(position);
+        NavPoint endPoint = m_NavData.GetClosestNavPoint(target);
+
+        Task.Run(() =>
+        {
+            try
+            {
+                // Only lock when accessing the buffer, not during pathfinding!
+                List<NavPoint> localBuffer;
+                lock (m_PathLock)
+                {
+                    m_PathBuffer.Clear();
+                    localBuffer = m_PathBuffer;
+                }
+
+                // Do pathfinding OUTSIDE the lock
+                m_NavData.GetPath_ThreadSafe(startPoint, endPoint, position, target, localBuffer);
+
+                // Now lock again to set flags and signal result
+                lock (m_PathLock)
+                {
+                    m_NewPathReady = true;
+                    m_PathPending = false;
+                }
+            }
+            catch (Exception e)
+            {
+                lock (m_PathLock)
+                {
+                    m_PathPending = false;
+                }
+                Debug.LogError("Error while calculating path: " + e.Message);
+            }
+        });
     }
 
     private void OnDrawGizmos()
@@ -220,10 +305,7 @@ public class NavAgent2D : MonoBehaviour
     }
     private void RecalculatePath()
     {
-        m_Path = m_NavData.GetPath(transform.position, m_Target);
-        PathCalculated = m_Path != null && m_Path.Count > 0;
-        m_CurrentPointIndex = 0;
-        m_Jumping = false;
+        SetDestination(m_Target);
     }
 
     private ConnectionType GetConnectionType(NavPoint a, NavPoint b)
@@ -237,23 +319,27 @@ public class NavAgent2D : MonoBehaviour
         return ConnectionType.None;
     }
 
-    private void HandleConnection(NavPoint previousPoint, NavPoint currentPoint)
+    private void HandlePathResult(List<NavPoint> path)
     {
-        var connection = GetConnectionType(previousPoint, currentPoint);
-
-        if (connection != ConnectionType.None)
+        if (path == null || path.Count == 0)
         {
-            if (connection >= ConnectionType.Jump && connection <= ConnectionType.TransparentFall)
-            {
-                m_Jumping = true;
-                Debug.Log($"Jump found between {previousPoint.CellPos} and {currentPoint.CellPos} ({connection})");
-                Jump(previousPoint, currentPoint, connection);
-            }
+            m_State = AgentState.Stopped;
+            m_Path = path;
         }
         else
         {
-            //Shouldn't even reach here. NEVER!
-            Debug.LogError($"No valid connection found between {previousPoint.CellPos} and {currentPoint.CellPos}");
+            m_State = AgentState.Moving;
+            m_Path = path;
+            m_CurrentPointIndex = 0;
         }
+    }
+
+
+    public enum AgentState
+    {
+        None,
+        Stopped,
+        Moving,
+        Jumping,
     }
 }

@@ -74,7 +74,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Tree.Execute();
         m_FollowPlayerTimer.Tick();
 
-        if (CanSeePlayer)
+        if (CanSeePlayer || DistanceToPlayer <= 7.5f)
         {
             m_LastPlayerPosition = PlayerReference.transform.position;
         }
@@ -89,11 +89,11 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
         if (CanSeePlayer || DistanceToPlayer <= 5.0f)
         {
-            Agent.SetDestination(PlayerReference.transform.position);
+            Agent.SetDestinationAsync(PlayerReference.transform.position);
         }
         else if (Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
         {
-            Agent.SetDestination(m_LastPlayerPosition);
+            Agent.SetDestinationAsync(m_LastPlayerPosition);
         }
     }
 
