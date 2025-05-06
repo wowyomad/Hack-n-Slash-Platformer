@@ -183,9 +183,7 @@ namespace Nav2D
                     {
                         var start = buffer[0];
                         var next = buffer[1];
-                        // Check if next is a surface neighbor of start
                         var surfaceConn = start.Connections.Find(c => c.Point == next && c.Type == ConnectionType.Surface);
-                        // Check if next is closer to 'to' than start
                         if (surfaceConn != null)
                         {
                             float startDist = Vector2.Distance(start.Position, to);
@@ -268,26 +266,9 @@ namespace Nav2D
 
         public NavPoint GetClosestNavPoint(Vector2 target)
         {
-            bool targetOnGround = false;
             RaycastHit2D groundCheck = Physics2D.Raycast(target, Vector2.down, 1.0f, m_GroundLayerMask);
-            if (groundCheck.collider != null)
-                targetOnGround = true;
+            
 
-            if (!targetOnGround)
-            {
-                NavPoint bestNavPoint = null;
-                float bestDist = float.MaxValue;
-                foreach (var navPoint in m_NavPointLookup.Values)
-                {
-                    float dist = Vector2.Distance(navPoint.Position, target);
-                    if (dist < bestDist)
-                    {
-                        bestDist = dist;
-                        bestNavPoint = navPoint;
-                    }
-                }
-                return bestNavPoint;
-            }
 
             if (HasGroundTile(target))
             {
@@ -342,44 +323,6 @@ namespace Nav2D
 
             if (anyHit)
             {
-                //VREMENNOE RESHENIE! (ahahah)
-                {
-                    List<Vector3> offsets = new List<Vector3>
-                    {
-                        new Vector3(0f, 0f, 0f), // include the original position first
-                        new Vector3(-0.5f, 0.0f, 0.0f),
-                        new Vector3(0.5f, 0.0f, 0.0f),
-                        new Vector3(0.0f, -0.5f, 0.0f),
-                        new Vector3(0.0f, 0.5f, 0.0f),
-                        new Vector3(-0.5f, -0.5f, 0.0f),
-                        new Vector3(0.5f, -0.5f, 0.0f),
-                        new Vector3(-0.5f, 0.5f, 0.0f),
-                        new Vector3(0.5f, 0.5f, 0.0f)
-                    };
-
-                    NavPoint bestNavPoint = null;
-                    float bestDist = float.MaxValue;
-
-                    foreach (var offset in offsets)
-                    {
-                        Vector3 tilePosition = new Vector3(closestPoint.x + offset.x, closestPoint.y + offset.y - 0.01f, 0f);
-                        var navPoint = GetNavPoint(tilePosition, false);
-                        if (navPoint != null)
-                        {
-                            float dist = Vector2.Distance(navPoint.Position, target);
-                            if (dist < bestDist)
-                            {
-                                bestDist = dist;
-                                bestNavPoint = navPoint;
-                            }
-                        }
-                    }
-
-                    return bestNavPoint;
-                }
-
-
-                //Under recon
                 {
                     Vector3 tilePosition = new Vector3(closestPoint.x, closestPoint.y - 0.01f, 0f);
                     var navPoint = GetNavPoint(tilePosition, false);
