@@ -13,6 +13,7 @@ namespace Nav
         public float MaxGravityVelocity { get; private set; }
         public float JumpVelocity { get; private set; }
 
+        public float MaxJumpDistance = 5.0f;
         public float MaxJumpHeight = 5.0f;
         public float TimeToJumpApex = 0.5f;
         public float MaxGravityScale = 1.5f;

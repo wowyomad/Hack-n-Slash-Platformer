@@ -179,6 +179,25 @@ namespace Nav2D
                     }
                     buffer.Reverse();
 
+                    if (buffer.Count >= 2)
+                    {
+                        var start = buffer[0];
+                        var next = buffer[1];
+                        // Check if next is a surface neighbor of start
+                        var surfaceConn = start.Connections.Find(c => c.Point == next && c.Type == ConnectionType.Surface);
+                        // Check if next is closer to 'to' than start
+                        if (surfaceConn != null)
+                        {
+                            float startDist = Vector2.Distance(start.Position, to);
+                            float nextDist = Vector2.Distance(next.Position, to);
+                            if (nextDist < startDist)
+                            {
+                                buffer.RemoveAt(0);
+                            }
+                        }
+                    }
+
+
                     if (Vector2.Distance(new Vector2(to.x, endNavPoint.Position.y), endNavPoint.Position) < 1.0f
                         && buffer.Count >= 2)
                     {
@@ -249,6 +268,27 @@ namespace Nav2D
 
         public NavPoint GetClosestNavPoint(Vector2 target)
         {
+            bool targetOnGround = false;
+            RaycastHit2D groundCheck = Physics2D.Raycast(target, Vector2.down, 1.0f, m_GroundLayerMask);
+            if (groundCheck.collider != null)
+                targetOnGround = true;
+
+            if (!targetOnGround)
+            {
+                NavPoint bestNavPoint = null;
+                float bestDist = float.MaxValue;
+                foreach (var navPoint in m_NavPointLookup.Values)
+                {
+                    float dist = Vector2.Distance(navPoint.Position, target);
+                    if (dist < bestDist)
+                    {
+                        bestDist = dist;
+                        bestNavPoint = navPoint;
+                    }
+                }
+                return bestNavPoint;
+            }
+
             if (HasGroundTile(target))
             {
                 Debug.Log($"HasGroundTile at {target}");
@@ -259,38 +299,37 @@ namespace Nav2D
             float closestDistanceToTarget = float.MaxValue;
             bool anyHit = false;
 
-            if (m_NumberOfRays <= 1)
-            {
-                Vector2 rayDirection = Vector2.down;
-                RaycastHit2D hit = Physics2D.Raycast(target, rayDirection, m_CastDistance, m_GroundLayerMask);
+            Vector2 mainRayDirection = Vector2.down;
+            RaycastHit2D mainHit = Physics2D.Raycast(target, mainRayDirection, m_CastDistance, CollisionMask);
 
-                if (hit.collider != null)
-                {
-                    if (Vector2.Dot(hit.normal, Vector2.up) > GROUND_NORMAL_THRESHOLD)
-                    {
-                        closestPoint = hit.point;
-                        anyHit = true;
-                    }
-                }
+            Vector2 surfaceNormal = Vector2.up;
+            if (mainHit.collider != null && Vector2.Dot(mainHit.normal, Vector2.up) > GROUND_NORMAL_THRESHOLD)
+            {
+                closestPoint = mainHit.point;
+                closestDistanceToTarget = Vector2.Distance(mainHit.point, target);
+                anyHit = true;
+                surfaceNormal = mainHit.normal;
             }
-            else
-            {
-                float halfAngleRad = m_ConeAngle * Mathf.Deg2Rad / 2f;
-                float centerAngleRad = Mathf.Atan2(-1, 0);
 
+            if (m_NumberOfRays > 1)
+            {
+                Vector2 perp = new Vector2(-surfaceNormal.y, surfaceNormal.x);
+
+                float halfAngleRad = m_ConeAngle * Mathf.Deg2Rad / 2f;
                 for (int i = 0; i < m_NumberOfRays; i++)
                 {
-                    float angleOffsetRad = Mathf.Lerp(-halfAngleRad, halfAngleRad, (float)i / (m_NumberOfRays - 1));
-                    float rayAngleRad = centerAngleRad + angleOffsetRad;
-                    Vector2 rayDirection = new Vector2(Mathf.Cos(rayAngleRad), Mathf.Sin(rayAngleRad));
+                    float t = (float)i / (m_NumberOfRays - 1);
+                    float angleOffsetRad = Mathf.Lerp(-halfAngleRad, halfAngleRad, t);
+
+                    float cos = Mathf.Cos(angleOffsetRad);
+                    float sin = Mathf.Sin(angleOffsetRad);
+                    Vector2 rayDirection = -surfaceNormal * cos + perp * sin;
 
                     RaycastHit2D hit = Physics2D.Raycast(target, rayDirection, m_CastDistance, CollisionMask);
 
-                    if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > GROUND_NORMAL_THRESHOLD)
+                    if (hit.collider != null && Vector2.Dot(hit.normal, surfaceNormal) > GROUND_NORMAL_THRESHOLD)
                     {
-
                         float distance = Vector2.Distance(hit.point, target);
-
                         if (distance < closestDistanceToTarget)
                         {
                             closestDistanceToTarget = distance;
@@ -303,18 +342,11 @@ namespace Nav2D
 
             if (anyHit)
             {
-                Vector3 tilePosition = new Vector3(closestPoint.x, closestPoint.y - 0.01f, 0f);
-                var navPoint = GetNavPoint(tilePosition, false);
-
-                if (navPoint != null)
+                //VREMENNOE RESHENIE! (ahahah)
                 {
-                    return navPoint;
-                }
-                else
-                {
-                    //Make a list of 8 tile position around tilePosition with offset of 1.0 for each direction.
                     List<Vector3> offsets = new List<Vector3>
                     {
+                        new Vector3(0f, 0f, 0f), // include the original position first
                         new Vector3(-0.5f, 0.0f, 0.0f),
                         new Vector3(0.5f, 0.0f, 0.0f),
                         new Vector3(0.0f, -0.5f, 0.0f),
@@ -324,35 +356,66 @@ namespace Nav2D
                         new Vector3(-0.5f, 0.5f, 0.0f),
                         new Vector3(0.5f, 0.5f, 0.0f)
                     };
+
+                    NavPoint bestNavPoint = null;
+                    float bestDist = float.MaxValue;
+
                     foreach (var offset in offsets)
                     {
-                        tilePosition = new Vector3(closestPoint.x + offset.x, closestPoint.y + offset.y, 0f);
-                        navPoint = GetNavPoint(tilePosition, false);
+                        Vector3 tilePosition = new Vector3(closestPoint.x + offset.x, closestPoint.y + offset.y - 0.01f, 0f);
+                        var navPoint = GetNavPoint(tilePosition, false);
                         if (navPoint != null)
                         {
-                            return navPoint;
+                            float dist = Vector2.Distance(navPoint.Position, target);
+                            if (dist < bestDist)
+                            {
+                                bestDist = dist;
+                                bestNavPoint = navPoint;
+                            }
                         }
                     }
 
-                    //tilePosition = new Vector3(closestPoint.x - 0.5f, closestPoint.y - 0.01f, 0f);
-                    //navPoint = GetNavPoint(tilePosition, false);
-                    //if (navPoint != null)
-                    //{
-                    //    return navPoint;
-                    //}
-                    //else
-                    //{
-                    //    tilePosition = new Vector3(closestPoint.x + 0.5f, closestPoint.y - 0.01f, 0f);
-                    //    navPoint = GetNavPoint(tilePosition, false);
-                    //    if (navPoint != null)
-                    //    {
-                    //        return navPoint;
-                    //    }
-                    //}
+                    return bestNavPoint;
                 }
-            }
 
+
+                //Under recon
+                {
+                    Vector3 tilePosition = new Vector3(closestPoint.x, closestPoint.y - 0.01f, 0f);
+                    var navPoint = GetNavPoint(tilePosition, false);
+
+                    if (navPoint != null)
+                    {
+                        return navPoint;
+                    }
+                    else
+                    {
+                        List<Vector3> offsets = new List<Vector3>
+                        {
+                            new Vector3(-0.5f, 0.0f, 0.0f),
+                            new Vector3(0.5f, 0.0f, 0.0f),
+                            new Vector3(0.0f, -0.5f, 0.0f),
+                            new Vector3(0.0f, 0.5f, 0.0f),
+                            new Vector3(-0.5f, -0.5f, 0.0f),
+                            new Vector3(0.5f, -0.5f, 0.0f),
+                            new Vector3(-0.5f, 0.5f, 0.0f),
+                            new Vector3(0.5f, 0.5f, 0.0f)
+                        };
+                        foreach (var offset in offsets)
+                        {
+                            tilePosition = new Vector3(closestPoint.x + offset.x, closestPoint.y + offset.y, 0f);
+                            navPoint = GetNavPoint(tilePosition, false);
+                            if (navPoint != null)
+                            {
+                                return navPoint;
+                            }
+                        }
+                    }
+                }
+
+            }
             return null;
+
         }
 
 

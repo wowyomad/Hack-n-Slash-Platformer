@@ -29,6 +29,7 @@ public class NavAgent2D : MonoBehaviour
     private CharacterController2D m_Controller;
     [SerializeField] private int m_JumpDirection = 0;
     [SerializeField] private int m_CurrentPointIndex = 0;
+    [SerializeField] private float m_JumpSpeedScale = 1.0f;
 
 
     private List<NavPoint> m_Path = null;
@@ -42,7 +43,7 @@ public class NavAgent2D : MonoBehaviour
 
     static private readonly float REACH_THRESHOLD = 0.005f;
 
-    private bool m_IsShortJump = false;
+    private bool m_ShortJump = false;
 
     private void Awake()
     {
@@ -121,18 +122,18 @@ public class NavAgent2D : MonoBehaviour
         {
             m_State = AgentState.Moving;
             m_JumpDirection = 0;
-            m_IsShortJump = false; // Reset flag
+            m_ShortJump = false; // Reset flag
             GoNext();
         }
         else if (m_JumpDirection != 0)
         {
             // For short jump, only move horizontally after reaching peak (falling)
-            if (!m_IsShortJump || (m_IsShortJump && m_Controller.Velocity.y <= 0))
+            if (!m_ShortJump || (m_ShortJump && m_Controller.Velocity.y <= 0))
             {
                 if (horizontalDistance > REACH_THRESHOLD)
                 {
                     Vector2 direction = m_JumpDirection > 0 ? Vector2.right : Vector2.left;
-                    float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, horizontalDistance);
+                    float displacement = Mathf.Min(m_JumpSpeedScale * m_NavActor.BaseSpeed * Time.deltaTime, horizontalDistance);
                     m_Controller.Move(direction * displacement);
                 }
             }
@@ -203,14 +204,15 @@ public class NavAgent2D : MonoBehaviour
             return;
 
         float jumpVelocity = m_NavActor.JumpVelocity;
-        float maxJumpHeight = m_NavActor.MaxJumpHeight;
         Vector2 direction = (to.Position - from.Position).normalized;
 
         m_JumpDirection = direction.x > 0 ? 1 : -1;
+        m_JumpSpeedScale = 1.0f;
 
         // Detect short jump
         float jumpHorizontalDistance = Mathf.Abs(from.Position.x - to.Position.x);
-        m_IsShortJump = (jumpHorizontalDistance <= 1.0f + float.Epsilon);
+        m_ShortJump = jumpHorizontalDistance <= 1.0f + float.Epsilon;
+        bool flatJump = from.CellPos.y == to.CellPos.y;
 
         if (ConnectionType.TransparentFall == connection)
         {
@@ -220,6 +222,20 @@ public class NavAgent2D : MonoBehaviour
         else if (ConnectionType.Fall == connection)
         {
             jumpVelocity /= 4.0f;
+        }
+        else
+        {
+            if (flatJump)
+            {
+                jumpVelocity *= jumpHorizontalDistance  / m_NavActor.MaxJumpDistance;
+            }
+            else
+            {
+                float jumpHeight = Mathf.Abs(to.Position.y - from.Position.y);
+                jumpVelocity *= Mathf.Sqrt((jumpHeight + 1.0f) / m_NavActor.MaxJumpHeight);
+            }
+
+            m_JumpSpeedScale = m_NavActor.MaxJumpDistance / jumpHorizontalDistance;
         }
 
         m_Controller.Velocity.y = jumpVelocity;
