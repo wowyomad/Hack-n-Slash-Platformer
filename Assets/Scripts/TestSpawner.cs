@@ -66,14 +66,14 @@ public class TestSpawner : MonoBehaviour
         }
 
         var destroyable = spawnedObject.GetComponent<IDestroyable>();
-        destroyable.OnDestroyed += OnObjectDestroyed;
+        destroyable.DestroyedEvent += OnObjectDestroyed;
         return true;
     }
 
     private void OnObjectDestroyed(IDestroyable destroyable)
     {
         m_CurrentEnemyCount--;
-        destroyable.OnDestroyed -= OnObjectDestroyed;
+        destroyable.DestroyedEvent -= OnObjectDestroyed;
     }
 
     [System.Serializable]

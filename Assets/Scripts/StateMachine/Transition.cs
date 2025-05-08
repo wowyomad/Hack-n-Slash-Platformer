@@ -1,4 +1,6 @@
-﻿public class Transition<TState> : ITransition<TState>
+﻿using TheGame;
+
+public class Transition<TState> : ITransition<TState>
     where TState : class, IState
 {
     public TState To { get; private set; }

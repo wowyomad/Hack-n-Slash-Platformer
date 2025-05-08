@@ -1,51 +1,36 @@
 using UnityEngine;
-using GameActions;
+using TheGame;
+
 public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
 {
     private float m_VelocitySmoothing = 0.0f;
+
     public PlayerAirState(Player player) : base(player) { }
 
     public override void Enter(IState from)
     {
-        Input.ListenEvents(this);
         Player.Animator.CrossFade(AirAnimationHash, 0.0f);
-    }
-
-    public override void Exit()
-    {
-        Input.StopListening(this);
+        m_VelocitySmoothing = 0f;
     }
 
     public override void Update()
     {
-        if (Controller.IsGrounded)
-        {
-            Player.ChangeState(Player.IdleState); return;
-        }
+        float moveInput = Player.Input.HorizontalMovement;
 
-        float input = Input.HorizontalMovement;
+        Player.Flip(moveInput);
+        
 
-        float targetVelocityX = Input.HorizontalMovement * Player.Movement.HorizontalSpeed;
-        if (Controller.Collisions.Right)
-        {
-            targetVelocityX = Mathf.Min(targetVelocityX, 0);
-        }
-        else if (Controller.Collisions.Left)
-        {
-            targetVelocityX = Mathf.Max(targetVelocityX, 0);
-        }
+        float targetVelocityX = moveInput * Player.Movement.HorizontalSpeed;
 
+        if (Controller.Collisions.Right && targetVelocityX > 0)
+        {
+            targetVelocityX = 0;
+        }
+        else if (Controller.Collisions.Left && targetVelocityX < 0)
+        {
+            targetVelocityX = 0;
+        }
+        
         Controller.Velocity.x = Mathf.SmoothDamp(Controller.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeAirborne);
-    }
-
-    [GameAction(ActionType.Throw)]
-    protected void OnThrow()
-    {
-        Player.ThrowKnife();
-    }
-    [GameAction(ActionType.Move)]
-    protected void OnMove(float direction)
-    {
-        Player.Flip(direction);
     }
 }

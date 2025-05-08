@@ -1,13 +1,10 @@
 using System;
 using UnityEngine;
 using Behavior;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using Unity.VisualScripting.FullSerializer;
 
 public interface IDestroyable
 {
-    public event Action<IDestroyable> OnDestroyed;
+    public event Action<IDestroyable> DestroyedEvent;
 }
 
 
@@ -18,13 +15,14 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     [HideInInspector] public CharacterController2D Controller;
     public CharacterMovementStatsSO MovementStats;
     public EnemyBehaviorConfigSO BehaviorConfig;
-    public StateMachine<IEnemyState> StateMachine;
+    public TheGame.OldStateMachine<IEnemyState> StateMachine;
     public NavAgent2D Agent;
     public BehaviorTree Tree;
 
     public Vector3 Velocity;
 
     public GameObject PlayerReference;
+    public Player Player;
     [HideInInspector]
     public SpriteRenderer Sprite;
 
@@ -33,6 +31,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     public Vector2 DirectionToPlayer => (PlayerReference.transform.position - transform.position).normalized;
     public bool IsFacingToPlayer => FacingDirection == (DirectionToPlayer.x > 0.0f ? 1 : -1);
     public bool CanSeePlayer => IsPlayerOnSight();
+    public bool AlwaysFollowPlayer = false;
     public int FacingDirection { get; private set; }
 
     private Vector3 m_LastPlayerPosition;
@@ -40,7 +39,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     public event Action<float, Vector2> OnTakeDamage;
     public event Action Hit;
-    public event Action<IDestroyable> OnDestroyed;
+    public event Action<IDestroyable> DestroyedEvent;
 
     private void OnEnable()
     {
@@ -52,6 +51,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Agent = GetComponent<NavAgent2D>();
         Controller = GetComponent<CharacterController2D>();
         PlayerReference = GameObject.FindWithTag("Player");
+        Player = PlayerReference.GetComponent<Player>();
         Sprite = GetComponent<SpriteRenderer>();
     }
 
@@ -87,6 +87,12 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
         if (!Controller.IsGrounded) return;
 
+        if (AlwaysFollowPlayer)
+        {
+            Agent.SetDestinationAsync(PlayerReference.transform.position);
+            return;
+        }
+
         if (CanSeePlayer || DistanceToPlayer <= 5.0f)
         {
             Agent.SetDestinationAsync(PlayerReference.transform.position);
@@ -115,7 +121,8 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     private void OnDestroy()
     {
-        OnDestroyed?.Invoke(this);
+        DestroyedEvent?.Invoke(this);
+        StateMachine.OnDestroy();
     }
 
     public void Flip(int direction)

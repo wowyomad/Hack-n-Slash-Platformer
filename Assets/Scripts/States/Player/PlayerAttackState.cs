@@ -1,22 +1,34 @@
-
-
+using TheGame;
 using UnityEngine;
 
 public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 {
-    private IPlayerState m_PreviousState;
-    private float m_FallbackDuration = 1.0f / 32 * 7; //(Second/SampleRate) * Frames 
-    private float m_Timer = 0.0f;
+    private float m_FallbackDuration = (1.0f / 32.0f) * 7.0f;
+    private float m_ClipDuration = 0.0f;
+    private float m_AttackTimer = 0.0f;
+    public bool AttackFinished => m_AttackTimer >= m_ClipDuration;
     private Weapon m_Weapon;
+
     public PlayerAttackState(Player player) : base(player)
     {
         m_Weapon = player.GetComponentInChildren<Weapon>();
+        if (m_Weapon == null)
+        {
+            Debug.LogError("Weapon component not found on Player or its children for PlayerAttackState.", player);
+        }
+        if (AnimationDurations.ContainsKey(AttackMeleeAnimationHash))
+        {
+            m_ClipDuration = AnimationDurations[AttackMeleeAnimationHash];
+        }
+        else
+        {
+            m_ClipDuration = m_FallbackDuration;
+        }
     }
 
     public override void Enter(IState from)
     {
-        m_PreviousState = (IPlayerState)from;
-        m_Timer = 0.0f;
+        m_AttackTimer = 0.0f;
 
         Player.TurnToCursor();
 
@@ -29,23 +41,21 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
     {
         Player.Animation.OnAttackMeleeFinished.RemoveListener(OnAnimationFinished);
         Player.Animation.OnAttackMeleeEntered.RemoveListener(OnAnimationEntered);
+        m_Weapon?.DisableCollider();
     }
 
     public override void Update()
     {
-        if (m_Timer >= m_FallbackDuration)
-        {
-            ChangeState(m_PreviousState);
-            return;
-        }
-        m_Timer += Time.deltaTime;
+        m_AttackTimer += Time.deltaTime;
     }
+
     protected void OnAnimationEntered()
     {
-        m_Weapon.EnableCollider();
+        m_Weapon?.EnableCollider();
     }
+
     protected void OnAnimationFinished()
     {
-        m_Weapon.DisableCollider();
+        m_Weapon?.DisableCollider();
     }
 }

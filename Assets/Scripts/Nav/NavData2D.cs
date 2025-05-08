@@ -238,6 +238,9 @@ namespace Nav2D
                         }
                     }
 
+
+                    
+
                     return buffer;
                 }
 
@@ -308,7 +311,7 @@ namespace Nav2D
 
                     RaycastHit2D hit = Physics2D.Raycast(target, rayDirection, m_CastDistance, CollisionMask);
 
-                    if (hit.collider != null && Vector2.Dot(hit.normal, surfaceNormal) > GROUND_NORMAL_THRESHOLD)
+                    if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > GROUND_NORMAL_THRESHOLD)
                     {
                         float distance = Vector2.Distance(hit.point, target);
                         if (distance < closestDistanceToTarget)

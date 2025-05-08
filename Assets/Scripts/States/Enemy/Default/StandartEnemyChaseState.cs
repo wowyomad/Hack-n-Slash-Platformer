@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+using TheGame;
 using UnityEngine;
 
 public class StandartEnemyChaseState : EnemyBaseState, IEnemyVulnarableState

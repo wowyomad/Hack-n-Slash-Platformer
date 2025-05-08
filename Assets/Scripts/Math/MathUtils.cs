@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public static class MathUtils
@@ -12,6 +13,7 @@ public static class MathUtils
 
         return Mathf.Lerp(outputMin, outputMax, t);
     }
+
 
     public static Vector2 ToVector2(this Vector2Int vector)
     {

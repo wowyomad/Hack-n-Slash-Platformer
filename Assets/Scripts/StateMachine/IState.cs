@@ -1,7 +1,12 @@
-public interface IState
+
+namespace TheGame
 {
-    void Enter(IState from);
-    void Exit();
-    void Update();
-    void FixedUpdate();
+    public interface IState
+    {
+        void Enter(IState from);
+        void Exit();
+        void Update();
+        void FixedUpdate();
+    }
 }
+

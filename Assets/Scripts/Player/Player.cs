@@ -1,19 +1,29 @@
 using System;
 using UnityEngine;
+using TheGame;
+using GameActions;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
 public class Player : MonoBehaviour, IStateTrackable, IHittable
 {
+    public enum Trigger
+    {
+        Idle,
+        Walk,
+        Jump,
+        Fall,
+        Attack,
+    }
 
     [Header("Components")]
-    protected StateMachine<IPlayerState> m_StateMachine;
+    public StateMachine<PlayerBaseState, PlayerBaseState> StateMachine;
     public CharacterController2D Controller;
     public Animator Animator;
     public PlayerAnimationEventBehaviour Animation;
     public InputReader Input;
 
-    public Vector3 Velocity = Vector3.zero;
+    public Vector3 Velocity => Controller.Velocity;
     public CharacterMovementStatsSO Movement;
 
     public PlayerIdleState IdleState;
@@ -21,16 +31,18 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     public PlayerJumpState JumpState;
     public PlayerAirState AirState;
     public PlayerAttackState AttackState;
+    public PlayerThrowState ThrowState;
 
     public event Action<IState, IState> StateChanged;
     public event Action Hit;
 
-    public IState CurrentState => m_StateMachine.CurrentState;
+    public PlayerBaseState CurrentState => StateMachine.State;
+    public bool IsGrounded => Controller.IsGrounded;
 
     public int FacingDirection { get; private set; }
     public Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
 
-    public bool CanTakeHit => m_StateMachine.CurrentState is IPlayerVulnarableState;
+    public bool CanTakeHit => true; //TODO: 
 
     private void Awake()
     {
@@ -52,22 +64,22 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     private void OnEnable()
     {
         InitializeStates();
-        m_StateMachine.OnStateChange += InvokeOnStateChange;
-        m_StateMachine.OnStateChange += LogStateChange;
+
+        Input.ListenEvents(this);
+
+        StateMachine.StateChangedEvent += OnStateChanged;
     }
 
     private void OnDisable()
     {
-        m_StateMachine.OnStateChange -= InvokeOnStateChange;
-        m_StateMachine.OnStateChange -= LogStateChange;
+        Input.StopListening(this);
 
+        StateMachine.StateChangedEvent -= OnStateChanged;
     }
 
     public void Update()
     {
-        m_StateMachine?.Update();
-
-        Controller.Move(Velocity * Time.deltaTime);
+        StateMachine.Update();
     }
 
     public void Flip(int direction)
@@ -81,7 +93,8 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
 
     public void Flip(float direction)
     {
-        Flip((int)direction);
+        if (direction != 0.0f)
+            Flip((int)direction);
     }
 
     public void TurnToCursor()
@@ -94,20 +107,48 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
 
     protected void InitializeStates()
     {
-        m_StateMachine = new StateMachine<IPlayerState>();
-
         IdleState = new PlayerIdleState(this);
         WalkState = new PlayerWalkState(this);
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
         AttackState = new PlayerAttackState(this);
+        ThrowState = new PlayerThrowState(this);
 
-        m_StateMachine.ChangeState(IdleState);
-    }
+        StateMachine = new StateMachine<PlayerBaseState>(IdleState);
 
-    public void ChangeState(IPlayerState state)
-    {
-        m_StateMachine.ChangeState(state);
+        StateMachine.Configure(IdleState)
+            .Permit(JumpState)
+            .Permit(AttackState)
+            .Permit(ThrowState)
+            .PermitIf(AirState, () => !Controller.IsGrounded)
+            .PermitIf(WalkState, () =>
+                Input.HorizontalMovement > 0.0f && !Controller.IsFacingWallRight ||
+                Input.HorizontalMovement < 0.0f && !Controller.IsFacingWallLeft);
+
+        StateMachine.Configure(WalkState)
+            .Permit(JumpState)
+            .Permit(AttackState)
+            .Permit(ThrowState)
+            .PermitIf(AirState, AirState, () => !Controller.IsGrounded)
+            .PermitIf(IdleState, () => Input.HorizontalMovement == 0.0f && Controller.IsGrounded);
+
+        StateMachine.Configure(JumpState)
+            .Permit(IdleState)
+            .PermitIf(AirState, () => Controller.Velocity.y <= 0.0f);
+
+        StateMachine.Configure(AirState)
+            .Permit(ThrowState)
+            .PermitIf(IdleState, () => Controller.IsGrounded);
+
+        StateMachine.Configure(AttackState)
+            .PermitIf(IdleState, IdleState, () => AttackState.AttackFinished && StateMachine.PreviousState == IdleState)
+            .PermitIf(WalkState, WalkState, () => AttackState.AttackFinished && StateMachine.PreviousState == WalkState)
+            .PermitIf(AirState, AirState, () => AttackState.AttackFinished && StateMachine.PreviousState == AirState);
+
+        StateMachine.Configure(ThrowState)
+            .PermitIf(IdleState, () => StateMachine.PreviousState == IdleState)
+            .PermitIf(WalkState, () => StateMachine.PreviousState == WalkState)
+            .PermitIf(AirState, () => StateMachine.PreviousState == AirState);
     }
 
     public void ThrowKnife()
@@ -128,17 +169,10 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
         throwable.Throw(origin, WorldCursorPosition);
     }
 
-    private void LogStateChange(IState previous, IState next)
-    {
-        return;
-        if (previous != null)
-            Debug.Log($"Changing state from {previous} to {next}");
-        else
-            Debug.Log($"Assigning state to {next}");
-    }
 
-    private void InvokeOnStateChange(IState previous, IState next)
+    private void OnStateChanged(IState previous, IState next)
     {
+        LogStateChange(previous, next);
         StateChanged?.Invoke(previous, next);
     }
 
@@ -148,18 +182,38 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
         EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
     }
 
-    #region likely to be removed
-    protected void At(IPlayerState from, IPlayerState to, Func<bool> condition)
+    [GameAction(ActionType.Jump)]
+    protected void HandleJumpInput()
     {
-        m_StateMachine.AddTransition(from, to, condition);
+        if (StateMachine.CanFire(JumpState))
+            StateMachine.Fire(JumpState);
     }
-    protected void At(IPlayerState from, IPlayerState to, IPredicate predicate)
+
+    [GameAction(ActionType.Attack)]
+    protected void HandleAttackInput()
     {
-        m_StateMachine.AddTransition(from, to, predicate);
+        if (StateMachine.CanFire(AttackState))
+            StateMachine.Fire(AttackState);
     }
-    protected void Any(IPlayerState from, IPlayerState to, IPredicate predicate)
+
+    [GameAction(ActionType.Throw)]
+    protected void HandleThrowInput()
     {
-        m_StateMachine.AddAnyTransition(to, predicate);
+        if (StateMachine.CanFire(ThrowState))
+            StateMachine.Fire(ThrowState);
     }
-    #endregion
+
+    [GameAction(ActionType.Dash)]
+    protected void HandleDashInput()
+    {
+        Controller.PassThrough();
+    }
+
+    private void LogStateChange(IState previous, IState next)
+    {
+        if (previous != null)
+            Debug.Log($"Changing state from {previous} to {next}");
+        else
+            Debug.Log($"Assigning state to {next}");
+    }
 }

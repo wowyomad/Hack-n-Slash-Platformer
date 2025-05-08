@@ -172,7 +172,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         HorizontalMovement = context.ReadValue<float>();
         if (HorizontalMovement != 0.0f)
         {
-            Move?.Invoke(context.ReadValue<float>());
+            Move?.Invoke(HorizontalMovement);
         }
     }
 

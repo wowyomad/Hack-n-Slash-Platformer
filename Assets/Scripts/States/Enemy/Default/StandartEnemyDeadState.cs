@@ -1,3 +1,4 @@
+using TheGame;
 using UnityEngine;
 
 public class StandartEnemyDeadState : EnemyBaseState
