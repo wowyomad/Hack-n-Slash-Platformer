@@ -7,13 +7,13 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
     private float m_VelocitySmoothing = 0.0f;
     public PlayerWalkState(Player player) : base(player) { }
 
-    public override void Enter(IState state)
+    public override void OnEnter()
     {
         m_VelocitySmoothing = 0.0f;
         Player.Animator.CrossFade(WalkAnimationHash, 0.0f);
     }
 
-    public override void Update()
+    public override void OnUpdate()
     {
         float moveInput = Player.Input.HorizontalMovement;
 

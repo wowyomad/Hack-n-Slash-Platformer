@@ -7,7 +7,7 @@ public class StandartEnemyDeadState : EnemyBaseState
     float m_Timer = 0f;
     public StandartEnemyDeadState(Enemy self) : base(self) { }
 
-    public override void Enter(IState from)
+    public override void OnEnter()
     {
         Self.Velocity.x = 0.0f;
         SpriteRenderer sprite;
@@ -18,7 +18,7 @@ public class StandartEnemyDeadState : EnemyBaseState
         m_Timer = 0f;
     }
 
-    public override void Update()
+    public override void OnUpdate()
     {
         if (m_Timer >= TimeToDestroy)
         {

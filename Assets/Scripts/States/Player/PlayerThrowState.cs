@@ -5,7 +5,7 @@ public class PlayerThrowState : PlayerBaseState
 {
     public PlayerThrowState(Player player) : base(player) { }
 
-    public override void Enter(IState from)
+    public override void OnEnter()
     {
         Player.ThrowKnife();
     }

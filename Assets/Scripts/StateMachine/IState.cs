@@ -3,9 +3,9 @@ namespace TheGame
 {
     public interface IState
     {
-        void Enter(IState from);
-        void Exit();
-        void Update();
+        void OnEnter();
+        void OnExit();
+        void OnUpdate();
         void FixedUpdate();
     }
 }

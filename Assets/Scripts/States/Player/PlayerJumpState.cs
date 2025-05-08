@@ -3,17 +3,32 @@ using UnityEngine;
 
 public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
 {
+    public enum EntryMode
+    {
+        Start,
+        Resume
+    }
+
     protected float m_VelocitySmoothing = 0.0f;
     public float JumpVelocity => Player.Movement.JumpVelocity;
-
+    public EntryMode Mode = EntryMode.Start;
     public PlayerJumpState(Player player) : base(player) { }
     
-    public override void Enter(IState from)
+    public override void OnEnter()
     {
         Player.Animator.CrossFade(JumpAnimationHash, 0.0f);
-        Controller.Velocity.y = JumpVelocity;
+        if (Mode == EntryMode.Start)
+        {
+            Controller.Velocity.y = JumpVelocity;
+        }
     }
-    public override void Update()
+
+    public override void OnExit()
+    {
+        Mode = EntryMode.Start;   
+    }
+
+    public override void OnUpdate()
     {
         float moveInput = Player.Input.HorizontalMovement;
         

@@ -7,13 +7,13 @@ public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
 
     public PlayerAirState(Player player) : base(player) { }
 
-    public override void Enter(IState from)
+    public override void OnEnter()
     {
         Player.Animator.CrossFade(AirAnimationHash, 0.0f);
         m_VelocitySmoothing = 0f;
     }
 
-    public override void Update()
+    public override void OnUpdate()
     {
         float moveInput = Player.Input.HorizontalMovement;
 

@@ -40,7 +40,7 @@ public class OldStateMachine <TState> where TState : class, IState
             }
         }
 
-        CurrentState?.Update();
+        CurrentState?.OnUpdate();
     }
 
     public void AddAnyTransition(TState to, Func<bool> condition)
@@ -142,9 +142,9 @@ public class OldStateMachine <TState> where TState : class, IState
     {
         IState previousState = m_Current?.State;
 
-        previousState?.Exit();
+        previousState?.OnExit();
         m_Current = GetOrCreateStateNode(newState);
-        m_Current.State.Enter(previousState);
+        m_Current.State.OnEnter();
 
         StateChangeEvent?.Invoke(previousState, newState);
     }

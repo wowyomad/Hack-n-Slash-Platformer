@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public abstract class PlayerBaseState : IPlayerState
 {
     protected CharacterController2D Controller => Player.Controller;
-    protected void Trigger(PlayerBaseState trigger) => Player.StateMachine.Fire(trigger);
+    protected void Trigger(Player.Trigger trigger) => Player.StateMachine.Fire(trigger);
 
     public Player Player { get; private set; }
 
@@ -45,9 +45,9 @@ public abstract class PlayerBaseState : IPlayerState
         }
     }
 
-    public virtual void Enter(IState from) { }
-    public virtual void Exit() { }
-    public virtual void Update() { }
+    public virtual void OnEnter() { }
+    public virtual void OnExit() { }
+    public virtual void OnUpdate() { }
     public virtual void FixedUpdate() { }
 
 }

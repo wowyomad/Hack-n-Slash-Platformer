@@ -15,7 +15,7 @@ public class EnemyBaseState : IEnemyState
         Self = self;
     }
 
-    public virtual void Update()
+    public virtual void OnUpdate()
     {
 
     }
@@ -24,12 +24,12 @@ public class EnemyBaseState : IEnemyState
         
     }
 
-    public virtual void Enter(IState from)
+    public virtual void OnEnter()
     {
         
     }
 
-    public virtual void Exit()
+    public virtual void OnExit()
     {
         
     }

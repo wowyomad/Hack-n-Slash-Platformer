@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace TheGame
 {
-    public class CustomStateConfiguration<TState, TTrigger> where TState : class, IState
+    public class StateConfigurationWrapper<TState, TTrigger> where TState : class, IState
     {
         private readonly StateMachine<TState, TTrigger> m_OwnerMachine;
         private readonly TState m_SourceState;
         private readonly Stateless.StateMachine<TState, TTrigger>.StateConfiguration m_WrappedConfig;
 
-        public CustomStateConfiguration(
+        public StateConfigurationWrapper(
             StateMachine<TState, TTrigger> ownerMachine,
             TState sourceState,
             Stateless.StateMachine<TState, TTrigger>.StateConfiguration underlyingConfig)
@@ -19,77 +19,75 @@ namespace TheGame
             m_WrappedConfig = underlyingConfig;
         }
 
-    
-        public CustomStateConfiguration<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> guard, string guardDescription = null)
+        public StateConfigurationWrapper<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> guard, string guardDescription = null)
         {
             m_WrappedConfig.PermitIf(trigger, destinationState, guard, guardDescription);
-            Action evaluator = () => {
-                if (m_OwnerMachine.State == m_SourceState && m_OwnerMachine.CanFire(trigger))
+
+            Action conditionalCheck = () =>
+            {
+                if (m_OwnerMachine.CanFire(trigger))
                 {
                     m_OwnerMachine.Fire(trigger);
                 }
             };
-            m_OwnerMachine.AddConditionalEvaluator(evaluator);
+            m_OwnerMachine.AddStateTrigger(m_SourceState, conditionalCheck);
             return this;
         }
 
-
-        public CustomStateConfiguration<TState, TTrigger> Permit(TTrigger trigger, TState destinationState)
+        public StateConfigurationWrapper<TState, TTrigger> Permit(TTrigger trigger, TState destinationState)
         {
             m_WrappedConfig.Permit(trigger, destinationState);
             return this;
         }
 
-
-        
-        public CustomStateConfiguration<TState, TTrigger> OnEntry(Action entryAction, string description = null)
+        public StateConfigurationWrapper<TState, TTrigger> OnEntry(Action entryAction, string description = null)
         {
             m_WrappedConfig.OnEntry(entryAction, description);
             return this;
         }
 
-        public CustomStateConfiguration<TState, TTrigger> OnExit(Action exitAction, string description = null)
+        public StateConfigurationWrapper<TState, TTrigger> OnExit(Action exitAction, string description = null)
         {
             m_WrappedConfig.OnExit(exitAction, description);
             return this;
         }
-        
-        public CustomStateConfiguration<TState, TTrigger> OnEntryFrom(TTrigger trigger, Action entryAction, string description = null)
+
+        public StateConfigurationWrapper<TState, TTrigger> OnEntryFrom(TTrigger trigger, Action entryAction, string description = null)
         {
             m_WrappedConfig.OnEntryFrom(trigger, entryAction, description);
             return this;
         }
-        
-        public CustomStateConfiguration<TState, TTrigger> SubstateOf(TState superstate)
+
+        public StateConfigurationWrapper<TState, TTrigger> SubstateOf(TState superstate)
         {
             m_WrappedConfig.SubstateOf(superstate);
             return this;
         }
 
-        public CustomStateConfiguration<TState, TTrigger> Ignore(TTrigger trigger)
+        public StateConfigurationWrapper<TState, TTrigger> Ignore(TTrigger trigger)
         {
             m_WrappedConfig.Ignore(trigger);
             return this;
         }
-        
-        public CustomStateConfiguration<TState, TTrigger> IgnoreIf(TTrigger trigger, Func<bool> guard)
+
+        public StateConfigurationWrapper<TState, TTrigger> IgnoreIf(TTrigger trigger, Func<bool> guard)
         {
             m_WrappedConfig.IgnoreIf(trigger, guard);
             return this;
         }
 
-        public CustomStateConfiguration<TState, TTrigger> PermitReentry(TTrigger trigger)
+        public StateConfigurationWrapper<TState, TTrigger> PermitReentry(TTrigger trigger)
         {
             m_WrappedConfig.PermitReentry(trigger);
             return this;
         }
 
-        public CustomStateConfiguration<TState, TTrigger> OnActivate(Action action)
+        public StateConfigurationWrapper<TState, TTrigger> OnActivate(Action action)
         {
             m_WrappedConfig.OnActivate(action);
             return this;
         }
-        public CustomStateConfiguration<TState, TTrigger> OnDeactivate(Action action)
+        public StateConfigurationWrapper<TState, TTrigger> OnDeactivate(Action action)
         {
             m_WrappedConfig.OnDeactivate(action);
             return this;
@@ -109,80 +107,98 @@ namespace TheGame
         public event Action<IState, IState> StateChangedEvent;
         public TState PreviousState { get; private set; }
 
-        private readonly List<Action> _conditionalTransitionEvaluators = new List<Action>();
+        private readonly Dictionary<TState, List<Action>> m_StatesTransitions =
+            new Dictionary<TState, List<Action>>();
 
         public StateMachine(TState initialState)
         : base(initialState)
         {
-           base.OnTransitioned(OnInternalStateChanged);
+            base.OnTransitioned(OnInternalStateChanged);
         }
 
-        public new CustomStateConfiguration<TState, TTrigger> Configure(TState state)
+        public new StateConfigurationWrapper<TState, TTrigger> Configure(TState state)
         {
-            var wrappedConfig = base.Configure(state)
-                                     .OnEntry(() => state.Enter(base.State))
-                                     .OnExit(() => state.Exit());
-            return new CustomStateConfiguration<TState, TTrigger>(this, state, wrappedConfig);
+            var statelessConfig = base.Configure(state)
+                                     .OnEntry(() => state.OnEnter())
+                                     .OnExit(() => state.OnExit());
+            return new StateConfigurationWrapper<TState, TTrigger>(this, state, statelessConfig);
         }
 
-        internal void AddConditionalEvaluator(Action evaluator) // Changed to internal
+        internal void AddStateTrigger(TState sourceState, Action triggerEvaluator)
         {
-            if (evaluator != null)
+            if (triggerEvaluator == null || sourceState == null) return;
+
+            if (!m_StatesTransitions.TryGetValue(sourceState, out var evaluator))
             {
-                _conditionalTransitionEvaluators.Add(evaluator);
+                evaluator = new List<Action>();
+                m_StatesTransitions[sourceState] = evaluator;
             }
+            evaluator.Add(triggerEvaluator);
         }
 
         public void Update()
         {
-            if (State != null)
+            if (State == null)
             {
-                State.Update();
+                return; 
             }
 
-            var stateBeforeEvaluation = State;
-            foreach (var evaluator in _conditionalTransitionEvaluators)
-            {
-                evaluator.Invoke();
-                if (State != stateBeforeEvaluation)
-                {
-                    break;
-                }
-            }
+            EvaluateState();
+            State?.OnUpdate();
         }
 
-        public new void OnTransitioned(Action<Transition> action)
+        public new void OnTransitioned(Action<Stateless.StateMachine<TState, TTrigger>.Transition> action)
         {
             throw new NotSupportedException("Use StateChangedEvent for external subscriptions. Internal transitions are handled.");
         }
 
-        private void OnInternalStateChanged(Transition transition)
+        private void OnInternalStateChanged(Stateless.StateMachine<TState, TTrigger>.Transition transition)
         {
             PreviousState = transition.Source;
             StateChangedEvent?.Invoke(transition.Source, transition.Destination);
         }
+
+
+        private void EvaluateState()
+        {
+            bool stateChanged;
+            do
+            {
+                stateChanged = false;
+                TState initialState = State;
+
+                if (m_StatesTransitions.TryGetValue(initialState, out var triggerEvaluators))
+                {
+                    foreach (var evaluator in triggerEvaluators)
+                    {
+                        evaluator.Invoke();
+
+                        if (State != initialState)
+                        {
+                            stateChanged = true;
+                            break;
+                        }
+                    }
+                }
+            } while (stateChanged && State != null);
+        }
     }
 
-    // Step 3: Update StateMachineExtensions
+
     public static class StateMachineExtensions
     {
-        // Extension for CustomStateConfiguration when TState == TTrigger
-        public static CustomStateConfiguration<TState, TState> Permit<TState>(
-            this CustomStateConfiguration<TState, TState> stateConfiguration,
+        public static StateConfigurationWrapper<TState, TState> Permit<TState>(
+            this StateConfigurationWrapper<TState, TState> stateConfiguration,
             TState destinationState) where TState : class, IState
         {
-            // Delegate to the wrapper's Permit method that takes two arguments
             return stateConfiguration.Permit(destinationState, destinationState);
         }
 
-        // Extension for CustomStateConfiguration when TState == TTrigger
-        public static CustomStateConfiguration<TState, TState> PermitIf<TState>(
-            this CustomStateConfiguration<TState, TState> stateConfiguration,
+        public static StateConfigurationWrapper<TState, TState> PermitIf<TState>(
+            this StateConfigurationWrapper<TState, TState> stateConfiguration,
             TState destinationState,
             Func<bool> guard) where TState : class, IState
         {
-            // Delegate to the wrapper's PermitIf method that takes two arguments
-            // This will then trigger the evaluator registration logic inside the wrapper's PermitIf
             return stateConfiguration.PermitIf(destinationState, destinationState, guard);
         }
     }

@@ -26,7 +26,7 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
         }
     }
 
-    public override void Enter(IState from)
+    public override void OnEnter()
     {
         m_AttackTimer = 0.0f;
 
@@ -37,14 +37,14 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
         Player.Animation.OnAttackMeleeEntered.AddListener(OnAnimationEntered);
     }
 
-    public override void Exit()
+    public override void OnExit()
     {
         Player.Animation.OnAttackMeleeFinished.RemoveListener(OnAnimationFinished);
         Player.Animation.OnAttackMeleeEntered.RemoveListener(OnAnimationEntered);
         m_Weapon?.DisableCollider();
     }
 
-    public override void Update()
+    public override void OnUpdate()
     {
         m_AttackTimer += Time.deltaTime;
     }

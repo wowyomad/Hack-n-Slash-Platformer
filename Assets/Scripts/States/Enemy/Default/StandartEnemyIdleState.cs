@@ -12,7 +12,7 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
 
     }
 
-    public override void Enter(IState state)
+    public override void OnEnter()
     {
         m_ChaseTimer = 0.0f;
         Self.Velocity.x = 0.0f;
@@ -27,7 +27,7 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
         }
     }
 
-    public override void Update()
+    public override void OnUpdate()
     {
         if (DistanceToPlayer < 10.0f && PlayerIsOnSight)
         {
@@ -43,7 +43,7 @@ public class StandartEnemyIdleState : EnemyBaseState, IEnemyVulnarableState
 
     }
 
-    public override void Exit()
+    public override void OnExit()
     {
         Self.OnTakeDamage -= OnTakeDamage;
         Self.Hit -= OnTakeHit;

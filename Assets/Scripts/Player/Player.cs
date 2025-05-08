@@ -12,12 +12,20 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
         Idle,
         Walk,
         Jump,
-        Fall,
+        Air,
         Attack,
+        Throw,
     }
 
+    public PlayerIdleState IdleState;
+    public PlayerWalkState WalkState;
+    public PlayerJumpState JumpState;
+    public PlayerAirState AirState;
+    public PlayerAttackState AttackState;
+    public PlayerThrowState ThrowState;
+
     [Header("Components")]
-    public StateMachine<PlayerBaseState, PlayerBaseState> StateMachine;
+    public StateMachine<PlayerBaseState, Trigger> StateMachine;
     public CharacterController2D Controller;
     public Animator Animator;
     public PlayerAnimationEventBehaviour Animation;
@@ -26,12 +34,6 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     public Vector3 Velocity => Controller.Velocity;
     public CharacterMovementStatsSO Movement;
 
-    public PlayerIdleState IdleState;
-    public PlayerWalkState WalkState;
-    public PlayerJumpState JumpState;
-    public PlayerAirState AirState;
-    public PlayerAttackState AttackState;
-    public PlayerThrowState ThrowState;
 
     public event Action<IState, IState> StateChanged;
     public event Action Hit;
@@ -114,41 +116,50 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
         AttackState = new PlayerAttackState(this);
         ThrowState = new PlayerThrowState(this);
 
-        StateMachine = new StateMachine<PlayerBaseState>(IdleState);
+        StateMachine = new StateMachine<PlayerBaseState, Trigger>(IdleState);
 
         StateMachine.Configure(IdleState)
-            .Permit(JumpState)
-            .Permit(AttackState)
-            .Permit(ThrowState)
-            .PermitIf(AirState, () => !Controller.IsGrounded)
-            .PermitIf(WalkState, () =>
+            .Permit(Trigger.Jump, JumpState)
+            .Permit(Trigger.Attack, AttackState)
+            .Permit(Trigger.Throw, ThrowState)
+            .PermitIf(Trigger.Air, AirState, () => !Controller.IsGrounded)
+            .PermitIf(Trigger.Walk, WalkState, () =>
                 Input.HorizontalMovement > 0.0f && !Controller.IsFacingWallRight ||
                 Input.HorizontalMovement < 0.0f && !Controller.IsFacingWallLeft);
 
         StateMachine.Configure(WalkState)
-            .Permit(JumpState)
-            .Permit(AttackState)
-            .Permit(ThrowState)
-            .PermitIf(AirState, AirState, () => !Controller.IsGrounded)
-            .PermitIf(IdleState, () => Input.HorizontalMovement == 0.0f && Controller.IsGrounded);
+            .Permit(Trigger.Jump, JumpState)
+            .Permit(Trigger.Attack, AttackState)
+            .Permit(Trigger.Throw, ThrowState)
+            .PermitIf(Trigger.Air, AirState, () => !Controller.IsGrounded)
+            .PermitIf(Trigger.Idle, IdleState, () => Input.HorizontalMovement == 0.0f && Controller.IsGrounded);
 
         StateMachine.Configure(JumpState)
-            .Permit(IdleState)
-            .PermitIf(AirState, () => Controller.Velocity.y <= 0.0f);
+            .Permit(Trigger.Throw, ThrowState)
+            .PermitIf(Trigger.Air, AirState, () => Controller.Velocity.y <= 0.0f);
 
         StateMachine.Configure(AirState)
-            .Permit(ThrowState)
-            .PermitIf(IdleState, () => Controller.IsGrounded);
+            .Permit(Trigger.Throw, ThrowState)
+            .PermitIf(Trigger.Idle, IdleState, () => Controller.IsGrounded);
 
         StateMachine.Configure(AttackState)
-            .PermitIf(IdleState, IdleState, () => AttackState.AttackFinished && StateMachine.PreviousState == IdleState)
-            .PermitIf(WalkState, WalkState, () => AttackState.AttackFinished && StateMachine.PreviousState == WalkState)
-            .PermitIf(AirState, AirState, () => AttackState.AttackFinished && StateMachine.PreviousState == AirState);
+            .PermitIf(Trigger.Idle, IdleState, () => AttackState.AttackFinished && StateMachine.PreviousState == IdleState)
+            .PermitIf(Trigger.Walk, WalkState, () => AttackState.AttackFinished && StateMachine.PreviousState == WalkState)
+            .PermitIf(Trigger.Air, AirState, () => AttackState.AttackFinished && StateMachine.PreviousState == AirState);
 
         StateMachine.Configure(ThrowState)
-            .PermitIf(IdleState, () => StateMachine.PreviousState == IdleState)
-            .PermitIf(WalkState, () => StateMachine.PreviousState == WalkState)
-            .PermitIf(AirState, () => StateMachine.PreviousState == AirState);
+            .PermitIf(Trigger.Idle, IdleState, () => StateMachine.PreviousState == IdleState)
+            .PermitIf(Trigger.Walk, WalkState, () => StateMachine.PreviousState == WalkState)
+            .PermitIf(Trigger.Air, AirState, () => StateMachine.PreviousState == AirState && Velocity.y <= 0.0f)
+            .PermitIf(Trigger.Jump, JumpState, () =>
+                {
+                    if (StateMachine.PreviousState == JumpState)
+                    {
+                        JumpState.Mode = PlayerJumpState.EntryMode.Resume;
+                        return true;
+                    }
+                    return false;
+                });
     }
 
     public void ThrowKnife()
@@ -169,7 +180,6 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
         throwable.Throw(origin, WorldCursorPosition);
     }
 
-
     private void OnStateChanged(IState previous, IState next)
     {
         LogStateChange(previous, next);
@@ -185,22 +195,22 @@ public class Player : MonoBehaviour, IStateTrackable, IHittable
     [GameAction(ActionType.Jump)]
     protected void HandleJumpInput()
     {
-        if (StateMachine.CanFire(JumpState))
-            StateMachine.Fire(JumpState);
+        if (StateMachine.CanFire(Trigger.Jump))
+            StateMachine.Fire(Trigger.Jump);
     }
 
     [GameAction(ActionType.Attack)]
     protected void HandleAttackInput()
     {
-        if (StateMachine.CanFire(AttackState))
-            StateMachine.Fire(AttackState);
+        if (StateMachine.CanFire(Trigger.Attack))
+            StateMachine.Fire(Trigger.Attack);
     }
 
     [GameAction(ActionType.Throw)]
     protected void HandleThrowInput()
     {
-        if (StateMachine.CanFire(ThrowState))
-            StateMachine.Fire(ThrowState);
+        if (StateMachine.CanFire(Trigger.Throw))
+            StateMachine.Fire(Trigger.Throw);
     }
 
     [GameAction(ActionType.Dash)]
