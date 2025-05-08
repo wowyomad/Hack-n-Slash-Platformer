@@ -9,7 +9,6 @@ public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
 
     public override void OnEnter()
     {
-        Player.Animator.CrossFade(AirAnimationHash, 0.0f);
         m_VelocitySmoothing = 0f;
     }
 

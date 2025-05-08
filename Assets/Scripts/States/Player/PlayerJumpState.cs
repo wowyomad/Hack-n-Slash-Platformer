@@ -16,7 +16,6 @@ public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
     
     public override void OnEnter()
     {
-        Player.Animator.CrossFade(JumpAnimationHash, 0.0f);
         if (Mode == EntryMode.Start)
         {
             Controller.Velocity.y = JumpVelocity;

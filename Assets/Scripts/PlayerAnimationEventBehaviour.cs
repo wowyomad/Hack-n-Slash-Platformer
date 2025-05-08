@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PlayerAnimationEventBehaviour : MonoBehaviour
+public class PlayerAnimationEvents : MonoBehaviour
 {
-    [SerializeField] public UnityEvent OnAttackMeleeEntered;
-    [SerializeField] public UnityEvent OnAttackMeleeFinished;
+    public event Action AttackMeleeEntered;
+    public event Action AttackMeleeFinished;
     
     void Awake()
     {
@@ -13,10 +14,10 @@ public class PlayerAnimationEventBehaviour : MonoBehaviour
 
     void AttackMeleeEnter()
     {
-        OnAttackMeleeEntered?.Invoke();
+        AttackMeleeEntered?.Invoke();
     }
     void AttackMeleeFinish()
     {
-        OnAttackMeleeFinished?.Invoke();    
+        AttackMeleeFinished?.Invoke();    
     }
 }

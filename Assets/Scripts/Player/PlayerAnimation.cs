@@ -1,0 +1,132 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+public class PlayerAnimation : MonoBehaviour
+{
+    [SerializeField] private string m_AnimationClipPrefix = "Player_";
+
+    public static readonly int IdleAnimationHash = Animator.StringToHash("Idle");
+    public static readonly int JumpAnimationHash = Animator.StringToHash("Jump");
+    public static readonly int WalkAnimationHash = Animator.StringToHash("Walk");
+    public static readonly int RunAnimationHash = Animator.StringToHash("Run");
+    public static readonly int AirAnimationHash = Animator.StringToHash("Air");
+    public static readonly int AttackMeleeAnimationHash = Animator.StringToHash("AttackMelee");
+
+    private AnimatorWrapper m_Animator;
+    private Player m_Player;
+    private InputReader m_Input;
+
+    private static Dictionary<int, float> m_AnimationDurations = new();
+
+    public float GetAnimationDuration(int animationHash)
+    {
+        return GetAnimationDuration(animationHash, out float _);
+    }
+
+    public float GetAnimationDuration(int animationHash, out float animationDuratoin)
+    {
+
+        if (m_AnimationDurations.TryGetValue(animationHash, out float duration))
+        {
+            animationDuratoin = duration;
+        }
+        else
+        {
+            Debug.LogWarning($"Animation with hash {animationHash} not found in durations dictionary.");
+            animationDuratoin = 0.0f;
+        }
+        return animationDuratoin;
+    }
+
+    private void Awake()
+    {
+        m_Player = GetComponent<Player>();
+
+        Animator animator = null;
+        if (!TryGetComponent(out animator))
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
+
+        if(animator == null)
+        {
+            Debug.LogError("Animator component not found on Player or its children.", this);
+            return;
+        }
+
+        m_Animator = new AnimatorWrapper(animator);
+        m_Animator.Animator.runtimeAnimatorController.animationClips.ToList().ForEach(clip =>
+        {
+            string cleanedName = clip.name.Replace(m_AnimationClipPrefix, "");
+            m_AnimationDurations.Add(Animator.StringToHash(cleanedName), clip.length);
+        });
+
+    }
+
+    private void LateUpdate()
+    {
+        m_Animator.Update();   
+    }
+
+    private void Start()
+    {
+        m_Input = m_Player.Input;
+
+
+    }
+
+    private void OnEnable()
+    {
+        m_Player.PlayerIdleEvent += OnIdle;
+        m_Player.PlayerWalkedEvent += OnWalk;
+        m_Player.PlayerJumpedEvent += OnJump;
+        m_Player.PlayerInAirEvent += OnAir;
+        m_Player.PlayerAttackedEvent += OnAttack;
+        m_Player.PlayerThrewEvent += OnThrow;
+        m_Player.PlayerStunnedEvent += OnStun;
+        m_Player.PlayerDiedEvent += OnDie;
+    }
+    private void OnDisable()
+    {
+        m_Player.PlayerIdleEvent -= OnIdle;
+        m_Player.PlayerWalkedEvent -= OnWalk;
+        m_Player.PlayerJumpedEvent -= OnJump;
+        m_Player.PlayerAttackedEvent -= OnAttack;
+        m_Player.PlayerThrewEvent -= OnThrow;
+        m_Player.PlayerStunnedEvent -= OnStun;
+        m_Player.PlayerDiedEvent -= OnDie;
+    }
+    private void OnIdle()
+    {
+        m_Animator.CrossFade(IdleAnimationHash, 0.0f);
+    }
+    private void OnWalk()
+    {
+        m_Animator.CrossFade(WalkAnimationHash, 0.0f);
+    }
+    private void OnJump()
+    {
+        m_Animator.CrossFade(JumpAnimationHash, 0.0f);
+    }
+    private void OnAir()
+    {
+        m_Animator.CrossFade(AirAnimationHash, 0.0f);
+    }
+    private void OnAttack()
+    {
+        m_Animator.CrossFade(AttackMeleeAnimationHash, 0.0f);
+    }
+    private void OnThrow()
+    {
+        m_Animator.CrossFade(AttackMeleeAnimationHash, 0.0f);
+    }
+    private void OnStun()
+    {
+        m_Animator.CrossFade(IdleAnimationHash, 0.0f);
+    }
+    private void OnDie()
+    {
+
+    }
+}

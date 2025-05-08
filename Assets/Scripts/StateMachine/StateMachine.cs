@@ -19,18 +19,22 @@ namespace TheGame
             m_WrappedConfig = underlyingConfig;
         }
 
-        public StateConfigurationWrapper<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> guard, string guardDescription = null)
+        public StateConfigurationWrapper<TState, TTrigger> TriggerIf(TTrigger trigger, Func<bool> condition, string conditionDescirption = null)
         {
-            m_WrappedConfig.PermitIf(trigger, destinationState, guard, guardDescription);
-
             Action conditionalCheck = () =>
             {
-                if (m_OwnerMachine.CanFire(trigger))
+                if (condition.Invoke() && m_OwnerMachine.CanFire(trigger))
                 {
                     m_OwnerMachine.Fire(trigger);
                 }
             };
             m_OwnerMachine.AddStateTrigger(m_SourceState, conditionalCheck);
+            return this;
+        }
+
+        public StateConfigurationWrapper<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> guard, string guardDescription = null)
+        {
+            m_WrappedConfig.PermitIf(trigger, destinationState, guard, guardDescription);
             return this;
         }
 
@@ -61,6 +65,7 @@ namespace TheGame
         public StateConfigurationWrapper<TState, TTrigger> SubstateOf(TState superstate)
         {
             m_WrappedConfig.SubstateOf(superstate);
+            m_OwnerMachine.AddSuperstate(m_SourceState, superstate);
             return this;
         }
 
@@ -110,6 +115,8 @@ namespace TheGame
         private readonly Dictionary<TState, List<Action>> m_StatesTransitions =
             new Dictionary<TState, List<Action>>();
 
+        readonly Dictionary<TState, TState> m_StateSuperstates = new Dictionary<TState, TState>();
+
         public StateMachine(TState initialState)
         : base(initialState)
         {
@@ -136,6 +143,12 @@ namespace TheGame
             evaluator.Add(triggerEvaluator);
         }
 
+        internal void AddSuperstate(TState state, TState superstate)
+        {
+            if (state == null || superstate == null) return;
+            m_StateSuperstates[state] = superstate;
+        }
+
         public void Update()
         {
             if (State == null)
@@ -144,7 +157,7 @@ namespace TheGame
             }
 
             EvaluateState();
-            State?.OnUpdate();
+            State.OnUpdate();
         }
 
         public new void OnTransitioned(Action<Stateless.StateMachine<TState, TTrigger>.Transition> action)
@@ -167,18 +180,25 @@ namespace TheGame
                 stateChanged = false;
                 TState initialState = State;
 
-                if (m_StatesTransitions.TryGetValue(initialState, out var triggerEvaluators))
+                TState s = initialState;
+                while (s != null)
                 {
-                    foreach (var evaluator in triggerEvaluators)
+                    if (m_StatesTransitions.TryGetValue(s, out var triggerEvaluators))
                     {
-                        evaluator.Invoke();
-
-                        if (State != initialState)
+                        foreach (var evaluator in triggerEvaluators)
                         {
-                            stateChanged = true;
-                            break;
+                            evaluator.Invoke();
+
+                            if (State != initialState)
+                            {
+                                stateChanged = true;
+                                break;
+                            }
                         }
                     }
+                    if (stateChanged) break;
+
+                    m_StateSuperstates.TryGetValue(s, out s);
                 }
             } while (stateChanged && State != null);
         }

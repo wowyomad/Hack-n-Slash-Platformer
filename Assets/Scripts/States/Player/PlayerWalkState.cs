@@ -1,6 +1,3 @@
-using GameActions;
-using Stateless.Graph;
-using TheGame;
 using UnityEngine;
 public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
 {
@@ -10,7 +7,6 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
     public override void OnEnter()
     {
         m_VelocitySmoothing = 0.0f;
-        Player.Animator.CrossFade(WalkAnimationHash, 0.0f);
     }
 
     public override void OnUpdate()
@@ -20,14 +16,6 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
         Player.Flip(moveInput);
 
         //Abomination
-        if (Mathf.Abs(Controller.Velocity.x) <= 3.0f)
-        {
-            Player.Animator.CrossFade(IdleAnimationHash, 0.0f);
-        }
-        else
-        {
-            Player.Animator.CrossFade(WalkAnimationHash, 0.0f);
-        }
 
         float targetVelocityX = moveInput * Player.Movement.HorizontalSpeed;
         if (Controller.Collisions.Right)

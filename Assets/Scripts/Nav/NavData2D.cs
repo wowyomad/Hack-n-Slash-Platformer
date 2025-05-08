@@ -742,7 +742,6 @@ namespace Nav2D
                 Vector3Int abovePos = m_GroundTilemap.WorldToCell(new Vector3(hitAbove.point.x, hitAbove.point.y + m_NavPointVerticalOffset));
                 if (m_NavPointLookup.TryGetValue(abovePos, out NavPoint above) && above.HasFlag(NavPoint.Type.Transparent))
                 {
-                    Debug.Log($"Connecting {fromNavPoint.Position} to {above.Position} above (transparent jump)");
                     fromNavPoint.Connections.Add(new Connection
                     {
                         Point = above,

@@ -47,12 +47,12 @@ public class StandartEnemyChaseState : EnemyBaseState, IEnemyVulnarableState
         if (DistanceToPlayer < 0.25f)
         {
            
-            IHittable hittable;
-            if (Self.PlayerReference.TryGetComponent(out hittable) && hittable.CanTakeHit)
-            {
-                hittable.TakeHit();
-                ChangeState(new StandartEnemyIdleState(Self));
-            }
+            //IHittable hittable;
+            //if (Self.PlayerReference.TryGetComponent(out hittable) && hittable.CanTakeHit)
+            //{
+            //    hittable.TakeHit();
+            //    ChangeState(new StandartEnemyIdleState(Self));
+            //}
         }
 
 
