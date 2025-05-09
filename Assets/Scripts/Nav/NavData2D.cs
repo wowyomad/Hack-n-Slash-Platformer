@@ -1,9 +1,7 @@
-using NUnit.Framework.Constraints;
 using System.Collections.Generic;
-using System.Net;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using static UnityEngine.GraphicsBuffer;
 
 namespace Nav2D
 {
@@ -28,9 +26,14 @@ namespace Nav2D
             }
         }
 
+        [System.Serializable]
+        public class NavCell
+        {
+            public NavPoint Transparent;
+            public NavPoint Ground;
+        }
 
-        private Dictionary<Vector3Int, NavPoint> m_NavPointLookup = new Dictionary<Vector3Int, NavPoint>();
-        private Dictionary<Vector3Int, TileType> m_TileTypeLookup = new Dictionary<Vector3Int, TileType>();
+        private Dictionary<Vector3Int, NavCell> m_NavCells = new Dictionary<Vector3Int, NavCell>();
 
         [SerializeField] private List<NavPointEntry> m_SerializedNavPoints = new List<NavPointEntry>();
         [SerializeField] private NavWeights m_NavWeights;
@@ -45,6 +48,7 @@ namespace Nav2D
 
         [Header("Actor")]
         [SerializeField] private Vector2 m_ActorSize = new Vector2(1.0f, 2.0f);
+        public Vector2 ActorSize => m_ActorSize;
         [SerializeField] private float m_JumpHeight = 4.0f;
         [SerializeField] private float m_FallHeight = 8.0f;
         [SerializeField] private float m_FallJumpDistance = 5.0f;
@@ -76,6 +80,7 @@ namespace Nav2D
         private float m_NavPointVerticalOffset;
         public float VerticalTileOffset => m_NavPointVerticalOffset;
         private Vector2 m_CellSize;
+        private bool m_Awaken;
 
         private void OnEnable()
         {
@@ -103,20 +108,27 @@ namespace Nav2D
                 throw new System.ArgumentException(message);
             }
 
+            DeserializeNavPoints();
+        }
+
+        private void Awake()
+        {
             m_CellSize = m_GroundTilemap.cellSize;
 
-            DeserializeNavPoints();
             Generate();
+            m_Awaken = true;
         }
 
         private void OnDisable()
         {
-            SerializeNavPoints();
+
         }
 
         private void OnValidate()
         {
             if (!Application.isPlaying) return;
+
+            if (!m_Awaken) return;
 
             Generate();
         }
@@ -283,7 +295,7 @@ namespace Nav2D
                         gScore[neighbor] = tentativeGScore;
                         float hScore = Vector2.Distance(neighbor.Position, endNavPoint.Position);
                         fScore[neighbor] = tentativeGScore + hScore;
-                            openSet.Add(neighbor);
+                        openSet.Add(neighbor);
                     }
                 }
             }
@@ -293,14 +305,15 @@ namespace Nav2D
 
 
 
-        public NavPoint GetClosestNavPoint(Vector2 target)
+        public NavPoint GetClosestNavPoint(Vector2 intent)
         {
-            RaycastHit2D groundCheck = Physics2D.Raycast(target, Vector2.down, 1.0f, m_GroundLayerMask);
-
-            if (HasGroundTile(target))
+            Vector2 target = intent;
             {
-                Debug.Log($"HasGroundTile at {target}");
-                return null;
+                if (GetCell(target, out var cell, false))
+                {
+                    if (cell.Transparent != null)
+                        target.y = (float)cell.Transparent.CellPos.y - 0.01f;
+                }
             }
 
             Vector2 closestPoint = target;
@@ -352,32 +365,35 @@ namespace Nav2D
             {
                 {
                     Vector3 tilePosition = new Vector3(closestPoint.x, closestPoint.y - RaycastSkin, 0f);
-                    var navPoint = GetNavPoint(tilePosition, false);
 
-                    if (navPoint != null)
+                    if (GetCell(tilePosition, out var cell, false))
                     {
-                        return navPoint;
+                        return cell.Transparent ?? cell.Ground;
                     }
                     else
                     {
-                        List<Vector3> offsets = new List<Vector3>
+                        List<Vector2> offsets = new List<Vector2>
                         {
-                            new Vector3(-0.5f, 0.0f, 0.0f),
-                            new Vector3(0.5f, 0.0f, 0.0f),
-                            new Vector3(0.0f, -0.5f, 0.0f),
-                            new Vector3(0.0f, 0.5f, 0.0f),
-                            new Vector3(-0.5f, -0.5f, 0.0f),
-                            new Vector3(0.5f, -0.5f, 0.0f),
-                            new Vector3(-0.5f, 0.5f, 0.0f),
-                            new Vector3(0.5f, 0.5f, 0.0f)
+                            new Vector2(-0.5f, 0.0f),
+                            new Vector2(0.5f, 0.0f),
+                            new Vector2(0.0f, -0.5f),
+                            new Vector2(0.0f, 0.5f),
+                            new Vector2(-0.5f, -0.5f),
+                            new Vector2(0.5f, -0.5f),
+                            new Vector2(-0.5f, 0.5f),
+                            new Vector2(0.5f, 0.5f)
                         };
+
+                        //Applying offsets to the closest point, find the closest one to the target
                         foreach (var offset in offsets)
                         {
-                            tilePosition = new Vector3(closestPoint.x + offset.x, closestPoint.y + offset.y, 0f);
-                            navPoint = GetNavPoint(tilePosition, false);
-                            if (navPoint != null)
+                            Vector3 offsetPos = closestPoint + offset;
+                            if (GetCell(offsetPos, out var cellOffset, false))
                             {
-                                return navPoint;
+                                if (cellOffset.Transparent != null)
+                                    return cellOffset.Transparent;
+                                else if (cellOffset.Ground != null)
+                                    return cellOffset.Ground;
                             }
                         }
                     }
@@ -395,22 +411,34 @@ namespace Nav2D
             var stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
 
-            m_NavPointLookup.Clear();
-            m_TileTypeLookup.Clear();
+            if (m_NavCells == null)
+            {
+                m_NavCells = new Dictionary<Vector3Int, NavCell>();
+            }
+            m_NavCells.Clear();
 
-            GenerateBaseNavPoints(m_TransparentGround, NavPoint.Type.Surface | NavPoint.Type.Transparent);
-            GenerateBaseNavPoints(m_GroundTilemap, NavPoint.Type.Surface);
+            GenerateNavPoints(m_TransparentGround, NavPoint.Type.Surface | NavPoint.Type.Transparent);
+            GenerateNavPoints(m_GroundTilemap, NavPoint.Type.Surface);
+
+            string durationStr = stopwatch.Elapsed.TotalSeconds.ToString("N3");
+
+            Debug.Log($"Generated {m_NavCells.Count} points in {durationStr}s.");
+
+            stopwatch.Reset();
 
             GenerateConnections();
 
+            durationStr = stopwatch.Elapsed.TotalSeconds.ToString("N3");
+            Debug.Log($"Generated connections in {durationStr}s.");
+
             stopwatch.Stop();
-            string durationStr = stopwatch.Elapsed.TotalSeconds.ToString("N3");
-            Debug.Log($"Generated {m_NavPointLookup.Count} points in {durationStr}s.");
         }
 
-        private void GenerateBaseNavPoints(Tilemap tilemap, NavPoint.Type baseType)
+        private void GenerateNavPoints(Tilemap tilemap, NavPoint.Type baseType)
         {
             if (tilemap == null) return;
+
+            LayerMask layerMask = baseType.HasFlag(NavPoint.Type.Transparent) ? m_TransparentLayerMask : m_GroundLayerMask;
 
             BoundsInt bounds = tilemap.cellBounds;
 
@@ -422,16 +450,15 @@ namespace Nav2D
 
                     if (tilemap.HasTile(cellPos))
                     {
-                        if (!m_TileTypeLookup.ContainsKey(cellPos))
+                        if (cellPos == new Vector3Int(32, 1, 0))
                         {
-                            m_TileTypeLookup[cellPos] = (baseType & NavPoint.Type.Transparent) != 0 ? TileType.Transparent : TileType.Ground;
+                            Debug.Log("Debugging here");
                         }
 
                         Vector2 cellCenter = tilemap.GetCellCenterWorld(cellPos);
                         Vector2 rayOrigin = new Vector2(cellCenter.x, cellCenter.y + m_CellSize.y * 0.5f + RaycastSkin);
 
-                        // Use CollisionMask to detect surfaces on ground or transparent layers
-                        RaycastHit2D hitInfo = Physics2D.Raycast(rayOrigin, Vector2.down, m_CellSize.y + RaycastSkin * 2, CollisionMask);
+                        RaycastHit2D hitInfo = Physics2D.Raycast(rayOrigin, Vector2.down, m_CellSize.y + RaycastSkin * 2, layerMask);
 
                         bool surfaceFound = false;
                         Vector2 actualNormal = Vector2.up;
@@ -440,19 +467,15 @@ namespace Nav2D
 
                         if (hitInfo.collider != null)
                         {
-                            // Ensure the hit is on a layer that we care about for this tilemap type
                             bool hitIsGround = (m_GroundLayerMask.value & (1 << hitInfo.collider.gameObject.layer)) != 0;
                             bool hitIsTransparent = (m_TransparentLayerMask.value & (1 << hitInfo.collider.gameObject.layer)) != 0;
 
-                            // If generating for transparent, hit can be transparent or ground (if transparent is on top of ground)
-                            // If generating for ground, hit must be ground.
+
                             bool isProcessingTransparentLayer = (baseType & NavPoint.Type.Transparent) != 0;
 
                             if ((isProcessingTransparentLayer && (hitIsTransparent || hitIsGround)) || (!isProcessingTransparentLayer && hitIsGround))
                             {
-                                // Further check: if processing transparent, and hit ground, ensure the ground is "under" the current cell.
-                                // This can be complex. For now, accept if hit is on an expected layer.
-                                // A more precise check might involve tilemap.WorldToCell(hitInfo.point) if needed.
+
                                 surfaceFound = true;
                                 actualNormal = hitInfo.normal;
                                 actualHitPoint = hitInfo.point;
@@ -480,7 +503,8 @@ namespace Nav2D
                             {
                                 // Slope under transparent is allowed
                             }
-                            else if (!isCategorizedAsSlope && hitIsOnTransparentLayerByClearance && (baseType & NavPoint.Type.Transparent) != 0) {
+                            else if (!isCategorizedAsSlope && hitIsOnTransparentLayerByClearance && (baseType & NavPoint.Type.Transparent) != 0)
+                            {
                                 // If this is a transparent platform, and clearance hits another transparent platform, it's still fine.
                                 // (e.g. multi-level transparent platforms) - this case might need more thought
                                 // For now, if it's not a slope, any clearance hit is a block, unless it's a slope under transparent.
@@ -529,7 +553,21 @@ namespace Nav2D
                             }
                         }
 
-                        m_NavPointLookup[cellPos] = navPoint;
+
+                        if (!m_NavCells.ContainsKey(cellPos))
+                        {
+                            m_NavCells[cellPos] = new NavCell();
+                        }
+
+                        NavCell cell = m_NavCells[cellPos];
+                        if (baseType.HasFlag(NavPoint.Type.Transparent))
+                        {
+                            cell.Transparent = navPoint;
+                        }
+                        else
+                        {
+                            cell.Ground = navPoint;
+                        }
                     }
                 }
             }
@@ -537,93 +575,167 @@ namespace Nav2D
 
         private void GenerateConnections()
         {
-            var keys = new List<Vector3Int>(m_NavPointLookup.Keys);
+            var keys = new List<Vector3Int>(m_NavCells.Keys);
 
             foreach (var key in keys)
             {
-                NavPoint navPoint = m_NavPointLookup[key];
+                NavCell cell = m_NavCells[key];
 
-                if (navPoint.HasFlag(NavPoint.Type.Surface))
+                if (cell.Ground != null)
                 {
-                    ConnectSurfaceNeighbors(navPoint);
-                    ConnectJumps(navPoint);
-                    ConnectTransparentJumpAbove(navPoint);
-                }
+                    var ground = cell.Ground;
+                    ConnectSurfaceNeighbors(ground);
+                    ConnectJumps(ground);
+                    ConnectTransparentJumpAbove(ground);
 
-                if (navPoint.HasFlag(NavPoint.Type.Edge))
+                    if (ground.HasFlag(NavPoint.Type.Edge))
+                    {
+                        ConnectFalls(ground);
+                    }
+                    if (ground.HasFlag(NavPoint.Type.Slope))
+                    {
+                        ConnectSlopes(ground);
+                    }
+                }
+                if (cell.Transparent != null)
                 {
-                    ConnectFalls(navPoint);
-                }
+                    var transparent = cell.Transparent;
+                    ConnectSurfaceNeighbors(transparent);
+                    ConnectJumps(transparent);
+                    ConnectTransparentJumpAbove(transparent);
+                    ConnectTransparentFallBelow(transparent);
 
-                if (navPoint.HasFlag(NavPoint.Type.Transparent))
-                {
-                    ConnectTransparentFallBelow(navPoint);
+                    if (transparent.HasFlag(NavPoint.Type.Edge))
+                    {
+                        ConnectFalls(transparent);
+                    }
                 }
-
-                if (navPoint.HasFlag(NavPoint.Type.Slope))
-                {
-                    ConnectSlopes(navPoint);
-                }
-
-                m_NavPointLookup[key] = navPoint;
+                m_NavCells[key] = cell;
             }
         }
 
         private void ConnectSurfaceNeighbors(NavPoint navPoint)
         {
-            // This point is a flat surface (guaranteed by the check below)
+            var cell = m_NavCells[navPoint.CellPos];
+            bool hasGorundTile = cell.Ground != null;
+            bool hasTransparentTile = cell.Transparent != null;
             if (navPoint.HasFlag(NavPoint.Type.Slope)) return; // Slopes handle their own connections via ConnectSlopes
 
             // Connect to adjacent flat surfaces (horizontally)
             Vector3Int[] horizontalOffsets = { Vector3Int.left, Vector3Int.right };
+
             foreach (var offset in horizontalOffsets)
             {
-                Vector3Int neighborPos = navPoint.CellPos + offset;
-                if (m_NavPointLookup.TryGetValue(neighborPos, out NavPoint neighbor))
+                if (navPoint.CellPos == new Vector3Int(26, 11))
                 {
-                    // Connect to adjacent flat surface
-                    if (neighbor.HasFlag(NavPoint.Type.Surface) && !neighbor.HasFlag(NavPoint.Type.Slope))
+                    Debug.Log("Debugging here");
+                }
+
+                bool hasNeighbor = false;
+                Vector3Int neighborPos = navPoint.CellPos + offset;
+                if (m_NavCells.TryGetValue(neighborPos, out NavCell neighborCell))
+                {
+                    NavPoint neighbor;
+
+                    if (neighborCell.Transparent != null)
                     {
-                        navPoint.Connections.Add(new Connection
+                        neighbor = neighborCell.Transparent;
+                        if (neighbor.HasFlag(NavPoint.Type.Surface) && !neighbor.HasFlag(NavPoint.Type.Slope))
                         {
-                            Point = neighbor,
-                            Type = ConnectionType.Surface,
-                            Weight = m_NavWeights.SurfaceWeight
-                        });
-                    }
-                    // Connect to an adjacent slope (this flat surface is at the base/top of a slope)
-                    else if (neighbor.HasFlag(NavPoint.Type.Slope))
-                    {
-                        // Ensure the slope isn't also an edge case we want to avoid for surface connections
                             navPoint.Connections.Add(new Connection
                             {
                                 Point = neighbor,
-                                Type = ConnectionType.Slope, // Connection from Surface to Slope is still a "surface-like" traversal
+                                Type = ConnectionType.Surface,
+                                Weight = m_NavWeights.SurfaceWeight
+                            });
+                            hasNeighbor = true;
+                        }
+                    }
+
+                    if (!hasNeighbor)
+                    {
+                        if (neighborCell.Ground != null)
+                        {
+                            neighbor = neighborCell.Ground;
+                            if (!hasNeighbor && neighbor.HasFlag(NavPoint.Type.Surface) && !neighbor.HasFlag(NavPoint.Type.Slope))
+                            {
+                                navPoint.Connections.Add(new Connection
+                                {
+                                    Point = neighbor,
+                                    Type = ConnectionType.Surface,
+                                    Weight = m_NavWeights.SurfaceWeight
+                                });
+                            }
+                            else if (neighbor.HasFlag(NavPoint.Type.Slope))
+                            {
+                                navPoint.Connections.Add(new Connection
+                                {
+                                    Point = neighbor,
+                                    Type = ConnectionType.Slope,
+                                    Weight = m_NavWeights.SlopeWeight
+                                });
+
+                            }
+                        }
+                    }
+                    else if (hasGorundTile && !cell.Ground.TypeMask.HasFlag(NavPoint.Type.Slope))
+                    {
+                        neighbor = neighborCell.Ground;
+                        if (neighbor != null && neighbor.HasFlag(NavPoint.Type.Slope))
+                        {
+                            navPoint.Connections.Add(new Connection
+                            {
+                                Point = neighbor,
+                                Type = ConnectionType.Slope,
                                 Weight = m_NavWeights.SlopeWeight
                             });
-                        
+
+                        }
                     }
                 }
             }
 
-            // Connect to diagonally adjacent slopes (e.g. flat ground meeting a diagonal ramp start)
-            Vector3Int[] diagonalSlopeOffsets = {
-                Vector3Int.left + Vector3Int.up, Vector3Int.right + Vector3Int.up,
-                Vector3Int.left + Vector3Int.down, Vector3Int.right + Vector3Int.down
-            };
+            Vector3Int[] diagonalSlopeOffsets =
+            {
+                    Vector3Int.left + Vector3Int.up, Vector3Int.right + Vector3Int.up
+                };
+
+
             foreach (var offset in diagonalSlopeOffsets)
             {
+                //TODO: the edge check is wrong, fix it.
                 Vector3Int neighborPos = navPoint.CellPos + offset;
-                if (m_NavPointLookup.TryGetValue(neighborPos, out NavPoint neighbor) &&
-                    neighbor.HasFlag(NavPoint.Type.Slope) &&
-                    !neighbor.HasFlag(NavPoint.Type.Edge)) // Ensure slope isn't an edge
+                if (m_NavCells.TryGetValue(neighborPos, out NavCell neighborCell1) &&
+                    neighborCell1.Ground != null && neighborCell1.Ground.HasFlag(NavPoint.Type.Slope) &&
+                    !neighborCell1.Ground.HasFlag(NavPoint.Type.Edge))
                 {
-                    navPoint.Connections.Add(new Connection
+
+                    //Check the normal of the slope. It should be in the direction of of the navpoint.
+                    Vector2 slopeNormalDirection = neighborCell1.Ground.Normal;
+
+                    if (slopeNormalDirection.x < -VERY_SMALL_FLOAT)
                     {
-                        Point = neighbor,
-                        Type = ConnectionType.Surface, // Traversing from flat to a diagonal slope start
-                        Weight = m_NavWeights.SurfaceWeight
-                    });
+                        slopeNormalDirection = Vector2.left;
+                    }
+                    else if (slopeNormalDirection.x > VERY_SMALL_FLOAT)
+                    {
+                        slopeNormalDirection = Vector2.right;
+                    }
+                    else
+                    {
+                        slopeNormalDirection = Vector2.up;
+                    }
+
+                    if ((offset == Vector3Int.left + Vector3Int.up && slopeNormalDirection == Vector2.right) ||
+                        (offset == Vector3Int.right + Vector3Int.up && slopeNormalDirection == Vector2.left))
+                    {
+                        navPoint.Connections.Add(new Connection
+                        {
+                            Point = neighborCell1.Ground,
+                            Type = ConnectionType.Surface,
+                            Weight = m_NavWeights.SurfaceWeight
+                        });
+                    }
                 }
             }
         }
@@ -633,17 +745,12 @@ namespace Nav2D
             int yOffsetForLeftNeighbor;
             int yOffsetForRightNeighbor;
 
-            if (navPoint.CellPos.x == 38 && navPoint.CellPos.y == 4)
-            {
-                Debug.Log($"NavPoint: {navPoint.CellPos}, Normal: {navPoint.Normal}");
-            }
-
             if (navPoint.Normal.x < -VERY_SMALL_FLOAT)
             {
                 yOffsetForLeftNeighbor = -1;
                 yOffsetForRightNeighbor = 1;
             }
-            else if (navPoint.Normal.x > VERY_SMALL_FLOAT) 
+            else if (navPoint.Normal.x > VERY_SMALL_FLOAT)
             {
                 yOffsetForLeftNeighbor = 1;
                 yOffsetForRightNeighbor = -1;
@@ -666,18 +773,35 @@ namespace Nav2D
                 Vector3Int neighborCellPosForSlope = navPoint.CellPos + dir + new Vector3Int(0, yOffset, 0);
                 Vector3Int neighborCellPosForSurface = navPoint.CellPos + dir;
 
-                if (m_NavPointLookup.TryGetValue(neighborCellPosForSlope, out var nbSlope1))
+
+                if (m_NavCells.TryGetValue(neighborCellPosForSlope, out NavCell neighborCell) && neighborCell.Ground != null)
                 {
-                    if (!navPoint.Connections.Exists(c => c.Point == nbSlope1 && c.Type == ConnectionType.Slope))
+                    var ground = neighborCell.Ground;
+                    var transparent = neighborCell.Transparent;
+
+                    if (ground != null && !navPoint.Connections.Exists(c => c.Point == ground && c.Type == ConnectionType.Slope))
                     {
-                        navPoint.Connections.Add(new Connection { Point = nbSlope1, Type = ConnectionType.Slope, Weight = m_NavWeights.SlopeWeight });
+                        navPoint.Connections.Add(new Connection { Point = ground, Type = ConnectionType.Slope, Weight = m_NavWeights.SlopeWeight });
+                    }
+
+                    else if (transparent != null && !navPoint.Connections.Exists(c => c.Point == transparent && c.Type == ConnectionType.Slope))
+                    {
+                        navPoint.Connections.Add(new Connection { Point = transparent, Type = ConnectionType.Slope, Weight = m_NavWeights.SlopeWeight });
                     }
                 }
-                else if (m_NavPointLookup.TryGetValue(neighborCellPosForSurface, out var nbSlope2))
+
+                else if (m_NavCells.TryGetValue(neighborCellPosForSurface, out NavCell neighborCell2) && neighborCell2.Ground != null)
                 {
-                    if (!navPoint.Connections.Exists(c => c.Point == nbSlope2))
+                    var ground = neighborCell2.Ground;
+                    var transparent = neighborCell2.Transparent;
+
+                    if (ground != null && !navPoint.Connections.Exists(c => c.Point == ground))
                     {
-                        navPoint.Connections.Add(new Connection { Point = nbSlope2, Type = ConnectionType.Slope, Weight = m_NavWeights.SurfaceWeight });
+                        navPoint.Connections.Add(new Connection { Point = ground, Type = ConnectionType.Slope, Weight = m_NavWeights.SurfaceWeight });
+                    }
+                    else if (transparent != null && !navPoint.Connections.Exists(c => c.Point == transparent))
+                    {
+                        navPoint.Connections.Add(new Connection { Point = transparent, Type = ConnectionType.Slope, Weight = m_NavWeights.SurfaceWeight });
                     }
                 }
             }
@@ -690,9 +814,17 @@ namespace Nav2D
             float fromX = navPoint.CellPos.x;
             float fromY = navPoint.CellPos.y;
 
-            foreach (var kvp in m_NavPointLookup)
+            foreach (var kvp in m_NavCells)
             {
-                NavPoint target = kvp.Value;
+                NavPoint target;
+                if (kvp.Value.Transparent != null)
+                {
+                    target = kvp.Value.Transparent;
+                }
+                else
+                {
+                    target = kvp.Value.Ground;
+                }
 
                 if (!target.HasFlag(NavPoint.Type.Edge)) continue;
 
@@ -772,9 +904,17 @@ namespace Nav2D
         {
             if (navPoint.TypeMask.HasFlag(NavPoint.Type.Slope)) return;
 
-            foreach (var kvp in m_NavPointLookup)
+            foreach (var kvp in m_NavCells)
             {
-                NavPoint target = kvp.Value;
+                NavPoint target;
+                if (kvp.Value.Transparent != null)
+                {
+                    target = kvp.Value.Transparent;
+                }
+                else
+                {
+                    target = kvp.Value.Ground;
+                }
 
                 if (target.HasFlag(NavPoint.Type.Slope)) continue;
 
@@ -822,16 +962,19 @@ namespace Nav2D
 
         private void ConnectTransparentFallBelow(NavPoint navPoint)
         {
+            return;
+            if (!navPoint.TypeMask.HasFlag(NavPoint.Type.Transparent)) return;
+
             Vector2 cellPosition = new Vector3(navPoint.CellPos.x + m_TileAnchor.x, navPoint.CellPos.y + m_TileAnchor.y, navPoint.CellPos.z);
             Vector2 belowRaycastOrigin = new Vector2(cellPosition.x, cellPosition.y - m_NavPointVerticalOffset);
 
-            // Connect below
             RaycastHit2D hitBelow = Physics2D.Raycast(belowRaycastOrigin, Vector2.down, Mathf.Infinity, m_GroundLayerMask | m_TransparentLayerMask);
             if (hitBelow.collider != null)
             {
                 Vector3Int belowPos = m_GroundTilemap.WorldToCell(new Vector3(hitBelow.point.x, hitBelow.point.y - VERY_SMALL_FLOAT)); //before hitBelow.point.y - m_NavPointVerticalOffset
-                if (m_NavPointLookup.TryGetValue(belowPos, out NavPoint below) && below.HasFlag(NavPoint.Type.Surface))
+                if (m_NavCells.TryGetValue(belowPos, out var belowCell) && belowCell.Ground != null)
                 {
+                    var below = belowCell.Ground;
                     Debug.Log($"Connecting {navPoint.Position} to {below.Position} below");
                     navPoint.Connections.Add(new Connection
                     {
@@ -844,22 +987,15 @@ namespace Nav2D
         }
         private void ConnectTransparentJumpAbove(NavPoint fromNavPoint)
         {
-            // Raycast starts slightly above the 'fromNavPoint's actual surface position
             Vector2 aboveRaycastOrigin = fromNavPoint.Position;
 
             RaycastHit2D hitAbove = Physics2D.Raycast(aboveRaycastOrigin, Vector2.up, m_JumpHeight, m_TransparentLayerMask);
             if (hitAbove.collider != null)
             {
-                if (fromNavPoint.CellPos == new Vector3Int(30, -1))
-                {
-                    Debug.Log($"Hit Transparent Jump Above: {fromNavPoint.Position} to {hitAbove.point}");
-                }
-                // Convert the hit point (surface of the tile above) to a cell position.
-                // Subtracting RaycastSkin pushes the point slightly into the cell for robust conversion.
                 Vector3Int abovePos = m_GroundTilemap.WorldToCell(hitAbove.point + Vector2.up * RaycastSkin);
-                if (m_NavPointLookup.TryGetValue(abovePos, out NavPoint above) && above.HasFlag(NavPoint.Type.Transparent))
+                if (m_NavCells.TryGetValue(abovePos, out var aboveCell) && aboveCell.Transparent != null)
                 {
-                    // Ensure we are not trying to jump to the same point or an immediate neighbor if it's a misfire
+                    var above = aboveCell.Transparent;
                     if (above.CellPos == fromNavPoint.CellPos) return;
 
                     fromNavPoint.Connections.Add(new Connection
@@ -897,33 +1033,35 @@ namespace Nav2D
             Vector3Int diff = a.CellPos - b.CellPos;
             return Mathf.Abs(diff.x) <= 1 && Mathf.Abs(diff.y) <= 1;
         }
+        public NavCell GetCell(Vector3 cellPos, bool useOffset)
+        {
+            GetCell(cellPos, out var cell, useOffset);
+            return cell;
+        }
+        public bool GetCell(Vector3 worldPosition, out NavCell cell, bool useOffset)
+        {
+            Vector3 offset = useOffset ? new Vector3(0, m_ActorSize.y / 2f + m_NavPointVerticalOffset, 0) : Vector3.zero;
+            Vector3Int cellPos = m_GroundTilemap.WorldToCell(worldPosition - offset);
+            return m_NavCells.TryGetValue(cellPos, out cell);
+        }
 
         public bool HasTileInAnyLayer(Vector3Int cellPos)
         {
-            // Check the lookup first
-            if (m_TileTypeLookup.TryGetValue(cellPos, out var type) && type != TileType.None)
+            if (m_NavCells.TryGetValue(cellPos, out var cell) && (cell.Transparent != null || cell.Ground != null))
             {
                 return true;
             }
-            // Fallback to checking tilemaps directly for generation-time queries
-            if (m_GroundTilemap != null && m_GroundTilemap.HasTile(cellPos))
-            {
-                return true;
-            }
-            if (m_TransparentGround != null && m_TransparentGround.HasTile(cellPos))
-            {
-                return true;
-            }
-            return false;
+
+            return m_GroundTilemap.HasTile(cellPos) || m_TransparentGround.HasTile(cellPos);
         }
 
         public bool HasGroundTile(Vector3Int cellPos)
         {
-            return m_TileTypeLookup.TryGetValue(cellPos, out var type) && type == TileType.Ground;
+            return m_NavCells.TryGetValue(cellPos, out var cell) && cell.Ground != null;
         }
         public bool HasTransparentGroundTile(Vector3Int cellPos)
         {
-            return m_TileTypeLookup.TryGetValue(cellPos, out var type) && type == TileType.Transparent;
+            return m_NavCells.TryGetValue(cellPos, out var cell) && cell.Transparent != null;
         }
 
         public bool HasGroundTile(Vector3 cellPos)
@@ -958,42 +1096,32 @@ namespace Nav2D
             return false;
         }
 
-        public NavPoint GetNavPoint(Vector3 worldPosition, bool useOffset = true)
-        {
-            Vector3 offset = useOffset ? new Vector3(0, m_ActorSize.y / 2f + m_NavPointVerticalOffset, 0) : Vector3.zero;
-            Vector3Int cellPos = m_GroundTilemap.WorldToCell(worldPosition - offset);
-            if (m_NavPointLookup.TryGetValue(cellPos, out NavPoint navPoint))
-            {
-                return navPoint;
-            }
-            return null;
-        }
-
         private void SerializeNavPoints()
         {
-            m_SerializedNavPoints.Clear();
-            foreach (var kvp in m_NavPointLookup)
-            {
-                m_SerializedNavPoints.Add(new NavPointEntry { Key = kvp.Key, Value = kvp.Value });
-            }
+            return;
+            //m_SerializedNavPoints.Clear();
+            //foreach (var kvp in m_NavCells)
+            //{
+            //    m_SerializedNavPoints.Add(new NavPointEntry { Key = kvp.Key, Value = kvp.Value });
+            //}
         }
 
         private void DeserializeNavPoints()
         {
-            if (m_SerializedNavPoints.Count > 0)
-            {
-                m_NavPointLookup.Clear();
-                foreach (var entry in m_SerializedNavPoints)
-                {
-                    m_NavPointLookup[entry.Key] = entry.Value;
-                }
-            }
+            return;
+            //if (m_SerializedNavPoints.Count > 0)
+            //{
+            //    m_NavPointLookup.Clear();
+            //    foreach (var entry in m_SerializedNavPoints)
+            //    {
+            //        m_NavPointLookup[entry.Key] = entry.Value;
+            //    }
+            //}
         }
 
         private bool IsJumpPathClear(Vector2 from, Vector2 to)
         {
-            var point = GetNavPoint(to, true);
-
+            var point = GetCell(to, true).Ground;
             if (point != null)
             {
                 if (!point.HasFlag(NavPoint.Type.LeftEdge) && from.x < to.x)
@@ -1050,107 +1178,115 @@ namespace Nav2D
 
         private void OnDrawGizmos()
         {
-            if (m_NavPointLookup == null) return;
+            if (m_NavCells == null) return;
             if (!m_DrawGizmos) return;
 
-            foreach (var navPoint in m_NavPointLookup.Values)
+            foreach (var navCell in m_NavCells.Values)
             {
-                // ... (color selection logic remains the same) ...
-                bool isEdge = navPoint.HasFlag(NavPoint.Type.Edge);
-                bool isTransparent = navPoint.HasFlag(NavPoint.Type.Transparent);
-                bool isSlope = navPoint.HasFlag(NavPoint.Type.Slope);
-
-                if (isEdge && isTransparent) Gizmos.color = Color.cyan;
-                else if (isEdge) Gizmos.color = Color.blue;
-                else if (isTransparent) Gizmos.color = Color.yellow;
-                else if (isSlope) Gizmos.color = new Color(.5f, 0.85f, 0.2f); // Greenish-yellow for slopes
-                else Gizmos.color = Color.green; // Regular surfaces
-
-                Gizmos.DrawSphere(navPoint.Position, 0.4f);
-
-                // Draw ALL connections from this point to see what's happening
-                foreach (var connection in navPoint.Connections)
+                if (navCell.Ground != null)
                 {
-                    // Temporarily remove the filter to see all connections from slope points
-                    // if (navPoint.HasFlag(NavPoint.Type.Slope) && connection.Type != ConnectionType.Slope) continue;
-
-                    Gizmos.color = connection.Type switch
-                    {
-                        ConnectionType.Surface => Color.green,
-                        ConnectionType.Jump => Color.blue,
-                        ConnectionType.TransparentJump => Color.magenta,
-                        ConnectionType.TransparentFall => Color.cyan,
-                        ConnectionType.Fall => Color.red,
-                        ConnectionType.Slope => Color.yellow, // Make slope connections distinctly yellow
-                        _ => Color.white
-                    };
-                    Gizmos.DrawLine(navPoint.Position, connection.Point.Position);
+                    DrawNavPoint(navCell.Ground);
+                }
+                if (navCell.Transparent != null)
+                {
+                    DrawNavPoint(navCell.Transparent);
                 }
             }
         }
-    }
 
 
-    [System.Serializable]
-    public class NavPoint
-    {
-        public Vector3Int CellPos;
-        public Vector2 Position;
-        public Vector2 Normal; // <–– new!
-        public Type TypeMask;
-        [SerializeReference] public List<Connection> Connections = new();
-
-        [System.Flags]
-        public enum Type : uint
+        public void DrawNavPoint(NavPoint navPoint)
         {
-            None = 0,
-            Surface = 1 << 0,
-            Transparent = 1 << 1,
-            Slope = 1 << 2,
-            Edge = 1 << 3,
-            LeftEdge = 1 << 4,
-            RightEdge = 1 << 5,
+            bool isEdge = navPoint.HasFlag(NavPoint.Type.Edge);
+            bool isTransparent = navPoint.HasFlag(NavPoint.Type.Transparent);
+            bool isSlope = navPoint.HasFlag(NavPoint.Type.Slope);
+
+            if (isEdge && isTransparent) Gizmos.color = Color.cyan;
+            else if (isEdge) Gizmos.color = Color.blue;
+            else if (isTransparent) Gizmos.color = Color.yellow;
+            else if (isSlope) Gizmos.color = new Color(.5f, 0.85f, 0.2f);
+            else Gizmos.color = Color.green;
+
+            Gizmos.DrawSphere(navPoint.Position, 0.4f);
+
+            foreach (var connection in navPoint.Connections)
+            {
+
+                Gizmos.color = connection.Type switch
+                {
+                    ConnectionType.Surface => Color.green,
+                    ConnectionType.Jump => Color.blue,
+                    ConnectionType.TransparentJump => Color.magenta,
+                    ConnectionType.TransparentFall => Color.cyan,
+                    ConnectionType.Fall => Color.red,
+                    ConnectionType.Slope => Color.yellow,
+                    _ => Color.white
+                };
+                Gizmos.DrawLine(navPoint.Position, connection.Point.Position);
+            }
         }
 
-        public bool HasFlag(Type flag)
+
+        [System.Serializable]
+        public class NavPoint
         {
-            return (TypeMask & flag) == flag;
+            public Vector3Int CellPos;
+            public Vector2 Position;
+            public Vector2 Normal; // <–– new!
+            public Type TypeMask;
+            [SerializeReference] public List<Connection> Connections = new();
+
+            [System.Flags]
+            public enum Type : uint
+            {
+                None = 0,
+                Surface = 1 << 0,
+                Transparent = 1 << 1,
+                Slope = 1 << 2,
+                Edge = 1 << 3,
+                LeftEdge = 1 << 4,
+                RightEdge = 1 << 5,
+            }
+
+            public bool HasFlag(Type flag)
+            {
+                return (TypeMask & flag) == flag;
+            }
+        }
+        [System.Serializable]
+        public class Connection
+        {
+            public NavPoint Point;
+            public ConnectionType Type;
+            public float Weight;
+        }
+
+        public enum ConnectionType
+        {
+            None,
+            Surface,
+            Jump,
+            Fall,
+            TransparentJump,
+            TransparentFall,
+            Slope,
+        }
+
+
+        [System.Serializable]
+        public class NavPointEntry
+        {
+            public Vector3Int Key;
+            public NavPoint Value;
+        }
+
+
+        public enum TileType
+        {
+            None,
+            Ground,
+            Transparent
         }
     }
-    [System.Serializable]
-    public class Connection
-    {
-        public NavPoint Point;
-        public ConnectionType Type;
-        public float Weight;
-    }
-
-    public enum ConnectionType
-    {
-        None,
-        Surface,
-        Jump,
-        Fall,
-        TransparentJump,
-        TransparentFall,
-        Slope,
-    }
-
-
-    [System.Serializable]
-    public class NavPointEntry
-    {
-        public Vector3Int Key;
-        public NavPoint Value;
-    }
-
-
-    public enum TileType
-    {
-        None,
-        Ground,
-        Transparent
-    }
-
 
 }

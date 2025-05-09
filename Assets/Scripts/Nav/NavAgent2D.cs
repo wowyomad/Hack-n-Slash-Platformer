@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Nav;
 using Nav2D;
-using UnityEditor.MemoryProfiler;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
@@ -24,12 +23,12 @@ public class NavAgent2D : MonoBehaviour
     [SerializeField] private int m_CurrentPointIndex = 0;
     [SerializeField] private float m_JumpSpeedScale = 1.0f;
 
-    private List<NavPoint> m_Path;
+    private List<NavData2D.NavPoint> m_Path;
     private Vector2 m_Target = Vector2.zero;
     private AgentState m_State;
     private bool m_PathPending = false;
 
-    private List<NavPoint> m_PathBuffer;
+    private List<NavData2D.NavPoint> m_PathBuffer;
     private bool m_NewPathReady = false;
     private object m_PathLock = new object();
 
@@ -41,6 +40,8 @@ public class NavAgent2D : MonoBehaviour
     static private readonly float REACH_THRESHOLD = 0.005f;
 
     private bool m_ShortJump = false;
+    [SerializeField] private bool m_PassingThrough;
+    [SerializeField] private bool m_HasEneteredTransparentGround = false;
 
     public AgentState State => m_State;
     public bool IsJumping => m_State == AgentState.Jumping;
@@ -56,8 +57,16 @@ public class NavAgent2D : MonoBehaviour
         Jumping,
     }
 
+
+    private void ResetTemps()
+    {
+        m_PassingThrough = false;
+        m_HasEneteredTransparentGround = false;
+    }
     public void SetDestination(Vector2 target)
     {
+        if (m_PassingThrough) return;
+
         if (m_NavData == null)
             throw new NullReferenceException("NavData2D is not assigned");
 
@@ -68,6 +77,8 @@ public class NavAgent2D : MonoBehaviour
 
     public void SetDestinationAsync(Vector2 target)
     {
+        if (m_PassingThrough) return;
+
         if (m_NavData == null)
             throw new NullReferenceException("NavData2D is not assigned");
 
@@ -75,10 +86,10 @@ public class NavAgent2D : MonoBehaviour
 
         m_PathPending = true;
         m_Target = target;
-        Vector2 currentPosition = transform.position;
+        Vector2 currentPosition = transform.position - new Vector3(0, m_NavData.ActorSize.y * 0.5f, 0);
 
-        NavPoint startPoint = m_NavData.GetClosestNavPoint(currentPosition);
-        NavPoint endPoint = m_NavData.GetClosestNavPoint(target);
+        NavData2D.NavPoint startPoint = m_NavData.GetClosestNavPoint(currentPosition);
+        NavData2D.NavPoint endPoint = m_NavData.GetClosestNavPoint(target);
 
         Task.Run(() =>
         {
@@ -117,8 +128,8 @@ public class NavAgent2D : MonoBehaviour
             throw new NullReferenceException("NavActor is not assigned");
         }
         m_Controller = GetComponent<CharacterController2D>();
-        m_Path = new List<NavPoint>();
-        m_PathBuffer = new List<NavPoint>();
+        m_Path = new List<NavData2D.NavPoint>();
+        m_PathBuffer = new List<NavData2D.NavPoint>();
     }
 
     private void Start()
@@ -185,7 +196,7 @@ public class NavAgent2D : MonoBehaviour
                 if (!m_NewPathReady) return;
                 m_NewPathReady = false;
 
-                List<NavPoint> temp = m_Path;
+                List<NavData2D.NavPoint> temp = m_Path;
                 m_Path = m_PathBuffer;
                 m_PathBuffer = temp;
 
@@ -195,7 +206,7 @@ public class NavAgent2D : MonoBehaviour
         }
     }
 
-    private void ApplyNewPath(List<NavPoint> newPath)
+    private void ApplyNewPath(List<NavData2D.NavPoint> newPath)
     {
         if (newPath == null || newPath.Count == 0)
         {
@@ -221,8 +232,8 @@ public class NavAgent2D : MonoBehaviour
         while (m_CurrentPointIndex < m_Path.Count - 1)
         {
             Vector3 agentPos = transform.position;
-            NavPoint currentNavPoint = m_Path[m_CurrentPointIndex];
-            NavPoint nextNavPoint = m_Path[m_CurrentPointIndex + 1];
+            NavData2D.NavPoint currentNavPoint = m_Path[m_CurrentPointIndex];
+            NavData2D.NavPoint nextNavPoint = m_Path[m_CurrentPointIndex + 1];
             Vector3 currentTargetPos = currentNavPoint.Position;
             Vector3 nextTargetPos = nextNavPoint.Position;
 
@@ -232,8 +243,8 @@ public class NavAgent2D : MonoBehaviour
                 continue;
             }
 
-            ConnectionType connectionToNext = GetConnectionType(currentNavPoint, nextNavPoint);
-            bool isNextSegmentAJump = (connectionToNext >= ConnectionType.Jump && connectionToNext <= ConnectionType.TransparentFall);
+            NavData2D.ConnectionType connectionToNext = GetConnectionType(currentNavPoint, nextNavPoint);
+            bool isNextSegmentAJump = (connectionToNext >= NavData2D.ConnectionType.Jump && connectionToNext <= NavData2D.ConnectionType.TransparentFall);
 
             if (isNextSegmentAJump)
             {
@@ -302,6 +313,29 @@ public class NavAgent2D : MonoBehaviour
     {
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count) return;
 
+        if (m_PassingThrough)
+        {
+            if (m_Controller.CanPassTransparentGround)
+            {
+                m_Controller.PassThrough();
+            }
+            if (m_NavData.GetCell(transform.position, out var cell, false))
+            {
+                if (!m_HasEneteredTransparentGround)
+                {
+                    if (cell.Transparent != null)
+                    {
+                        m_HasEneteredTransparentGround = true;
+                    }
+                }
+                else if (cell.Transparent == null)
+                {
+                    m_PassingThrough = false;
+                }
+            }
+        }
+
+
         Vector3 target = m_Path[m_CurrentPointIndex].Position;
         target.y = transform.position.y;
         float distance = Vector2.Distance(transform.position, target);
@@ -319,6 +353,7 @@ public class NavAgent2D : MonoBehaviour
 
     private void GoNext()
     {
+        ResetTemps();
         m_CurrentPointIndex++;
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
         {
@@ -328,13 +363,17 @@ public class NavAgent2D : MonoBehaviour
         var previousPoint = m_Path[m_CurrentPointIndex - 1];
         var currentPoint = m_Path[m_CurrentPointIndex];
         var connection = GetConnectionType(previousPoint, currentPoint);
-        if (connection >= ConnectionType.Jump && connection <= ConnectionType.TransparentFall)
+        if (connection >= NavData2D.ConnectionType.Jump && connection <= NavData2D.ConnectionType.TransparentFall)
         {
             Jump(previousPoint, currentPoint, connection);
             m_State = AgentState.Jumping;
         }
         else
         {
+            if (connection == NavData2D.ConnectionType.Slope)
+            {
+                m_PassingThrough = true;
+            }
             m_State = AgentState.Moving;
         }
     }
@@ -356,9 +395,9 @@ public class NavAgent2D : MonoBehaviour
         return isStuck;
     }
 
-    private void Jump(NavPoint from, NavPoint to, ConnectionType connection)
+    private void Jump(NavData2D.NavPoint from, NavData2D.NavPoint to, NavData2D.ConnectionType connection)
     {
-        if (connection < ConnectionType.Jump || connection > ConnectionType.TransparentFall)
+        if (connection < NavData2D.ConnectionType.Jump || connection > NavData2D.ConnectionType.TransparentFall)
             return;
 
         float jumpVelocity = m_NavActor.JumpVelocity;
@@ -371,12 +410,12 @@ public class NavAgent2D : MonoBehaviour
         m_ShortJump = jumpHorizontalDistance <= 1.0f + float.Epsilon;
         bool flatJump = from.CellPos.y == to.CellPos.y;
 
-        if (ConnectionType.TransparentFall == connection)
+        if (NavData2D.ConnectionType.TransparentFall == connection)
         {
             m_Controller.PassThrough();
             return;
         }
-        else if (ConnectionType.Fall == connection)
+        else if (NavData2D.ConnectionType.Fall == connection)
         {
             jumpVelocity /= 4.0f;
         }
@@ -405,14 +444,14 @@ public class NavAgent2D : MonoBehaviour
         }
     }
 
-    private ConnectionType GetConnectionType(NavPoint a, NavPoint b)
+    private NavData2D.ConnectionType GetConnectionType(NavData2D.NavPoint a, NavData2D.NavPoint b)
     {
-        if (a == null || b == null) return ConnectionType.None;
+        if (a == null || b == null) return NavData2D.ConnectionType.None;
         var connection = a.Connections.Find(conn => conn.Point.CellPos == b.CellPos);
         if (connection != null)
         {
             return connection.Type;
         }
-        return ConnectionType.None;
+        return NavData2D.ConnectionType.None;
     }
 }

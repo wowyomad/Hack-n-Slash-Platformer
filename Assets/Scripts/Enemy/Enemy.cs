@@ -12,6 +12,10 @@ public interface IDestroyable
 [RequireComponent(typeof(SpriteRenderer))]
 public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 {
+    public float CanSeePlayerDistance = 8.0f;
+    public float CanFeelPlayerDistance = 5.0f;
+    [SerializeField] private float m_UpdateDistanceInterval = 0.2f;
+
     [HideInInspector] public CharacterController2D Controller;
     public CharacterMovementStatsSO MovementStats;
     public EnemyBehaviorConfigSO BehaviorConfig;
@@ -25,6 +29,10 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     public Player Player;
     [HideInInspector]
     public SpriteRenderer Sprite;
+
+
+
+
 
     public bool CanTakeHit => StateMachine.CurrentState is IEnemyVulnarableState;
     public float DistanceToPlayer => Vector3.Distance(transform.position, PlayerReference.transform.position);
@@ -60,8 +68,18 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
 
-        m_FollowPlayerTimer.SetFinishedCallback(SetDestinationToPlayer);
-        m_FollowPlayerTimer.Start(0.25f);
+        m_FollowPlayerTimer.SetFinishedCallback(UpdateDestinationToPlayer);
+        m_FollowPlayerTimer.Start(m_UpdateDistanceInterval);
+    }
+
+    private void OnValidate()
+    {
+        if (m_UpdateDistanceInterval <0.0f)
+        {
+            m_UpdateDistanceInterval = 0.2f;
+        }
+        m_FollowPlayerTimer.Stop();
+        m_FollowPlayerTimer.Start(m_UpdateDistanceInterval);
     }
 
     public void Initialize()
@@ -75,22 +93,24 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Tree.Execute();
         m_FollowPlayerTimer.Tick();
 
-        if (CanSeePlayer || DistanceToPlayer <= 7.5f)
+        if (CanSeePlayer)
         {
             m_SeenPlayer = true;
             m_LastPlayerPosition = PlayerReference.transform.position;
-        }
+        }           
+        
 
         Flip(Controller.LastDisplacement.x);
     }
 
-    void SetDestinationToPlayer()
+    void UpdateDestinationToPlayer()
     {
         if (!Controller.IsGrounded) return;
 
-        if (CanSeePlayer || DistanceToPlayer <= 5.0f)
+        if (CanSeePlayer || DistanceToPlayer <= CanFeelPlayerDistance)
         {
             Agent.SetDestination(PlayerReference.transform.position);
+            m_LastPlayerPosition = PlayerReference.transform.position;
         }
         else if (m_SeenPlayer && Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
         {
