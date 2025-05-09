@@ -35,6 +35,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     public int FacingDirection { get; private set; }
 
     private Vector3 m_LastPlayerPosition;
+    private bool m_SeenPlayer = false;
 
 
     public event Action<float, Vector2> OnTakeDamage;
@@ -59,7 +60,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
 
-        m_FollowPlayerTimer.SetCallback(SetDestinationToPlayer);
+        m_FollowPlayerTimer.SetFinishedCallback(SetDestinationToPlayer);
         m_FollowPlayerTimer.Start(0.25f);
     }
 
@@ -76,6 +77,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
         if (CanSeePlayer || DistanceToPlayer <= 7.5f)
         {
+            m_SeenPlayer = true;
             m_LastPlayerPosition = PlayerReference.transform.position;
         }
 
@@ -84,27 +86,17 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     void SetDestinationToPlayer()
     {
-
         if (!Controller.IsGrounded) return;
-
-        if (AlwaysFollowPlayer)
-        {
-            Agent.SetDestinationAsync(PlayerReference.transform.position);
-            return;
-        }
 
         if (CanSeePlayer || DistanceToPlayer <= 5.0f)
         {
-            Agent.SetDestinationAsync(PlayerReference.transform.position);
+            Agent.SetDestination(PlayerReference.transform.position);
         }
-        else if (Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
+        else if (m_SeenPlayer && Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
         {
-            Agent.SetDestinationAsync(m_LastPlayerPosition);
+            Agent.SetDestination(m_LastPlayerPosition);
         }
     }
-
-
-
 
     public void TakeDamage(float value, Vector2 normal)
     {
@@ -147,7 +139,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         Vector3 direction = DirectionToPlayer;
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, DistanceToPlayer, layerMask);
 
-        Color rayColor = hit.collider != null ? Color.red : Color.green; // Red if hit, Green if clear
+        Color rayColor = hit.collider != null ? Color.red : Color.green;
         Debug.DrawRay(transform.position, direction * DistanceToPlayer, rayColor);
 
 

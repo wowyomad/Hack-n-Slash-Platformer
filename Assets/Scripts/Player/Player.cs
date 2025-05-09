@@ -4,11 +4,13 @@ using TheGame;
 using GameActions;
 using System.Linq;
 using Unity.Mathematics;
+using System.Collections.Generic;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
 public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 {
+
     public enum Trigger
     {
         Idle,
@@ -21,6 +23,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         Stun,
     }
 
+    #region Events
     public Action PlayerWalkedEvent;
     public Action PlayerIdleEvent;
     public Action PlayerJumpedEvent;
@@ -29,7 +32,9 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     public Action PlayerThrewEvent;
     public Action PlayerDiedEvent;
     public Action PlayerStunnedEvent;
+    #endregion
 
+    #region States
     protected PlayerAnyState AnyState;
     protected PlayerStunnedState StunnedState;
     protected PlayerDeadState DeadState;
@@ -39,15 +44,16 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     protected PlayerAirState AirState;
     protected PlayerAttackState AttackState;
     protected PlayerThrowState ThrowState;
+    #endregion
 
-    public LayerMask EnemyLayerMask;
+    [SerializeField] private LayerMask m_EnemyLayerMask;
 
-    [Header("Components")]
-    public StateMachine<PlayerBaseState, Trigger> StateMachine;
-    public CharacterController2D Controller;
-    public AnimatorWrapper Animator;
-    public PlayerAnimationEvents AnimationEvents;
-    public InputReader Input;
+    [HideInInspector] public StateMachine<PlayerBaseState, Trigger> StateMachine;
+    private bool m_Initialized = false;
+    
+    [HideInInspector] public CharacterController2D Controller;
+    [HideInInspector] public PlayerAnimationEvents AnimationEvents;
+    [HideInInspector] public InputReader Input;
     protected PlayerBaseState CurrentState => StateMachine.State;
     protected PlayerBaseState PreviousState => StateMachine.PreviousState;
 
@@ -55,7 +61,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     public Vector3 Velocity => Controller.Velocity;
     public CharacterMovementStatsSO Movement;
-    private bool IsVulnarable;
+    private bool IsVulnarable = true;
 
     public event Action<IState, IState> StateChanged;
     public event Action Hit;
@@ -63,31 +69,42 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     public bool IsGrounded => Controller.IsGrounded;
 
     public int FacingDirection { get; private set; }
-    public Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
 
-    public bool CanTakeHit => !IsVulnarable; //TODO: 
+    public bool CanTakeHit => !IsVulnarable;
     public float DefaultAttackAnimationDuration = 0.4f;
     private float m_AttackAnimationLength = 0.0f;
-    public float EnemyCollisionRadius = 0.4f;
-    public float EnemyCollisionCooldown = 1.0f;
-    private ActionTimer m_EnemyCollisionTimer;
-    private bool m_CanCollideWithEnemy = true;
+    private ActionTimer m_StunnedCooldownTimer;
+    private float m_StunCooldownDuration = 1.5f;
+    private float m_StunDuration = 0.5f;
+    private bool m_CanGetStunned = false;
+    private bool IsImmuneToStun = false;
+
+    private List<ActionTimer> m_Timers;
+
     private void Awake()
     {
+
         Input = Resources.Load<InputReader>("Input/InputReader");
         Controller = GetComponent<CharacterController2D>();
-        Animator = new AnimatorWrapper(GetComponentInChildren<Animator>());
         AnimationEvents = GetComponentInChildren<PlayerAnimationEvents>();
-
         m_AnimationHandler = GetComponent<PlayerAnimation>();
 
-        m_EnemyCollisionTimer = new ActionTimer();
-        m_EnemyCollisionTimer.Start(EnemyCollisionCooldown);
-        m_EnemyCollisionTimer.SetCallback(() => m_CanCollideWithEnemy = true);
+        m_StunnedCooldownTimer = new ActionTimer();
+        m_StunnedCooldownTimer.SetDuration(m_StunCooldownDuration);
+        m_StunnedCooldownTimer.SetFinishedCallback(() => m_CanGetStunned = true);
+        m_StunnedCooldownTimer.SetStartedCallback(() => m_CanGetStunned = false);
+
+        m_Timers = new List<ActionTimer>
+        {
+            m_StunnedCooldownTimer,
+        };
+
+        InitializeStates();
     }
 
     private void Start()
     {
+
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
 
         Controller.ApplyGravity = true;
@@ -97,8 +114,6 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void OnEnable()
     {
-        InitializeStates();
-
         Input.ListenEvents(this);
 
         StateMachine.StateChangedEvent += OnStateChanged;
@@ -119,12 +134,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     public void Update()
     {
         StateMachine.Update();
-        m_EnemyCollisionTimer.Tick();
-    }
-
-    public void LateUpdate()
-    {
-        Animator.Update();
+        m_Timers.ForEach(timer => timer.Tick());
     }
 
     public void Flip(int direction)
@@ -152,6 +162,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     protected void InitializeStates()
     {
+        if (m_Initialized)
+            return;
 
         if (m_AnimationHandler != null)
         {
@@ -166,7 +178,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         }
 
         AnyState = new PlayerAnyState(this);
-        StunnedState = new PlayerStunnedState(this, 2.0f);
+        StunnedState = new PlayerStunnedState(this, 0.5f);
         DeadState = new PlayerDeadState(this);
         IdleState = new PlayerIdleState(this);
         WalkState = new PlayerWalkState(this);
@@ -175,14 +187,12 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         AttackState = new PlayerAttackState(this, m_AttackAnimationLength);
         ThrowState = new PlayerThrowState(this);
 
-
         StateMachine = new StateMachine<PlayerBaseState, Trigger>(IdleState);
 
         StateMachine.Configure(AnyState)
             .IgnoreIf(Trigger.Die, () => !IsVulnarable)
             .Permit(Trigger.Die, DeadState)
-            .PermitIf(Trigger.Stun, StunnedState, () => !StunnedState.IsStunned)
-            .TriggerIf(Trigger.Stun, () => CollidesWithEnemy());
+            .PermitIf(Trigger.Stun, StunnedState, () => m_CanGetStunned && !StunnedState.IsStunned && !IsImmuneToStun);
 
         StateMachine.Configure(StunnedState)
             .SubstateOf(AnyState)
@@ -227,14 +237,13 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             .Permit(Trigger.Walk, WalkState)
             .Permit(Trigger.Air, AirState)
             .TriggerIf(Trigger.Idle, () => AttackState.AttackFinished && PreviousState == IdleState)
-            .TriggerIf(Trigger.Walk, () => AttackState.AttackFinished && PreviousState == WalkState)
-            .TriggerIf(Trigger.Air, () => AttackState.AttackFinished && PreviousState == AirState);
+            .TriggerIf(Trigger.Walk, () => AttackState.AttackFinished && PreviousState == WalkState);
 
         StateMachine.Configure(ThrowState)
             .SubstateOf(AnyState)
             .Permit(Trigger.Idle, IdleState)
             .Permit(Trigger.Walk, WalkState)
-            .Permit(Trigger.Air, AirState) 
+            .Permit(Trigger.Air, AirState)
             .TriggerIf(Trigger.Idle, () => PreviousState == IdleState)
             .TriggerIf(Trigger.Walk, () => PreviousState == WalkState)
             .TriggerIf(Trigger.Air, () => Velocity.y != 0.0f);
@@ -296,18 +305,14 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     public void TakeHit()
     {
-        /*
-        if (StateMachine.State == StunnedState || IsVulnarable)
-        {
-            StateMachine.Fire(Trigger.Die);
+        if (!CanTakeHit || !m_CanGetStunned)
             return;
-        }
 
-        if (!IsVulnarable)
+        if (StateMachine.CanFire(Trigger.Stun))
         {
-            IsVulnarable = true;
             StateMachine.Fire(Trigger.Stun);
-        }*/
+            m_StunnedCooldownTimer.Restart();
+        }
 
         Hit?.Invoke();
         EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
@@ -348,17 +353,15 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             Debug.Log($"Assigning state to {next}");
     }
 
-    private bool CollidesWithEnemy()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!m_CanCollideWithEnemy)
-            return false;
-        m_EnemyCollisionTimer.Restart();
-
-        var colliders = Physics2D.OverlapCircleAll(transform.position, EnemyCollisionRadius, EnemyLayerMask != 0 ? EnemyLayerMask : LayerMask.GetMask("Enemy")).ToList();
-        if (colliders.Any(c => c.TryGetComponent(out Enemy enemy)))
+        if (collision.TryGetComponent(out Enemy enemy))
         {
-            return true;
+            TakeHit();
         }
-        return false;
     }
+
+    protected internal Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
+
+
 }

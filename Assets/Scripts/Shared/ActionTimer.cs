@@ -4,8 +4,8 @@ using UnityEngine;
 [System.Serializable]
 class ActionTimer
 {
-    public bool IsRunning => m_IsRunning;
-    public bool m_IsRunning;
+    public bool IsRunning => m_Running;
+    public bool m_Running;
     public float ElapsedTime => m_ElapsedTime;
 
     private Action m_TimerFinishedCallback;
@@ -13,24 +13,39 @@ class ActionTimer
     private float m_ElapsedTime = 0.0f;
     private float m_Duration = 0.0f;
     private float m_PreviousDuration = 0.0f;
-    private bool m_IsUnscaled = false;
-    private bool m_IsRepeating = false;
+    private bool m_Unscaled = false;
+    private bool m_Repeating = false;
+    private Action m_TimerStartdCallback;
+
     public ActionTimer(Action onTimerFinished, bool repeating, bool unscaled = false)
     {
-        m_IsUnscaled = unscaled;
-        m_IsRepeating = repeating;
-        SetCallback(onTimerFinished);
+        m_Unscaled = unscaled;
+        m_Repeating = repeating;
+        SetFinishedCallback(onTimerFinished);
     }
 
     public ActionTimer(bool repeating = false, bool unscaled = false)
     {
-        m_IsUnscaled = unscaled;
-        m_IsRepeating = repeating;
+        m_Unscaled = unscaled;
+        m_Repeating = repeating;
     }
 
-    public void SetCallback(Action onTimerFinsihed)
+    public void SetFinishedCallback(Action onTimerFinsihed)
     {
         m_TimerFinishedCallback = onTimerFinsihed;
+    }
+
+    public void SetStartedCallback(Action onTimerStarted)
+    {
+        m_TimerStartdCallback = onTimerStarted;
+    }
+
+    public void SetDuration(float duration)
+    {
+        if (m_Running)
+            throw new InvalidOperationException("Cannot set duration while timer is running");
+
+        m_Duration = m_PreviousDuration = duration;
     }
 
     public void Start(float duration)
@@ -40,12 +55,14 @@ class ActionTimer
 
         m_ElapsedTime = 0.0f;
         m_Duration = duration;
-        m_IsRunning = true;
+        m_Running = true;
+
+        m_TimerStartdCallback?.Invoke();
     }
 
     public void Cancel()
     {
-        if (!m_IsRunning)
+        if (!m_Running)
             throw new InvalidOperationException("Timer is not running");
 
         Reset();
@@ -64,18 +81,21 @@ class ActionTimer
 
     public void Tick()
     {
-        if (m_IsRunning)
+        if (m_Running)
         {   
-            m_ElapsedTime += m_IsUnscaled ? Time.unscaledDeltaTime : Time.deltaTime;
+            m_ElapsedTime += m_Unscaled ? Time.unscaledDeltaTime : Time.deltaTime;
 
             if (m_ElapsedTime >= m_Duration)
             {
-                Reset();
-
                 m_TimerFinishedCallback?.Invoke();
-                if (m_IsRepeating)
+
+                if (m_Repeating)
                 {
-                    Start(m_PreviousDuration);
+                    Restart();
+                }
+                else
+                {
+                    Reset();
                 }
             }
         }
@@ -84,7 +104,7 @@ class ActionTimer
     private void Reset()
     {
         m_ElapsedTime = 0.0f;
-        m_IsRunning = false;
+        m_Running = false;
 
         m_PreviousDuration = m_Duration != 0.0f ? m_Duration : m_PreviousDuration;
         m_Duration = 0.0f;
