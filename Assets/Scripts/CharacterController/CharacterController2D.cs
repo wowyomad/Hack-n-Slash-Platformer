@@ -10,6 +10,9 @@ public class CharacterController2D : RaycastController
     [SerializeField] protected bool m_IsFacingWallRight;
     [SerializeField] protected bool m_IsPassingThrough;
     [SerializeField] protected bool m_CanPasstTransparentGround;
+
+    private bool m_StartedPassingThrough;
+
     public bool IsFacingWallLeft => m_IsFacingWallLeft;
     public bool IsFacingWallRight => m_IsFacingWallRight;
     public bool IsGrounded => m_Grounded;//Hack to make 'Descending' state count as Grounded. TODO: Be better.
@@ -49,6 +52,7 @@ public class CharacterController2D : RaycastController
         if (CanPassTransparentGround)
         {
             m_IsPassingThrough = true;
+            m_StartedPassingThrough = false;
         }
     }
 
@@ -68,7 +72,7 @@ public class CharacterController2D : RaycastController
             Velocity.y += Gravity * Time.deltaTime;
             Velocity.y = Mathf.Max(Velocity.y, MaxGravityVelocity);
         }
-        
+
         Displacement += Velocity * Time.deltaTime;
 
         if (Mathf.Abs(Displacement.x) >= EPSILON)
@@ -170,7 +174,7 @@ public class CharacterController2D : RaycastController
 
             Debug.DrawRay(origin, Vector2.up * yDirection * rayLength, Color.green);
 
-            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up * yDirection, rayLength, GetCollisionMask(yDirection));
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up * yDirection, rayLength, GetVerticalCollisionMask(yDirection));
             if (hit)
             {
                 Displacement.y = (hit.distance - SkinWidth) * yDirection;
@@ -210,14 +214,26 @@ public class CharacterController2D : RaycastController
             }
         }
 
+        if (m_Collisions.ClimbingSlope)
+        {
+            m_IsPassingThrough = true;
+        }
+
         if (m_IsPassingThrough)
         {
             Bounds bounds = m_Collider.bounds;
             bounds.Expand(-SkinWidth * 2.0f);
-            Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(bounds.center, bounds.size, 0, TransparentGroundMask);
-            if (overlappingColliders.Length == 0)
+            Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(bounds.center, bounds.size * 0.95f, 0, TransparentGroundMask);
+            if (m_StartedPassingThrough)
             {
-                m_IsPassingThrough = false;
+                if (overlappingColliders.Length == 0)
+                {
+                    m_IsPassingThrough = false;
+                }
+            }
+            else if (overlappingColliders.Length > 0)
+            {
+                m_StartedPassingThrough = true;
             }
         }
     }
@@ -251,7 +267,7 @@ public class CharacterController2D : RaycastController
         return (left, right);
     }
 
-    private LayerMask GetCollisionMask(int yDirection)
+    private LayerMask GetVerticalCollisionMask(int yDirection)
     {
         if (yDirection == -1 && !m_IsPassingThrough)
         {
@@ -287,7 +303,7 @@ public class CharacterController2D : RaycastController
         for (int i = 0; i < VerticalRayCount; i++)
         {
             Vector2 origin = m_RaycastOrigins.BottomLeft + Vector2.right * (VerticalRaySpacing * i + Displacement.x);
-            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, rayLength, GetCollisionMask(-1));
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, rayLength, GetVerticalCollisionMask(-1));
             Debug.DrawRay(origin, Vector2.down * rayLength, Color.yellow);
             if (hit)
             {

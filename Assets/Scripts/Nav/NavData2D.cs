@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -5,7 +6,6 @@ using UnityEngine.Tilemaps;
 
 namespace Nav2D
 {
-
     public class NavData2D : MonoBehaviour
     {
         private void Update()
@@ -62,15 +62,9 @@ namespace Nav2D
         [SerializeField] private bool m_DrawGizmos = true;
 
         [Header("Slope Settings")]
-        [Tooltip("Maximum slope angle (in degrees) your AI can walk")]
-        [SerializeField] private float m_MaxWalkableSlopeAngle = 45f;
-        [Tooltip("Minimum slope angle (in degrees) to consider as a slope nav‐point")]
+        [SerializeField] private float m_MaxWalkableSlopeAngle = 60f;
         [SerializeField] private float m_MinSlopeAngle = 1f;
-        // small offset to avoid self‐hits
         private float RaycastSkin => VERY_SMALL_FLOAT;
-
-        // compute ground‐normal threshold from max walkable angle
-        private float GroundNormalThreshold => Mathf.Cos(m_MaxWalkableSlopeAngle * Mathf.Deg2Rad);
 
         public static readonly float VERY_SMALL_FLOAT = 0.005f;
         private const float GROUND_NORMAL_THRESHOLD = 0.5f; //cos 60
@@ -305,7 +299,7 @@ namespace Nav2D
 
 
 
-        public NavPoint GetClosestNavPoint(Vector2 intent)
+        public NavPoint GetClosestNavPoint(Vector2 intent, bool ignoreTransparent = false)
         {
             Vector2 target = intent;
             {
@@ -315,6 +309,8 @@ namespace Nav2D
                         target.y = (float)cell.Transparent.CellPos.y - 0.01f;
                 }
             }
+
+            LayerMask collisionMaask = ignoreTransparent ? m_GroundLayerMask : m_GroundLayerMask | m_TransparentLayerMask;
 
             Vector2 closestPoint = target;
             float closestDistanceToTarget = float.MaxValue;
@@ -332,7 +328,7 @@ namespace Nav2D
                 surfaceNormal = mainHit.normal;
             }
 
-            if (m_NumberOfRays > 1)
+            if (false && m_NumberOfRays > 1)
             {
                 Vector2 perp = new Vector2(-surfaceNormal.y, surfaceNormal.x);
 
@@ -501,17 +497,15 @@ namespace Nav2D
                             bool hitIsOnTransparentLayerByClearance = (m_TransparentLayerMask.value & (1 << clearanceHit.collider.gameObject.layer)) != 0;
                             if (isCategorizedAsSlope && hitIsOnTransparentLayerByClearance)
                             {
-                                // Slope under transparent is allowed
+                                // Slope under transparent is ok
                             }
                             else if (!isCategorizedAsSlope && hitIsOnTransparentLayerByClearance && (baseType & NavPoint.Type.Transparent) != 0)
                             {
-                                // If this is a transparent platform, and clearance hits another transparent platform, it's still fine.
-                                // (e.g. multi-level transparent platforms) - this case might need more thought
-                                // For now, if it's not a slope, any clearance hit is a block, unless it's a slope under transparent.
+                                //not sure
                             }
                             else
                             {
-                                // Blocked by ground, or by transparent if not a slope under transparent.
+                                
                                 continue;
                             }
                         }
@@ -529,9 +523,6 @@ namespace Nav2D
                             navPoint.TypeMask |= NavPoint.Type.Slope;
                         }
 
-                        // Edge detection logic (similar to your previous code)
-                        // An edge exists if the adjacent cells (laterally and diagonally up) are empty.
-                        // Slopes are not considered edges for jump/fall purposes in this context.
                         if (!isCategorizedAsSlope)
                         {
                             bool isLeftEdge = !HasTileInAnyLayer(cellPos + Vector3Int.left) &&
@@ -618,10 +609,8 @@ namespace Nav2D
         {
             var cell = m_NavCells[navPoint.CellPos];
             bool hasGorundTile = cell.Ground != null;
-            bool hasTransparentTile = cell.Transparent != null;
-            if (navPoint.HasFlag(NavPoint.Type.Slope)) return; // Slopes handle their own connections via ConnectSlopes
+            if (navPoint.HasFlag(NavPoint.Type.Slope)) return;
 
-            // Connect to adjacent flat surfaces (horizontally)
             Vector3Int[] horizontalOffsets = { Vector3Int.left, Vector3Int.right };
 
             foreach (var offset in horizontalOffsets)
@@ -703,14 +692,12 @@ namespace Nav2D
 
             foreach (var offset in diagonalSlopeOffsets)
             {
-                //TODO: the edge check is wrong, fix it.
                 Vector3Int neighborPos = navPoint.CellPos + offset;
                 if (m_NavCells.TryGetValue(neighborPos, out NavCell neighborCell1) &&
                     neighborCell1.Ground != null && neighborCell1.Ground.HasFlag(NavPoint.Type.Slope) &&
                     !neighborCell1.Ground.HasFlag(NavPoint.Type.Edge))
                 {
 
-                    //Check the normal of the slope. It should be in the direction of of the navpoint.
                     Vector2 slopeNormalDirection = neighborCell1.Ground.Normal;
 
                     if (slopeNormalDirection.x < -VERY_SMALL_FLOAT)
@@ -962,7 +949,28 @@ namespace Nav2D
 
         private void ConnectTransparentFallBelow(NavPoint navPoint)
         {
-            return;
+            if (!navPoint.TypeMask.HasFlag(NavPoint.Type.Transparent))
+            {
+                return;
+            }
+
+            var cell = m_NavCells[navPoint.CellPos];
+            if (cell.Ground != null)
+            {
+                if (cell.Ground.HasFlag(NavPoint.Type.Slope))
+                {
+                    navPoint.Connections.Add(new Connection
+                    {
+                        Point = cell.Ground,
+                        Type = ConnectionType.TransparentFall,
+                        Weight = m_NavWeights.TransparentFallWeight
+                    });
+                    return;
+                }
+            }
+
+
+            //old implementation for future reference
             if (!navPoint.TypeMask.HasFlag(NavPoint.Type.Transparent)) return;
 
             Vector2 cellPosition = new Vector3(navPoint.CellPos.x + m_TileAnchor.x, navPoint.CellPos.y + m_TileAnchor.y, navPoint.CellPos.z);
@@ -1090,33 +1098,14 @@ namespace Nav2D
             }
             return null;
         }
-
-        private bool IsSlopeAtCell(Vector3Int cellPos)
-        {
-            return false;
-        }
-
         private void SerializeNavPoints()
         {
-            return;
-            //m_SerializedNavPoints.Clear();
-            //foreach (var kvp in m_NavCells)
-            //{
-            //    m_SerializedNavPoints.Add(new NavPointEntry { Key = kvp.Key, Value = kvp.Value });
-            //}
+            throw new NotImplementedException("SerializeNavPoints is not implemented.");
         }
 
         private void DeserializeNavPoints()
         {
-            return;
-            //if (m_SerializedNavPoints.Count > 0)
-            //{
-            //    m_NavPointLookup.Clear();
-            //    foreach (var entry in m_SerializedNavPoints)
-            //    {
-            //        m_NavPointLookup[entry.Key] = entry.Value;
-            //    }
-            //}
+            throw new NotImplementedException("DeserializeNavPoints is not implemented.");
         }
 
         private bool IsJumpPathClear(Vector2 from, Vector2 to)
@@ -1227,16 +1216,16 @@ namespace Nav2D
         }
 
 
-        [System.Serializable]
+        [Serializable]
         public class NavPoint
         {
             public Vector3Int CellPos;
             public Vector2 Position;
-            public Vector2 Normal; // <–– new!
+            public Vector2 Normal;
             public Type TypeMask;
             [SerializeReference] public List<Connection> Connections = new();
 
-            [System.Flags]
+            [Flags]
             public enum Type : uint
             {
                 None = 0,
@@ -1253,7 +1242,7 @@ namespace Nav2D
                 return (TypeMask & flag) == flag;
             }
         }
-        [System.Serializable]
+        [Serializable]
         public class Connection
         {
             public NavPoint Point;
@@ -1263,29 +1252,21 @@ namespace Nav2D
 
         public enum ConnectionType
         {
-            None,
-            Surface,
-            Jump,
-            Fall,
-            TransparentJump,
-            TransparentFall,
-            Slope,
+            None = 0,
+            Surface = 1 << 1,
+            Jump = 1 << 2,
+            TransparentJump = 1 << 3,
+            Fall = 1 << 4,
+            TransparentFall = 1 << 5,
+            Slope = 1 << 6,
         }
 
 
-        [System.Serializable]
+        [Serializable]
         public class NavPointEntry
         {
             public Vector3Int Key;
             public NavPoint Value;
-        }
-
-
-        public enum TileType
-        {
-            None,
-            Ground,
-            Transparent
         }
     }
 

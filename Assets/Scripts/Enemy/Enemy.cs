@@ -74,7 +74,7 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     private void OnValidate()
     {
-        if (m_UpdateDistanceInterval <0.0f)
+        if (m_UpdateDistanceInterval < 0.0f)
         {
             m_UpdateDistanceInterval = 0.2f;
         }
@@ -97,8 +97,8 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
         {
             m_SeenPlayer = true;
             m_LastPlayerPosition = PlayerReference.transform.position;
-        }           
-        
+        }
+
 
         Flip(Controller.LastDisplacement.x);
     }
@@ -107,15 +107,24 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
     {
         if (!Controller.IsGrounded) return;
 
-        if (CanSeePlayer || DistanceToPlayer <= CanFeelPlayerDistance)
+        if (AlwaysFollowPlayer)
         {
             Agent.SetDestination(PlayerReference.transform.position);
-            m_LastPlayerPosition = PlayerReference.transform.position;
         }
-        else if (m_SeenPlayer && Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
+        else
         {
-            Agent.SetDestination(m_LastPlayerPosition);
+            if (CanSeePlayer || DistanceToPlayer <= CanFeelPlayerDistance)
+            {
+                Agent.SetDestination(PlayerReference.transform.position);
+                m_LastPlayerPosition = PlayerReference.transform.position;
+            }
+            else if (m_SeenPlayer && Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
+            {
+                Agent.SetDestination(m_LastPlayerPosition);
+            }
         }
+
+
     }
 
     public void TakeDamage(float value, Vector2 normal)
@@ -154,7 +163,12 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
 
     private bool IsPlayerOnSight()
     {
-        int layerMask = LayerMask.GetMask("Ground") | LayerMask.GetMask("TransparentGround");
+        int layerMask = LayerMask.GetMask("Ground");
+        if (!Agent.IsInsideTransparentGround())
+        {
+            layerMask |=  LayerMask.GetMask("TransparentGround");
+        }
+         
 
         Vector3 direction = DirectionToPlayer;
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, DistanceToPlayer, layerMask);

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Mono.Cecil;
 using Nav;
 using Nav2D;
+using NUnit.Framework.Constraints;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
@@ -13,6 +16,9 @@ public class NavAgent2D : MonoBehaviour
     [SerializeField] private NavData2D m_NavData;
     [SerializeField] private NavActorSO m_NavActor;
 
+    [Header("Pathfinding")]
+    public bool IsAsync = false;
+    public bool DontChangePathWhileSloping = true;
     private float m_StuckCheckTimer = 0.0f;
     private Vector3 m_LastPosition;
     [SerializeField] private float m_StuckCheckInterval = 0.5f;
@@ -32,20 +38,17 @@ public class NavAgent2D : MonoBehaviour
     private bool m_NewPathReady = false;
     private object m_PathLock = new object();
 
-    [Header("Jump State (Debug)")]
-    [SerializeField] private float m_JumpTargetY; // Y of the target NavPoint of the current jump
-    [SerializeField] private float m_JumpStartY;  // Y of the agent when the current jump started
-    [SerializeField] private bool m_IsJumpingUpShort; // True if current jump is short and target is higher
-
     static private readonly float REACH_THRESHOLD = 0.005f;
 
     private bool m_ShortJump = false;
     [SerializeField] private bool m_PassingThrough;
-    [SerializeField] private bool m_HasEneteredTransparentGround = false;
+    [SerializeField] private bool m_HasEnteredTransparentGround = false;
+    [SerializeField] private bool m_HasJumped = false;
 
     public AgentState State => m_State;
     public bool IsJumping => m_State == AgentState.Jumping;
-    public bool IsFollowing => m_State >= AgentState.Moving;
+    public bool IsMoving => m_State == AgentState.Moving;
+    public bool IsFollowing => m_State != AgentState.None && m_State != AgentState.Stopped;
     public bool IsPathReady => !m_PathPending;
     public Vector3? CurrentPathTarget => (IsPathReady && m_Path != null && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
 
@@ -60,22 +63,55 @@ public class NavAgent2D : MonoBehaviour
 
     private void ResetTemps()
     {
+
         m_PassingThrough = false;
-        m_HasEneteredTransparentGround = false;
+        m_HasEnteredTransparentGround = false;
+        m_HasJumped = false;
     }
+
+    public bool IsInsideTransparentGround()
+    {
+        if (m_NavData.GetCell(transform.position, out var cell, false))
+        {
+            return cell.Transparent != null;
+        }
+        return false;
+    }
+
     public void SetDestination(Vector2 target)
+    {
+        if (DontChangePathWhileSloping && (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope))
+        {
+            return;
+        }
+
+        if (IsAsync)
+        {
+            SetDestinationAsyncInternal(target);
+        }
+        else
+        {
+            SetDestinationMainInternal(target);
+        }
+    }
+
+    public void SetDestinationMainInternal(Vector2 target)
     {
         if (m_PassingThrough) return;
 
         if (m_NavData == null)
             throw new NullReferenceException("NavData2D is not assigned");
 
-        m_Target = target;
         m_NavData.GetPath(transform.position, target, m_Path);
-        ApplyNewPath(m_Path);
+        if (m_Path != null && m_Path.Count > 0)
+        {
+            ApplyNewPath(m_Path);
+            AdjustCurrentPathIndexForAgentPosition();
+        }
+
     }
 
-    public void SetDestinationAsync(Vector2 target)
+    private void SetDestinationAsyncInternal(Vector2 target)
     {
         if (m_PassingThrough) return;
 
@@ -142,6 +178,28 @@ public class NavAgent2D : MonoBehaviour
     private void Update()
     {
         HandleAsyncPathResult();
+
+        if (m_PassingThrough)
+        {
+            if (m_Controller.CanPassTransparentGround)
+            {
+                m_Controller.PassThrough();
+            }
+            if (m_NavData.GetCell(transform.position, out var cell, false))
+            {
+                if (!m_HasEnteredTransparentGround)
+                {
+                    if (cell.Transparent != null)
+                    {
+                        m_HasEnteredTransparentGround = true;
+                    }
+                }
+                else if (cell.Transparent == null || m_Controller.IsGrounded)
+                {
+                    m_PassingThrough = false;
+                }
+            }
+        }
 
         if (!IsFollowing) return;
 
@@ -218,6 +276,7 @@ public class NavAgent2D : MonoBehaviour
         {
             m_State = AgentState.Moving;
             m_Path = newPath;
+            m_Target = m_Path[m_Path.Count - 1].Position;
             m_CurrentPointIndex = 0;
         }
     }
@@ -285,6 +344,19 @@ public class NavAgent2D : MonoBehaviour
     {
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count) return;
 
+        if (m_HasJumped)
+        {
+            if (m_Controller.IsGrounded)
+            {
+                GoNext();
+                return;
+            }
+        }
+        else
+        {
+            m_HasJumped = true;
+        }
+
         float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
         float horizontalDistance = Mathf.Abs(m_Path[m_CurrentPointIndex].Position.x - transform.position.x);
 
@@ -312,28 +384,6 @@ public class NavAgent2D : MonoBehaviour
     private void HandleWalking()
     {
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count) return;
-
-        if (m_PassingThrough)
-        {
-            if (m_Controller.CanPassTransparentGround)
-            {
-                m_Controller.PassThrough();
-            }
-            if (m_NavData.GetCell(transform.position, out var cell, false))
-            {
-                if (!m_HasEneteredTransparentGround)
-                {
-                    if (cell.Transparent != null)
-                    {
-                        m_HasEneteredTransparentGround = true;
-                    }
-                }
-                else if (cell.Transparent == null)
-                {
-                    m_PassingThrough = false;
-                }
-            }
-        }
 
 
         Vector3 target = m_Path[m_CurrentPointIndex].Position;
@@ -372,7 +422,12 @@ public class NavAgent2D : MonoBehaviour
         {
             if (connection == NavData2D.ConnectionType.Slope)
             {
-                m_PassingThrough = true;
+                float dy = currentPoint.Position.y - previousPoint.Position.y;
+                if (dy < -0.001f)
+                {
+                    m_PassingThrough = true;
+                }
+
             }
             m_State = AgentState.Moving;
         }
@@ -400,6 +455,12 @@ public class NavAgent2D : MonoBehaviour
         if (connection < NavData2D.ConnectionType.Jump || connection > NavData2D.ConnectionType.TransparentFall)
             return;
 
+        if (NavData2D.ConnectionType.TransparentFall == connection)
+        {
+            m_Controller.PassThrough();
+            return;
+        }
+
         float jumpVelocity = m_NavActor.JumpVelocity;
         Vector2 direction = (to.Position - from.Position).normalized;
 
@@ -410,12 +471,8 @@ public class NavAgent2D : MonoBehaviour
         m_ShortJump = jumpHorizontalDistance <= 1.0f + float.Epsilon;
         bool flatJump = from.CellPos.y == to.CellPos.y;
 
-        if (NavData2D.ConnectionType.TransparentFall == connection)
-        {
-            m_Controller.PassThrough();
-            return;
-        }
-        else if (NavData2D.ConnectionType.Fall == connection)
+
+        if (NavData2D.ConnectionType.Fall == connection)
         {
             jumpVelocity /= 4.0f;
         }
@@ -453,5 +510,33 @@ public class NavAgent2D : MonoBehaviour
             return connection.Type;
         }
         return NavData2D.ConnectionType.None;
+    }
+
+    public void ResetPath()
+    {
+        m_Path = null;
+        m_CurrentPointIndex = 0;
+        m_State = AgentState.Stopped;
+        m_PathPending = false;
+        m_NewPathReady = false;
+        m_PassingThrough = false;
+        m_HasEnteredTransparentGround = false;
+    }
+
+    public float DistanceToTarget()
+    {
+        //Calculated distance between agent and the last point in path starting from the current point index
+        if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
+        {
+            return 0.0f;
+        }
+
+        float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
+        for (int i = m_CurrentPointIndex + 1; i < m_Path.Count; i++)
+        {
+            distance += Vector2.Distance(m_Path[i - 1].Position, m_Path[i].Position);
+        }
+        return distance;
+
     }
 }
