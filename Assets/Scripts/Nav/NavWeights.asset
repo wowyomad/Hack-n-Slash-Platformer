@@ -16,7 +16,7 @@ MonoBehaviour:
   JumpWeight: 4
   FallWeight: 4
   TransparentJumpWeight: 25
-  TransparentFallWeight: 8
+  TransparentFallWeight: 25
   SlopeWeight: 1
   SlopeUpMultiplier: 1
   SlopeDownMultiplier: 0.5

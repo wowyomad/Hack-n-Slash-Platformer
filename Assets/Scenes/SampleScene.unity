@@ -5329,7 +5329,8 @@ MonoBehaviour:
   m_CurrentPointIndex: 0
   m_JumpSpeedScale: 1
   m_PassingThrough: 0
-  m_HasEneteredTransparentGround: 0
+  m_HasEnteredTransparentGround: 0
+  m_HasJumped: 0
 --- !u!114 &1420246955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5368,7 +5369,7 @@ MonoBehaviour:
         Name: Waypoints
         m_Value:
         - {fileID: 47991922}
-        - {fileID: 701588947}
+        - {fileID: 1344889421}
 --- !u!1 &1554631063
 GameObject:
   m_ObjectHideFlags: 0
