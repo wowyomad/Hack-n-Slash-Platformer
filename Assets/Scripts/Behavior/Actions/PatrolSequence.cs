@@ -23,13 +23,19 @@ public partial class PatrolSequence : Composite
     {
         Initialize();
 
+        if (m_NavAgent == null)
+        {
+            Debug.LogError("NavAgent is null");
+            return Status.Failure;
+        }
+
         if (Alerted.Value)
         {
             return Status.Failure;
         }
 
         m_NavAgent.SetDestination(Waypoints.Value[m_CurrentWaypointIndex].transform.position);
-        
+
         return Status.Running;
     }
 
@@ -74,8 +80,14 @@ public partial class PatrolSequence : Composite
             return;
 
         m_Initialized = true;
-
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
+
+        Debug.Log($"NavAgent: {Agent.Value.name}");
+        foreach (var component in Agent.Value.GetComponents<MonoBehaviour>())
+        {
+            Debug.Log($"Component: {component.GetType().Name}");
+        }
+
     }
 }
 

@@ -1,3 +1,4 @@
+using TheGame;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -63,8 +64,7 @@ public class PlayerWeapon : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         Debug.Log($"Hit {collision.tag}");
-        IHittable target;
-        if (collision.TryGetComponent<IHittable>(out target))
+        if (collision.TryGetComponent<IHittable>(out var target))
         {
             target.TakeHit();
             //Player.Attack(target);

@@ -103,7 +103,7 @@ public class CharacterController2D : RaycastController
             Velocity.y = 0.0f;
         }
 
-        if (m_Collisions.Left || m_Collisions.Right)
+        if (IsFacingWallLeft || IsFacingWallRight)
         {
             Velocity.x = 0.0f;
         }

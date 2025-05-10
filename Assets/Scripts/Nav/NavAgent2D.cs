@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Mono.Cecil;
 using Nav;
 using Nav2D;
-using NUnit.Framework.Constraints;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
@@ -51,7 +47,7 @@ public class NavAgent2D : MonoBehaviour
     public bool IsFollowing => m_State != AgentState.None && m_State != AgentState.Stopped;
     public bool IsPathReady => !m_PathPending;
     public Vector3? CurrentPathTarget => (IsPathReady && m_Path != null && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
-
+    public Vector2 Velocity { get; private set; }
     public enum AgentState
     {
         None,
@@ -91,11 +87,11 @@ public class NavAgent2D : MonoBehaviour
         }
         else
         {
-            SetDestinationMainInternal(target);
+            SetDestinationInternal(target);
         }
     }
 
-    public void SetDestinationMainInternal(Vector2 target)
+    public void SetDestinationInternal(Vector2 target)
     {
         if (m_PassingThrough) return;
 
@@ -177,8 +173,52 @@ public class NavAgent2D : MonoBehaviour
 
     private void Update()
     {
+        if (m_Controller.LastDisplacement.x > 0)
+        {
+            Velocity = new Vector2(m_NavActor.BaseSpeed, m_Controller.Velocity.y);
+        }
+        else if (m_Controller.LastDisplacement.x < 0)
+        {
+            Velocity = new Vector2(-m_NavActor.BaseSpeed, m_Controller.Velocity.y);
+        }
+        else
+        {
+            Velocity = new Vector2(0, m_Controller.Velocity.y);
+        }
+
         HandleAsyncPathResult();
 
+        if (IsPathInvalid())
+        {
+            m_State = AgentState.Stopped;
+        }
+
+        if (!IsFollowing)
+        {
+            return;
+        }
+
+        if (IsStuck())
+        {
+            RecalculatePath();
+            return;
+        }
+
+        HandlePassingThrough();
+
+
+        if (IsJumping)
+        {
+            HandleJumping();
+        }
+        else if (m_Controller.IsGrounded)
+        {
+            HandleWalking();
+        }
+    }
+
+    private void HandlePassingThrough()
+    {
         if (m_PassingThrough)
         {
             if (m_Controller.CanPassTransparentGround)
@@ -198,49 +238,6 @@ public class NavAgent2D : MonoBehaviour
                 {
                     m_PassingThrough = false;
                 }
-            }
-        }
-
-        if (!IsFollowing) return;
-
-        if (IsPathInvalid())
-        {
-            m_State = AgentState.Stopped;
-            return;
-        }
-
-        if (IsStuck())
-        {
-            RecalculatePath();
-            return;
-        }
-
-        if (IsJumping)
-        {
-            HandleJumping();
-        }
-        else if (m_Controller.IsGrounded)
-        {
-            HandleWalking();
-        }
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (m_Path != null && m_Path.Count > 1)
-        {
-            int startIndex = Mathf.Max(0, m_CurrentPointIndex);
-
-            for (int i = startIndex; i < m_Path.Count - 1; i++)
-            {
-                if (m_Path[i] != null && m_Path[i + 1] != null)
-                    GizmosEx.DrawArrow(m_Path[i].Position, m_Path[i + 1].Position, Color.cyan);
-            }
-
-            if (m_Path != null && m_CurrentPointIndex < m_Path.Count && m_Path[m_CurrentPointIndex] != null)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawSphere(m_Path[m_CurrentPointIndex].Position, 0.3f);
             }
         }
     }
@@ -342,7 +339,10 @@ public class NavAgent2D : MonoBehaviour
 
     private void HandleJumping()
     {
-        if (m_Path == null || m_CurrentPointIndex >= m_Path.Count) return;
+        if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
+        {
+            return;
+        }
 
         if (m_HasJumped)
         {
@@ -525,7 +525,6 @@ public class NavAgent2D : MonoBehaviour
 
     public float DistanceToTarget()
     {
-        //Calculated distance between agent and the last point in path starting from the current point index
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
         {
             return 0.0f;
@@ -537,6 +536,25 @@ public class NavAgent2D : MonoBehaviour
             distance += Vector2.Distance(m_Path[i - 1].Position, m_Path[i].Position);
         }
         return distance;
+    }
 
+    private void OnDrawGizmos()
+    {
+        if (m_Path != null && m_Path.Count > 1)
+        {
+            int startIndex = Mathf.Max(0, m_CurrentPointIndex);
+
+            for (int i = startIndex; i < m_Path.Count - 1; i++)
+            {
+                if (m_Path[i] != null && m_Path[i + 1] != null)
+                    GizmosEx.DrawArrow(m_Path[i].Position, m_Path[i + 1].Position, Color.cyan);
+            }
+
+            if (m_Path != null && m_CurrentPointIndex < m_Path.Count && m_Path[m_CurrentPointIndex] != null)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawSphere(m_Path[m_CurrentPointIndex].Position, 0.3f);
+            }
+        }
     }
 }

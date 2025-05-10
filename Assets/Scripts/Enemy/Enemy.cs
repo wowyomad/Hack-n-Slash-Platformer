@@ -1,151 +1,86 @@
 using System;
 using UnityEngine;
 using Behavior;
+using TheGame;
+using Unity.VisualScripting;
 
 public interface IDestroyable
 {
-    public event Action<IDestroyable> DestroyedEvent;
+    public event Action<IDestroyable> OnDestroy;
 }
 
 
 [RequireComponent(typeof(CharacterController2D))]
-[RequireComponent(typeof(SpriteRenderer))]
-public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
+[RequireComponent(typeof(NavAgent2D))]
+public class Enemy : MonoBehaviour, IHittable
 {
-    public float CanSeePlayerDistance = 8.0f;
-    public float CanFeelPlayerDistance = 5.0f;
-    [SerializeField] private float m_UpdateDistanceInterval = 0.2f;
-
     [HideInInspector] public CharacterController2D Controller;
-    public CharacterMovementStatsSO MovementStats;
-    public EnemyBehaviorConfigSO BehaviorConfig;
-    public TheGame.OldStateMachine<IEnemyState> StateMachine;
-    public NavAgent2D Agent;
-    public BehaviorTree Tree;
+    [HideInInspector] public NavAgent2D NavAgent;
+    [HideInInspector] private Transform m_SpriteTransform;
 
-    public Vector3 Velocity;
+    [Header("Stats")]
+    [SerializeField] private CharacterMovementStatsSO m_MovementStats;
 
-    public GameObject PlayerReference;
-    public Player Player;
-    [HideInInspector]
-    public SpriteRenderer Sprite;
+    [Header("Other")]
 
 
-
-
-
-    public bool CanTakeHit => StateMachine.CurrentState is IEnemyVulnarableState;
-    public float DistanceToPlayer => Vector3.Distance(transform.position, PlayerReference.transform.position);
-    public Vector2 DirectionToPlayer => (PlayerReference.transform.position - transform.position).normalized;
-    public bool IsFacingToPlayer => FacingDirection == (DirectionToPlayer.x > 0.0f ? 1 : -1);
-    public bool CanSeePlayer => IsPlayerOnSight();
-    public bool AlwaysFollowPlayer = false;
+    #region convinience
     public int FacingDirection { get; private set; }
+    #endregion
 
-    private Vector3 m_LastPlayerPosition;
-    private bool m_SeenPlayer = false;
+    #region flags
+    public bool CanTakeHit { get; private set; } = true;
+    #endregion
 
-
-    public event Action<float, Vector2> OnTakeDamage;
-    public event Action Hit;
-    public event Action<IDestroyable> DestroyedEvent;
-
-    private void OnEnable()
-    {
-        Initialize();
-    }
+    #region events
+    public event Action OnHit;
+    #endregion
 
     private void Awake()
     {
-        Agent = GetComponent<NavAgent2D>();
+        NavAgent = GetComponent<NavAgent2D>();
         Controller = GetComponent<CharacterController2D>();
-        PlayerReference = GameObject.FindWithTag("Player");
-        Player = PlayerReference.GetComponent<Player>();
-        Sprite = GetComponent<SpriteRenderer>();
+
+        Initialize();
     }
 
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
-
-        m_FollowPlayerTimer.SetFinishedCallback(UpdateDestinationToPlayer);
-        m_FollowPlayerTimer.Start(m_UpdateDistanceInterval);
-    }
-
-    private void OnValidate()
-    {
-        if (m_UpdateDistanceInterval < 0.0f)
-        {
-            m_UpdateDistanceInterval = 0.2f;
-        }
-        m_FollowPlayerTimer.Stop();
-        m_FollowPlayerTimer.Start(m_UpdateDistanceInterval);
     }
 
     public void Initialize()
     {
-        Tree = new BehaviorTree();
-    }
-
-    private ActionTimer m_FollowPlayerTimer = new ActionTimer(true, false);
-    private void Update()
-    {
-        Tree.Execute();
-        m_FollowPlayerTimer.Tick();
-
-        if (CanSeePlayer)
+        SpriteRenderer spriteRenderer;
+        if (TryGetComponent(out spriteRenderer))
         {
-            m_SeenPlayer = true;
-            m_LastPlayerPosition = PlayerReference.transform.position;
+            m_SpriteTransform = spriteRenderer.transform;
         }
-
-
-        Flip(Controller.LastDisplacement.x);
-    }
-
-    void UpdateDestinationToPlayer()
-    {
-        if (!Controller.IsGrounded) return;
-
-        if (AlwaysFollowPlayer)
+        else if ((spriteRenderer = GetComponentInChildren<SpriteRenderer>()) != null)
         {
-            Agent.SetDestination(PlayerReference.transform.position);
+            m_SpriteTransform = spriteRenderer.transform;
         }
         else
         {
-            if (CanSeePlayer || DistanceToPlayer <= CanFeelPlayerDistance)
-            {
-                Agent.SetDestination(PlayerReference.transform.position);
-                m_LastPlayerPosition = PlayerReference.transform.position;
-            }
-            else if (m_SeenPlayer && Vector3.Distance(m_LastPlayerPosition, transform.position) > 1.0f)
-            {
-                Agent.SetDestination(m_LastPlayerPosition);
-            }
+            throw new MissingComponentException("No SpriteRenderer found on this object or its children.");
         }
-
-
     }
 
-    public void TakeDamage(float value, Vector2 normal)
+    private void Update()
     {
-        OnTakeDamage?.Invoke(value, normal);
+        Flip(NavAgent.Velocity.x);
     }
-    public void TakeHit()
+
+    public HitResult TakeHit()
     {
         if (CanTakeHit)
         {
-            Hit?.Invoke();
+            OnHit?.Invoke();
             EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent { EnemyPosition = transform.position });
+            return HitResult.Hit;
         }
+        return HitResult.Nothing;
     }
-
-    private void OnDestroy()
-    {
-        DestroyedEvent?.Invoke(this);
-        StateMachine.OnDestroy();
-    }
-
     public void Flip(int direction)
     {
         if (direction == 0)
@@ -159,25 +94,6 @@ public class Enemy : MonoBehaviour, IHittable, IDamageable, IDestroyable
             FacingDirection = -FacingDirection;
             transform.localScale = new Vector3(FacingDirection, 1.0f, 1.0f);
         }
-    }
-
-    private bool IsPlayerOnSight()
-    {
-        int layerMask = LayerMask.GetMask("Ground");
-        if (!Agent.IsInsideTransparentGround())
-        {
-            layerMask |=  LayerMask.GetMask("TransparentGround");
-        }
-         
-
-        Vector3 direction = DirectionToPlayer;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, DistanceToPlayer, layerMask);
-
-        Color rayColor = hit.collider != null ? Color.red : Color.green;
-        Debug.DrawRay(transform.position, direction * DistanceToPlayer, rayColor);
-
-
-        return hit.collider == null;
     }
 
     public void Flip(float direction)

@@ -1,8 +1,19 @@
 using System;
 
-public interface IHittable
+namespace TheGame
 {
-    void TakeHit();
-    bool CanTakeHit { get; }
-    event Action Hit;
+    public enum HitResult
+    {
+        Nothing,
+        Hit,
+        Block,
+        Parry
+    }
+
+    public interface IHittable
+    {
+        HitResult TakeHit();
+        event Action OnHit;
+    }
 }
+

@@ -5,6 +5,7 @@ using GameActions;
 using System.Linq;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using NUnit.Framework.Constraints;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
@@ -50,7 +51,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     [HideInInspector] public StateMachine<PlayerBaseState, Trigger> StateMachine;
     private bool m_Initialized = false;
-    
+
     [HideInInspector] public CharacterController2D Controller;
     [HideInInspector] public PlayerAnimationEvents AnimationEvents;
     [HideInInspector] public InputReader Input;
@@ -64,7 +65,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     private bool IsVulnarable = true;
 
     public event Action<IState, IState> StateChanged;
-    public event Action Hit;
+    public event Action OnHit;
 
     public bool IsGrounded => Controller.IsGrounded;
 
@@ -303,19 +304,23 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         }
     }
 
-    public void TakeHit()
+    public HitResult TakeHit()
     {
         if (!CanTakeHit || !m_CanGetStunned)
-            return;
+            return HitResult.Nothing;
 
-        if (StateMachine.CanFire(Trigger.Stun))
+        HitResult hitResult = HitResult.Nothing;
+
+        if (!StateMachine.CanFire(Trigger.Stun))
         {
             StateMachine.Fire(Trigger.Stun);
             m_StunnedCooldownTimer.Restart();
+            hitResult = HitResult.Hit;
         }
 
-        Hit?.Invoke();
+        OnHit?.Invoke();
         EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
+        return hitResult;
     }
 
     [GameAction(ActionType.Jump)]

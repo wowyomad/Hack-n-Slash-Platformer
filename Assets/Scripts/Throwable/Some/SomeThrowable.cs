@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TheGame;
 using UnityEngine;
 using static IThrowable;
 
@@ -15,8 +16,9 @@ public class SomeThrowable : MonoBehaviour, IThrowable
 
     [SerializeField] private ThrowableStats m_Stats;
 
-    private Action m_OnReset => () => GameObject.Destroy(gameObject);
+    private Action m_OnReset => () => Destroy(gameObject);
     private int m_HitCount = 0;
+    public bool HasHitObstacle { get; private set; } = false;
     private HashSet<GameObject> m_HitObjects = new();
     private Vector3 m_TargetPosition;
     public float DistanceToTarget => (m_TargetPosition - transform.position).magnitude;
@@ -38,7 +40,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
 
     private void OnValidate()
     {
-        
+
     }
 
     private void OnEnable()
@@ -65,29 +67,29 @@ public class SomeThrowable : MonoBehaviour, IThrowable
 
     private void Update()
     {
-        if (RemoveOnTargetReached || m_HitCount >= m_Stats.MaximumHits)
+        if (HasHitObstacle || RemoveOnTargetReached || m_HitCount >= m_Stats.MaximumHits)
         {
             Reset();
+            return;
         }
-        else
+
+        Vector2 displacement = m_RigidBody.linearVelocity * Time.fixedDeltaTime;
+        float distanceThisFrame = displacement.magnitude * 0.5f;
+
+        float currentDistance = DistanceToTarget;
+        if (currentDistance < m_ClosestDistance)
         {
-            Vector2 displacement = m_RigidBody.linearVelocity * Time.fixedDeltaTime;
-            float distanceThisFrame = displacement.magnitude * 0.5f;
-
-            float currentDistance = DistanceToTarget;
-            if (currentDistance < m_ClosestDistance)
-            {
-                m_ClosestDistance = currentDistance;
-            }
-
-            if (!m_HasReachedTarget && currentDistance > m_ClosestDistance)
-            {
-                m_HasReachedTarget = true;
-            }
-
-            RotateInDirection(m_RigidBody.linearVelocity);
-            HandleCollision(distanceThisFrame, displacement);
+            m_ClosestDistance = currentDistance;
         }
+
+        if (!m_HasReachedTarget && currentDistance > m_ClosestDistance)
+        {
+            m_HasReachedTarget = true;
+        }
+
+        RotateInDirection(m_RigidBody.linearVelocity);
+        HandleCollision(distanceThisFrame, displacement);
+    
         if (m_HasReachedTarget)
         {
             m_HasReachedTargetTimer += Time.deltaTime;
@@ -95,98 +97,88 @@ public class SomeThrowable : MonoBehaviour, IThrowable
     }
 
     private void RotateInDirection(Vector2 direction)
+{
+    if (direction != Vector2.zero)
     {
-        if (direction != Vector2.zero)
-        {
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            m_RigidBody.rotation = angle;
-        }
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        m_RigidBody.rotation = angle;
     }
+}
 
-    private void HandleCollision(float distance, Vector2 displacement)
+private void HandleCollision(float distance, Vector2 displacement)
+{
+    float angle = m_RigidBody.rotation;
+    RaycastHit2D[] hits = Physics2D.BoxCastAll(transform.position, m_Collider.size * 0.1f, 0.0f, m_RigidBody.linearVelocity.normalized, distance, m_Stats.HitLayer);
+    foreach (var hit in hits)
     {
-        bool hasHitObstacle = false;
-        float angle = m_RigidBody.rotation;
-        RaycastHit2D[] hits = Physics2D.BoxCastAll(transform.position, m_Collider.size * 0.1f, 0.0f, m_RigidBody.linearVelocity.normalized, distance, m_Stats.HitLayer);
-        foreach (var hit in hits)
+        if (hit.collider != null && !m_HitObjects.Contains(hit.collider.gameObject))
         {
-            if (hit.collider != null && !m_HitObjects.Contains(hit.collider.gameObject))
+            m_HitObjects.Add(hit.collider.gameObject);
+            if (hit.collider.TryGetComponent<IHittable>(out var target))
             {
-                m_HitObjects.Add(hit.collider.gameObject);
-                if (CanHitTarget(hit.collider))
+                if (m_HitCount < m_Stats.MaximumHits && CanHitTarget(target))
                 {
-                    Impact?.Invoke(hit.collider.gameObject, hit.point, hit.normal);
                     m_HitCount++;
+                    HitResult result = target.TakeHit();
+                    if (result != HitResult.Nothing)
+                    {
+                        Impact?.Invoke(hit.collider.gameObject, hit.point, hit.normal);
+                    }
+
                 }
                 else
                 {
-                    IHittable hittable = hit.collider.GetComponent<IHittable>();
-                    if (hittable == null)
-                    {
-                        hasHitObstacle = true;
-                    }
+                    HasHitObstacle = true;
                 }
             }
-        }
 
-        if (hasHitObstacle)
-        {
-            Reset();
         }
-
     }
+}
 
-    private bool CanHitTarget(Collider2D collider)
+private bool CanHitTarget(IHittable target)
+{
+    if (target is Player)
     {
-        if (m_HitCount >= m_Stats.MaximumHits)
-        {
-            return false;
-        }
-
-        IHittable hittable;
-        if (collider.TryGetComponent(out hittable) && hittable.CanTakeHit)
-        {
-            if (hittable is Player)
-            {
-                return m_Stats.CanHitPlayer;
-            }
-            if (hittable is Enemy)
-            {
-                return m_Stats.CanHitEnemy;
-            }
-        }
-        return false;
+        return m_Stats.CanHitPlayer;
+    }
+    if (target is Enemy)
+    {
+        return m_Stats.CanHitEnemy;
     }
 
-    private void Reset()
-    {
-        m_OnReset?.Invoke();
-    }
+    return false;
+}
 
-    private void SubscribeEffects()
+private void Reset()
+{
+    m_OnReset?.Invoke();
+}
+
+private void SubscribeEffects()
+{
+    var hitEffects = GetComponents<IThrowableImpactEffect>();
+    foreach (var effect in hitEffects)
     {
-        var hitEffects = GetComponents<IThrowableImpactEffect>();
-        foreach (var effect in hitEffects)
-        {
-            Impact += effect.ApplyImpactEffect;
-        }
-        var throwEfects = GetComponents<IThrowableThrownEffect>();
-        foreach (var effect in throwEfects) 
-        {
-            Thrown += effect.ApplyThrowEffect;
-        }
+        Impact += effect.ApplyImpactEffect;
     }
-    private void UnsubscribeEffects()
+    var throwEfects = GetComponents<IThrowableThrownEffect>();
+    foreach (var effect in throwEfects)
     {
-        var effects = GetComponents<IThrowableImpactEffect>();
-        foreach (var effect in effects)
-        {
-            Impact -= effect.ApplyImpactEffect;
-        }
-        var throwEfects = GetComponents<IThrowableThrownEffect>();
-        foreach (var effect in throwEfects)
-        {
-            Thrown -= effect.ApplyThrowEffect;
-        }
+        Thrown += effect.ApplyThrowEffect;
     }
+}
+private void UnsubscribeEffects()
+{
+    var effects = GetComponents<IThrowableImpactEffect>();
+    foreach (var effect in effects)
+    {
+        Impact -= effect.ApplyImpactEffect;
+    }
+    var throwEfects = GetComponents<IThrowableThrownEffect>();
+    foreach (var effect in throwEfects)
+    {
+        Thrown -= effect.ApplyThrowEffect;
+    }
+}
 }
