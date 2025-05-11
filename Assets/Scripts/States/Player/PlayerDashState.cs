@@ -46,7 +46,6 @@ public class PlayerDashState : PlayerBaseState
     public override void OnExit()
     {
         DashFinished = false;
-        m_Controller.Velocity.x = 0f;
         m_Controller.ApplyGravity = true;
     }
 
@@ -59,8 +58,6 @@ public class PlayerDashState : PlayerBaseState
 
         if (DashFinished) return;
 
-
         m_DashTimer.Tick();
-
     }
 }
