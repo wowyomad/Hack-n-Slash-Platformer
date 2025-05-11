@@ -8,24 +8,6 @@ namespace Nav2D
 {
     public class NavData2D : MonoBehaviour
     {
-        private void Update()
-        {
-            var mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            if (Input.GetMouseButtonDown(0))
-            {
-                var navPoint = GetClosestNavPoint(mouse);
-                if (navPoint != null)
-                {
-                    Debug.Log($"NavPoint: {navPoint.CellPos}, TypeMask: {navPoint.TypeMask}, Position: {navPoint.Position}, Normal: {navPoint.Normal}");
-                    for (int i = 0; i < navPoint.Connections.Count; i++)
-                    {
-                        var connection = navPoint.Connections[i];
-                        Debug.Log($"Connection {i}: {connection.Point.CellPos}, Type: {connection.Type}, Weight: {connection.Weight}");
-                    }
-                }
-            }
-        }
-
         [System.Serializable]
         public class NavCell
         {

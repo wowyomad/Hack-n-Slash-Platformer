@@ -30,8 +30,8 @@ public class CharacterStatsSO : ScriptableObject
 
     [Header("Dash")]
     public float DashCooldown = 0.4f;
-    public float DashDistance = 4.0f;
-    public float DashDuration = 0.2f;
+    public float DashSpeed = 20f;
+    public float DashDuration = 0.25f;
 
 
 

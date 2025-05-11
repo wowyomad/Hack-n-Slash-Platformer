@@ -11,6 +11,7 @@ public class PlayerAnimation : MonoBehaviour
     public static readonly int WalkAnimationHash = Animator.StringToHash("Walk");
     public static readonly int RunAnimationHash = Animator.StringToHash("Run");
     public static readonly int AirAnimationHash = Animator.StringToHash("Air");
+    public static readonly int DashAnimationHash = Animator.StringToHash("Dash");
     public static readonly int AttackMeleeAnimationHash = Animator.StringToHash("AttackMelee");
 
     private AnimatorWrapper m_Animator;
@@ -86,6 +87,7 @@ public class PlayerAnimation : MonoBehaviour
         m_Player.OnPlayerThrow += OnThrow;
         m_Player.OnPlayerStunned += OnStun;
         m_Player.OnPlayerDead += OnDie;
+        m_Player.OnPlayerDash += OnDash;
     }
     private void OnDisable()
     {
@@ -96,6 +98,7 @@ public class PlayerAnimation : MonoBehaviour
         m_Player.OnPlayerThrow -= OnThrow;
         m_Player.OnPlayerStunned -= OnStun;
         m_Player.OnPlayerDead -= OnDie;
+        m_Player.OnPlayerDash -= OnDash;
     }
     private void OnIdle()
     {
@@ -124,6 +127,10 @@ public class PlayerAnimation : MonoBehaviour
     private void OnStun()
     {
         m_Animator.CrossFade(IdleAnimationHash, 0.0f);
+    }
+    private void OnDash()
+    {
+        m_Animator.CrossFade(DashAnimationHash, 0.0f);
     }
     private void OnDie()
     {

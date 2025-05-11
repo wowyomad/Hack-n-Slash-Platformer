@@ -6,24 +6,17 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
     public bool AttackFinished { get; private set; } = false;
     private Weapon m_Weapon;
     private CharacterController2D m_Controller;
+    private CharacterStatsSO m_Stats;
 
     private float m_LastAttackTime = 0.0f;
-    public float Impulse;
-    public float ImpulseCooldown;
-    public float SlowdownDuration;
-    public float VelocityThreshold;
-
+   
     private float m_AttackStartTime;
     private float m_InitialAttackVelocityX;
-    public PlayerAttackState(Player player, Weapon weapon, float attackImpulse, float impulseCooldown, float slowdownDuration, float velocityThreshold) : base(player)
+    public PlayerAttackState(Player player) : base(player)
     {
         m_Controller = player.GetComponent<CharacterController2D>();
-        m_Weapon = weapon;
-
-        Impulse = attackImpulse;
-        ImpulseCooldown = impulseCooldown;
-        SlowdownDuration = slowdownDuration;
-        VelocityThreshold = velocityThreshold;
+        m_Stats = player.Stats;
+        m_Weapon = player.WeaponReference;
 
         if (m_Weapon == null)
         {
@@ -40,21 +33,20 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
         Player.TurnToCursor();
         AttackFinished = false;
         m_AttackStartTime = Time.time;
-
         float impulseScale = 1.0f;
-        if (Time.time - m_LastAttackTime < ImpulseCooldown)
+        if (Time.time - m_LastAttackTime < m_Stats.AttackImpulseCooldown)
         {
-            if (ImpulseCooldown > 0)
+            if (m_Stats.AttackImpulseCooldown > 0)
             {
-                impulseScale = Mathf.Clamp01((Time.time - m_LastAttackTime) / ImpulseCooldown);
+                impulseScale = Mathf.Clamp01((Time.time - m_LastAttackTime) / m_Stats.AttackImpulseCooldown);
             }
         }
 
         Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Player.Input.CursorPosition);
         Vector3 direction = (cursorPosition - Camera.main.transform.position).normalized;
 
-        float initialVelocityX = direction.x * Impulse * impulseScale;
-        float initialVelocityY = direction.y * Impulse * impulseScale;
+        float initialVelocityX = direction.x * m_Stats.AttackImpulse * impulseScale;
+        float initialVelocityY = direction.y * m_Stats.AttackImpulse * impulseScale;
 
         m_Controller.Velocity = new Vector2(initialVelocityX, initialVelocityY);
         m_InitialAttackVelocityX = initialVelocityX;
@@ -76,22 +68,22 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
         float elapsedTime = Time.time - m_AttackStartTime;
         float newXVelocity;
 
-        if (SlowdownDuration <= 0f)
+        if (m_Stats.AttackSlowdownDuration <= 0f)
         {
             newXVelocity = 0f;
             AttackFinished = true;
         }
-        else if (elapsedTime >= SlowdownDuration)
+        else if (elapsedTime >= m_Stats.AttackSlowdownDuration)
         {
             newXVelocity = 0f;
             AttackFinished = true;
         }
         else
         {
-            float t = elapsedTime / SlowdownDuration;
+            float t = elapsedTime / m_Stats.AttackSlowdownDuration;
             newXVelocity = Mathf.Lerp(m_InitialAttackVelocityX, 0f, t);
 
-            if (Mathf.Abs(newXVelocity) < VelocityThreshold)
+            if (Mathf.Abs(newXVelocity) < m_Stats.VelocityThreshold)
             {
                 newXVelocity = 0f;
                 AttackFinished = true;

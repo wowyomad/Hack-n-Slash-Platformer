@@ -10,7 +10,7 @@ using System.Linq;
 public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 {
     [Header("Children Components")]
-    [SerializeField] private Weapon m_PlayerWeapon;
+    [SerializeField] public Weapon WeaponReference;
 
     public enum Trigger
     {
@@ -26,16 +26,16 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     }
 
     #region Events
-    public Action OnPlayerWalk;
-    public Action OnPlayerIdle;
-    public Action OnPlayerJump;
-    public Action OnPlayerAir;
-    public Action OnPlayerDash;
-    public Action OnPlayerAttack;
-    public Action OnPlayerThrow;
-    public Action OnPlayerDead;
-    public Action OnPlayerStunned;
-    public Action OnPlayerClimbedDown;
+    public event Action OnPlayerWalk;
+    public event Action OnPlayerIdle;
+    public event Action OnPlayerJump;
+    public event Action OnPlayerAir;
+    public event Action OnPlayerDash;
+    public event Action OnPlayerAttack;
+    public event Action OnPlayerThrow;
+    public event Action OnPlayerDead;
+    public event Action OnPlayerStunned;
+    public event Action OnPlayerClimbedDown;
     #endregion
 
 
@@ -70,8 +70,6 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     protected PlayerBaseState CurrentState => StateMachine.State;
     protected PlayerBaseState PreviousState => StateMachine.PreviousState;
 
-    private PlayerAnimation m_AnimationHandler;
-
     public Vector3 Velocity => Controller.Velocity;
     public CharacterStatsSO Stats;
     private bool IsVulnarable = true;
@@ -96,8 +94,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         Input = Resources.Load<InputReader>("Input/InputReader");
         Controller = GetComponent<CharacterController2D>();
         AnimationEvents = GetComponentInChildren<PlayerAnimationEvents>();
-        m_AnimationHandler = GetComponent<PlayerAnimation>();
-        m_PlayerWeapon = GetComponentInChildren<Weapon>();
+        WeaponReference = GetComponentInChildren<Weapon>();
 
         InitializeFiels();
         SetupTimers();
@@ -139,6 +136,9 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void OnDisable()
     {
+        if(!m_StatesInitialized)
+            return;
+
         Input.StopListening(this);
 
         StateMachine.StateChangedEvent -= OnStateChanged;
@@ -187,8 +187,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         WalkState = new PlayerWalkState(this);
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
-        DashState = new PlayerDashState(this, Stats.DashDistance, Stats.DashDuration, Stats.VelocityThreshold);
-        AttackState = new PlayerAttackState(this, m_PlayerWeapon, Stats.AttackImpulse, Stats.AttackCooldown, Stats.AttackSlowdownDuration, Stats.VelocityThreshold);
+        DashState = new PlayerDashState(this);
+        AttackState = new PlayerAttackState(this);
         ThrowState = new PlayerThrowState(this);
 
         StateMachine = new StateMachine<PlayerBaseState, Trigger>(IdleState);
@@ -229,6 +229,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             .SubstateOf(AnyState)
             .Permit(Trigger.Throw, ThrowState)
             .Permit(Trigger.Air, AirState)
+            .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
             .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
             .TriggerIf(Trigger.Air, () => Controller.Velocity.y <= 0.0f);
 
@@ -245,6 +246,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             .PermitIf(Trigger.Idle, IdleState, () => AttackState.AttackFinished)
             .PermitIf(Trigger.Walk, WalkState, () => AttackState.AttackFinished)
             .PermitIf(Trigger.Air, AirState, () => AttackState.AttackFinished)
+            .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
             .TriggerIf(Trigger.Idle, () => PreviousState == IdleState)
             .TriggerIf(Trigger.Walk, () => PreviousState == WalkState)
             .TriggerIf(Trigger.Air, () => PreviousState == AirState || PreviousState == JumpState);
@@ -396,10 +398,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     {
         if (!m_StatesInitialized) return;
 
-        AttackState.Impulse = Stats.AttackImpulse;
-        AttackState.ImpulseCooldown = Stats.AttackImpulseCooldown;
-        AttackState.SlowdownDuration = Stats.AttackSlowdownDuration;
-        AttackState.VelocityThreshold = Stats.VelocityThreshold;
+
     }
 
     private bool CanFire(Trigger trigger) => StateMachine.CanFire(trigger);

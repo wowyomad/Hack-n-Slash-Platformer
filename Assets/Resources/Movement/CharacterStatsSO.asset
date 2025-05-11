@@ -20,11 +20,11 @@ MonoBehaviour:
   AccelerationTimeGrounded: 0
   DecelerationTimeAirborne: 0.1
   DecelerationTimeGrounded: 0.1
-  AttackCooldown: 0.15
+  AttackCooldown: 0.2
   AttackImpulseCooldown: 0.3
-  AttackImpulse: 35
-  AttackSlowdownDuration: 0.25
-  DashCooldown: 0.3
-  DashDistance: 5
-  DashDuration: 0.15
+  AttackImpulse: 30
+  AttackSlowdownDuration: 0.1
+  DashCooldown: 0.4
+  DashSpeed: 40
+  DashDuration: 0.12
   VelocityThreshold: 0.01
