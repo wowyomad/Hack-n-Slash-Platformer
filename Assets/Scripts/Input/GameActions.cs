@@ -15,6 +15,7 @@ namespace GameActions
         Throw,
         Attack,
         Dash,
+        ClimbDown,
         Run,
         CursorMove,
         Zoom

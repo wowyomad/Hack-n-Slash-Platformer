@@ -60,6 +60,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Climb Down",
+                    "type": "Button",
+                    "id": "6c57249d-0b40-44bf-be5f-ea69deac128c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Dash",
                     "type": "Button",
                     "id": "bbd8adce-c251-4c06-87f3-caddb8f98a7b",
@@ -254,6 +263,17 @@
                     "action": "Zoom",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "134bed69-e7f7-43aa-a38e-f2c8dfb323eb",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Climb Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },

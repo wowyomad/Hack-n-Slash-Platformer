@@ -146,6 +146,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""Climb Down"",
+                    ""type"": ""Button"",
+                    ""id"": ""6c57249d-0b40-44bf-be5f-ea69deac128c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Dash"",
                     ""type"": ""Button"",
                     ""id"": ""bbd8adce-c251-4c06-87f3-caddb8f98a7b"",
@@ -340,6 +349,17 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""action"": ""Zoom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""134bed69-e7f7-43aa-a38e-f2c8dfb323eb"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Climb Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -382,6 +402,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Gameplay_Attack = m_Gameplay.FindAction("Attack", throwIfNotFound: true);
         m_Gameplay_Cursor = m_Gameplay.FindAction("Cursor", throwIfNotFound: true);
         m_Gameplay_Throw = m_Gameplay.FindAction("Throw", throwIfNotFound: true);
+        m_Gameplay_ClimbDown = m_Gameplay.FindAction("Climb Down", throwIfNotFound: true);
         m_Gameplay_Dash = m_Gameplay.FindAction("Dash", throwIfNotFound: true);
         m_Gameplay_Zoom = m_Gameplay.FindAction("Zoom", throwIfNotFound: true);
         // UI
@@ -474,6 +495,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Attack;
     private readonly InputAction m_Gameplay_Cursor;
     private readonly InputAction m_Gameplay_Throw;
+    private readonly InputAction m_Gameplay_ClimbDown;
     private readonly InputAction m_Gameplay_Dash;
     private readonly InputAction m_Gameplay_Zoom;
     /// <summary>
@@ -511,6 +533,10 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Throw".
         /// </summary>
         public InputAction @Throw => m_Wrapper.m_Gameplay_Throw;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/ClimbDown".
+        /// </summary>
+        public InputAction @ClimbDown => m_Wrapper.m_Gameplay_ClimbDown;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Dash".
         /// </summary>
@@ -563,6 +589,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Throw.started += instance.OnThrow;
             @Throw.performed += instance.OnThrow;
             @Throw.canceled += instance.OnThrow;
+            @ClimbDown.started += instance.OnClimbDown;
+            @ClimbDown.performed += instance.OnClimbDown;
+            @ClimbDown.canceled += instance.OnClimbDown;
             @Dash.started += instance.OnDash;
             @Dash.performed += instance.OnDash;
             @Dash.canceled += instance.OnDash;
@@ -598,6 +627,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Throw.started -= instance.OnThrow;
             @Throw.performed -= instance.OnThrow;
             @Throw.canceled -= instance.OnThrow;
+            @ClimbDown.started -= instance.OnClimbDown;
+            @ClimbDown.performed -= instance.OnClimbDown;
+            @ClimbDown.canceled -= instance.OnClimbDown;
             @Dash.started -= instance.OnDash;
             @Dash.performed -= instance.OnDash;
             @Dash.canceled -= instance.OnDash;
@@ -782,6 +814,13 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnThrow(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Climb Down" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnClimbDown(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Dash" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

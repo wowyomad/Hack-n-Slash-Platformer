@@ -173,6 +173,7 @@ namespace Nav2D
 
         public List<NavPoint> GetPath_ThreadSafe(NavPoint startNavPoint, NavPoint endNavPoint, Vector2 from, Vector2 to, List<NavPoint> buffer)
         {
+
             if (startNavPoint == null || endNavPoint == null)
             {
                 Debug.LogWarning($"NavData2D: No path found. Start ({startNavPoint}) or end {endNavPoint} point is null: ");
@@ -420,8 +421,7 @@ namespace Nav2D
 
             Debug.Log($"Generated {m_NavCells.Count} points in {durationStr}s.");
 
-            stopwatch.Reset();
-
+            stopwatch.Restart();
             GenerateConnections();
 
             durationStr = stopwatch.Elapsed.TotalSeconds.ToString("N3");
@@ -1100,11 +1100,13 @@ namespace Nav2D
         }
         private void SerializeNavPoints()
         {
+            return;
             throw new NotImplementedException("SerializeNavPoints is not implemented.");
         }
 
         private void DeserializeNavPoints()
         {
+            return;
             throw new NotImplementedException("DeserializeNavPoints is not implemented.");
         }
 

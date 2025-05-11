@@ -45,6 +45,9 @@ TagManager:
   - name: Game
     uniqueID: 357171673
     locked: 0
+  - name: Prototype
+    uniqueID: 3603512481
+    locked: 0
   m_RenderingLayers:
   - Default
   - Particle

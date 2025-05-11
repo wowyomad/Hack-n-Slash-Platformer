@@ -18,8 +18,6 @@ public class Enemy : MonoBehaviour, IHittable
     [HideInInspector] public NavAgent2D NavAgent;
     [HideInInspector] private Transform m_SpriteTransform;
 
-    [Header("Stats")]
-    [SerializeField] private CharacterMovementStatsSO m_MovementStats;
 
     [Header("Other")]
 

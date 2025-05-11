@@ -78,24 +78,24 @@ public class PlayerAnimation : MonoBehaviour
 
     private void OnEnable()
     {
-        m_Player.PlayerIdleEvent += OnIdle;
-        m_Player.PlayerWalkedEvent += OnWalk;
-        m_Player.PlayerJumpedEvent += OnJump;
-        m_Player.PlayerInAirEvent += OnAir;
-        m_Player.PlayerAttackedEvent += OnAttack;
-        m_Player.PlayerThrewEvent += OnThrow;
-        m_Player.PlayerStunnedEvent += OnStun;
-        m_Player.PlayerDiedEvent += OnDie;
+        m_Player.OnPlayerIdle += OnIdle;
+        m_Player.OnPlayerWalk += OnWalk;
+        m_Player.OnPlayerJump += OnJump;
+        m_Player.OnPlayerAir += OnAir;
+        m_Player.OnPlayerAttack += OnAttack;
+        m_Player.OnPlayerThrow += OnThrow;
+        m_Player.OnPlayerStunned += OnStun;
+        m_Player.OnPlayerDead += OnDie;
     }
     private void OnDisable()
     {
-        m_Player.PlayerIdleEvent -= OnIdle;
-        m_Player.PlayerWalkedEvent -= OnWalk;
-        m_Player.PlayerJumpedEvent -= OnJump;
-        m_Player.PlayerAttackedEvent -= OnAttack;
-        m_Player.PlayerThrewEvent -= OnThrow;
-        m_Player.PlayerStunnedEvent -= OnStun;
-        m_Player.PlayerDiedEvent -= OnDie;
+        m_Player.OnPlayerIdle -= OnIdle;
+        m_Player.OnPlayerWalk -= OnWalk;
+        m_Player.OnPlayerJump -= OnJump;
+        m_Player.OnPlayerAttack -= OnAttack;
+        m_Player.OnPlayerThrow -= OnThrow;
+        m_Player.OnPlayerStunned -= OnStun;
+        m_Player.OnPlayerDead -= OnDie;
     }
     private void OnIdle()
     {
@@ -128,5 +128,24 @@ public class PlayerAnimation : MonoBehaviour
     private void OnDie()
     {
 
+    }
+}
+
+
+public static class AnimatorExtensions
+{
+    public static Dictionary<int, float> GetClipsDurations(this Animator animator, string prefix)
+    {
+        var durations = new Dictionary<int, float>();
+        foreach (var clip in animator.runtimeAnimatorController.animationClips)
+        {
+            if (clip.name.StartsWith(prefix))
+            {
+                string cleanName = clip.name.Replace(prefix, "");
+                int hash = Animator.StringToHash(cleanName);
+                durations[hash] = clip.length;
+            }
+        }
+        return durations;
     }
 }

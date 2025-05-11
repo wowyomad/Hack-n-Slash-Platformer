@@ -10,13 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42a77b2a81b087a499ae80c64182444d, type: 3}
-  m_Name: Player Movemenet Stats
+  m_Name: CharacterStatsSO
   m_EditorClassIdentifier: 
-  m_JumpHeight: 5
-  m_TimeToJumpApex: 0.4
-  m_MaxGravityScale: 1.5
+  HorizontalSpeed: 12
+  m_JumpHeight: 3
+  m_JumpTime: 0.25
+  m_FallTime: 0.2
   AccelerationTimeAirborne: 0.25
-  AccelerationTimeGrounded: 0.1
+  AccelerationTimeGrounded: 0
   DecelerationTimeAirborne: 0.1
   DecelerationTimeGrounded: 0.1
-  HorizontalSpeed: 8
+  AttackCooldown: 0.15
+  AttackImpulseCooldown: 0.3
+  AttackImpulse: 35
+  AttackSlowdownDuration: 0.25
+  DashCooldown: 0.3
+  DashDistance: 5
+  DashDuration: 0.15
+  VelocityThreshold: 0.01

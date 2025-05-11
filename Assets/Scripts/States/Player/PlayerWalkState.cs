@@ -11,13 +11,13 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
 
     public override void OnUpdate()
     {
-        float moveInput = Player.Input.HorizontalMovement;
+        float moveInput = Player.Input.Horizontal;
 
         Player.Flip(moveInput);
 
         //Abomination
 
-        float targetVelocityX = moveInput * Player.Movement.HorizontalSpeed;
+        float targetVelocityX = moveInput * Player.Stats.HorizontalSpeed;
         if (Controller.Collisions.Right)
         {
             targetVelocityX = Mathf.Min(targetVelocityX, 0);
@@ -27,6 +27,6 @@ public class PlayerWalkState : PlayerBaseState, IPlayerVulnarableState
             targetVelocityX = Mathf.Max(targetVelocityX, 0);
         }
 
-        Controller.Velocity.x = Mathf.SmoothDamp(Controller.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Movement.AccelerationTimeGrounded);
+        Controller.Velocity.x = Mathf.SmoothDamp(Controller.Velocity.x, targetVelocityX, ref m_VelocitySmoothing, Player.Stats.AccelerationTimeGrounded);
     }
 }

@@ -14,7 +14,7 @@ public abstract class PlayerBaseState : IPlayerState
     }
 
     public virtual void OnEnter() { }
-    public virtual void OnExit() { }
+    public virtual void OnExit()    { }
     public virtual void OnUpdate() { }
     public virtual void FixedUpdate() { }
 

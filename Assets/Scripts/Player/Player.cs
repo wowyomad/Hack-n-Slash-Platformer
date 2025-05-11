@@ -2,15 +2,15 @@ using System;
 using UnityEngine;
 using TheGame;
 using GameActions;
-using System.Linq;
-using Unity.Mathematics;
 using System.Collections.Generic;
-using NUnit.Framework.Constraints;
+using System.Linq;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
 public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 {
+    [Header("Children Components")]
+    [SerializeField] private Weapon m_PlayerWeapon;
 
     public enum Trigger
     {
@@ -18,6 +18,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         Walk,
         Jump,
         Air,
+        Dash,
         Attack,
         Throw,
         Die,
@@ -25,14 +26,24 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     }
 
     #region Events
-    public Action PlayerWalkedEvent;
-    public Action PlayerIdleEvent;
-    public Action PlayerJumpedEvent;
-    public Action PlayerInAirEvent;
-    public Action PlayerAttackedEvent;
-    public Action PlayerThrewEvent;
-    public Action PlayerDiedEvent;
-    public Action PlayerStunnedEvent;
+    public Action OnPlayerWalk;
+    public Action OnPlayerIdle;
+    public Action OnPlayerJump;
+    public Action OnPlayerAir;
+    public Action OnPlayerDash;
+    public Action OnPlayerAttack;
+    public Action OnPlayerThrow;
+    public Action OnPlayerDead;
+    public Action OnPlayerStunned;
+    public Action OnPlayerClimbedDown;
+    #endregion
+
+
+    #region timers
+    private ActionTimer m_StunnedCooldownTimer;
+    private ActionTimer m_AttackCoodownTimer;
+    private ActionTimer m_DashCooldonwTimer;
+
     #endregion
 
     #region States
@@ -44,13 +55,14 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     protected PlayerJumpState JumpState;
     protected PlayerAirState AirState;
     protected PlayerAttackState AttackState;
+    protected PlayerDashState DashState;
     protected PlayerThrowState ThrowState;
     #endregion
 
     [SerializeField] private LayerMask m_EnemyLayerMask;
 
     [HideInInspector] public StateMachine<PlayerBaseState, Trigger> StateMachine;
-    private bool m_Initialized = false;
+    private bool m_StatesInitialized = false;
 
     [HideInInspector] public CharacterController2D Controller;
     [HideInInspector] public PlayerAnimationEvents AnimationEvents;
@@ -61,7 +73,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     private PlayerAnimation m_AnimationHandler;
 
     public Vector3 Velocity => Controller.Velocity;
-    public CharacterMovementStatsSO Movement;
+    public CharacterStatsSO Stats;
     private bool IsVulnarable = true;
 
     public event Action<IState, IState> StateChanged;
@@ -72,35 +84,35 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     public int FacingDirection { get; private set; }
 
     public bool CanTakeHit => !IsVulnarable;
-    public float DefaultAttackAnimationDuration = 0.4f;
-    private float m_AttackAnimationLength = 0.0f;
-    private ActionTimer m_StunnedCooldownTimer;
     private float m_StunCooldownDuration = 1.5f;
-    private float m_StunDuration = 0.5f;
     private bool m_CanGetStunned = false;
     private bool IsImmuneToStun = false;
+
 
     private List<ActionTimer> m_Timers;
 
     private void Awake()
     {
-
         Input = Resources.Load<InputReader>("Input/InputReader");
         Controller = GetComponent<CharacterController2D>();
         AnimationEvents = GetComponentInChildren<PlayerAnimationEvents>();
         m_AnimationHandler = GetComponent<PlayerAnimation>();
+        m_PlayerWeapon = GetComponentInChildren<Weapon>();
 
-        m_StunnedCooldownTimer = new ActionTimer();
+        InitializeFiels();
+        SetupTimers();
+        SetupStates();
+    }
+
+
+    private void SetupTimers()
+    {
         m_StunnedCooldownTimer.SetDuration(m_StunCooldownDuration);
         m_StunnedCooldownTimer.SetFinishedCallback(() => m_CanGetStunned = true);
         m_StunnedCooldownTimer.SetStartedCallback(() => m_CanGetStunned = false);
 
-        m_Timers = new List<ActionTimer>
-        {
-            m_StunnedCooldownTimer,
-        };
-
-        InitializeStates();
+        m_AttackCoodownTimer.SetDuration(Stats.AttackCooldown);
+        m_DashCooldonwTimer.SetDuration(Stats.DashCooldown);
     }
 
     private void Start()
@@ -109,8 +121,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
 
         Controller.ApplyGravity = true;
-        Controller.Gravity = Movement.Gravity;
-        Controller.MaxGravityVelocity = Movement.MaxGravityVelocity;
+        Controller.Gravity = Stats.Gravity;
+        Controller.MaxGravityVelocity = Stats.MaxGravityVelocity;
     }
 
     private void OnEnable()
@@ -161,22 +173,12 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         Flip(direction.x > 0 ? 1 : -1);
     }
 
-    protected void InitializeStates()
+    protected void SetupStates()
     {
-        if (m_Initialized)
+        if (m_StatesInitialized)
             return;
 
-        if (m_AnimationHandler != null)
-        {
-            if (m_AnimationHandler.GetAnimationDuration(PlayerAnimation.AttackMeleeAnimationHash, out float attackAnimationDuration) > 0.0f)
-            {
-                m_AttackAnimationLength = attackAnimationDuration;
-            }
-            else
-            {
-                m_AttackAnimationLength = DefaultAttackAnimationDuration;
-            }
-        }
+        m_StatesInitialized = true;
 
         AnyState = new PlayerAnyState(this);
         StunnedState = new PlayerStunnedState(this, 0.5f);
@@ -185,7 +187,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         WalkState = new PlayerWalkState(this);
         JumpState = new PlayerJumpState(this);
         AirState = new PlayerAirState(this);
-        AttackState = new PlayerAttackState(this, m_AttackAnimationLength);
+        DashState = new PlayerDashState(this, Stats.DashDistance, Stats.DashDuration, Stats.VelocityThreshold);
+        AttackState = new PlayerAttackState(this, m_PlayerWeapon, Stats.AttackImpulse, Stats.AttackCooldown, Stats.AttackSlowdownDuration, Stats.VelocityThreshold);
         ThrowState = new PlayerThrowState(this);
 
         StateMachine = new StateMachine<PlayerBaseState, Trigger>(IdleState);
@@ -203,42 +206,54 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         StateMachine.Configure(IdleState)
             .SubstateOf(AnyState)
             .Permit(Trigger.Jump, JumpState)
-            .Permit(Trigger.Attack, AttackState)
+            .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
+            .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
             .Permit(Trigger.Throw, ThrowState)
             .Permit(Trigger.Air, AirState)
             .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
             .Permit(Trigger.Walk, WalkState)
-            .TriggerIf(Trigger.Walk, () => Input.HorizontalMovement != 0.0f);
+            .TriggerIf(Trigger.Walk, () => Input.Horizontal != 0.0f);
 
         StateMachine.Configure(WalkState)
             .SubstateOf(AnyState)
             .Permit(Trigger.Jump, JumpState)
-            .Permit(Trigger.Attack, AttackState)
+            .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
+            .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
             .Permit(Trigger.Throw, ThrowState)
             .Permit(Trigger.Air, AirState)
             .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
             .Permit(Trigger.Idle, IdleState)
-            .TriggerIf(Trigger.Idle, () => Input.HorizontalMovement == 0.0f && Controller.IsGrounded);
+            .TriggerIf(Trigger.Idle, () => Input.Horizontal == 0.0f && Controller.IsGrounded);
 
         StateMachine.Configure(JumpState)
             .SubstateOf(AnyState)
             .Permit(Trigger.Throw, ThrowState)
             .Permit(Trigger.Air, AirState)
+            .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
             .TriggerIf(Trigger.Air, () => Controller.Velocity.y <= 0.0f);
 
         StateMachine.Configure(AirState)
             .SubstateOf(AnyState)
             .Permit(Trigger.Throw, ThrowState)
+            .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
             .Permit(Trigger.Idle, IdleState)
+            .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
             .TriggerIf(Trigger.Idle, () => Controller.IsGrounded && Velocity.y == 0.0f);
 
         StateMachine.Configure(AttackState)
             .SubstateOf(AnyState)
-            .Permit(Trigger.Idle, IdleState)
-            .Permit(Trigger.Walk, WalkState)
-            .Permit(Trigger.Air, AirState)
-            .TriggerIf(Trigger.Idle, () => AttackState.AttackFinished && PreviousState == IdleState)
-            .TriggerIf(Trigger.Walk, () => AttackState.AttackFinished && PreviousState == WalkState);
+            .PermitIf(Trigger.Idle, IdleState, () => AttackState.AttackFinished)
+            .PermitIf(Trigger.Walk, WalkState, () => AttackState.AttackFinished)
+            .PermitIf(Trigger.Air, AirState, () => AttackState.AttackFinished)
+            .TriggerIf(Trigger.Idle, () => PreviousState == IdleState)
+            .TriggerIf(Trigger.Walk, () => PreviousState == WalkState)
+            .TriggerIf(Trigger.Air, () => PreviousState == AirState || PreviousState == JumpState);
+
+        StateMachine.Configure(DashState)
+            .PermitIf(Trigger.Air, AirState, () => DashState.DashFinished)
+            .PermitIf(Trigger.Idle, IdleState, () => DashState.DashFinished)
+            .TriggerIf(Trigger.Idle, () => Controller.IsGrounded)
+            .TriggerIf(Trigger.Air, () => !Controller.IsGrounded);
 
         StateMachine.Configure(ThrowState)
             .SubstateOf(AnyState)
@@ -275,32 +290,31 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void InvokeStateChangedEvent(IState previous, IState next)
     {
-        switch (next)
+        string stateName = next.GetType().Name.Replace("State", string.Empty);
+        string eventName = $"On{stateName}";
+
+        var eventField = GetType().GetField(eventName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+        if (eventField != null && eventField.GetValue(this) is Action eventAction)
         {
-            case PlayerIdleState:
-                PlayerIdleEvent?.Invoke();
-                break;
-            case PlayerWalkState:
-                PlayerWalkedEvent?.Invoke();
-                break;
-            case PlayerJumpState:
-                PlayerJumpedEvent?.Invoke();
-                break;
-            case PlayerAirState:
-                PlayerInAirEvent?.Invoke();
-                break;
-            case PlayerAttackState:
-                PlayerAttackedEvent?.Invoke();
-                break;
-            case PlayerThrowState:
-                PlayerThrewEvent?.Invoke();
-                break;
-            case PlayerStunnedState:
-                PlayerStunnedEvent?.Invoke();
-                break;
-            case PlayerDeadState:
-                PlayerDiedEvent?.Invoke();
-                break;
+            eventAction.Invoke();
+        }
+    }
+
+    private void Dash()
+    {
+        if (CanFire(Trigger.Dash))
+        {
+            StateMachine.Fire(Trigger.Dash);
+            m_DashCooldonwTimer.Restart();
+        }
+    }
+
+    private void Attack()
+    {
+        if (CanFire(Trigger.Attack))
+        {
+            Fire(Trigger.Attack);
+            m_AttackCoodownTimer.Restart();
         }
     }
 
@@ -333,8 +347,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     [GameAction(ActionType.Attack)]
     protected void HandleAttackInput()
     {
-        if (StateMachine.CanFire(Trigger.Attack))
-            StateMachine.Fire(Trigger.Attack);
+        Attack();
     }
 
     [GameAction(ActionType.Throw)]
@@ -347,6 +360,13 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     [GameAction(ActionType.Dash)]
     protected void HandleDashInput()
     {
+        Dash();
+    }
+
+
+    [GameAction(ActionType.ClimbDown)]
+    protected void HandleClimbDownInput()
+    {
         Controller.PassThrough();
     }
 
@@ -358,15 +378,49 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             Debug.Log($"Assigning state to {next}");
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    public void TryHitTarget(IHittable target)
     {
-        if (collision.TryGetComponent(out Enemy enemy))
+        var status = target.TakeHit();
+
+        if (target is Enemy enemy)
         {
-            TakeHit();
+            Debug.Log($"Hit {enemy.name} with status {status}");
+        }
+        else
+        {
+            Debug.Log($"Hit unknown target {target} with status {status}");
         }
     }
 
+    private void OnValidate()
+    {
+        if (!m_StatesInitialized) return;
+
+        AttackState.Impulse = Stats.AttackImpulse;
+        AttackState.ImpulseCooldown = Stats.AttackImpulseCooldown;
+        AttackState.SlowdownDuration = Stats.AttackSlowdownDuration;
+        AttackState.VelocityThreshold = Stats.VelocityThreshold;
+    }
+
+    private bool CanFire(Trigger trigger) => StateMachine.CanFire(trigger);
+    private void Fire(Trigger trigger) => StateMachine.Fire(trigger);
+
+    private void InitializeFiels()
+    {
+        var timers = GetType()
+                 .GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                 .Where(field => field.FieldType == typeof(ActionTimer))
+                 .ToList();
+
+        foreach (var field in timers)
+        {
+            var timer = new ActionTimer();
+            field.SetValue(this, timer);
+        }
+
+        m_Timers = timers.Select(field => (ActionTimer)field.GetValue(this)).ToList();
+    }
+
+
     protected internal Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
-
-
 }

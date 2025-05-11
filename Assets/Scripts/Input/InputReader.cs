@@ -19,13 +19,14 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Throw;
     public event Action Pause;
     public event Action Resume;
+    public event Action ClimbDown;
 
     public event Action<Vector2> CursorMove;
 
     public bool IsJumpPressed {  get; private set; }
     public bool IsDashPressed { get; private set; }
 
-    public float HorizontalMovement { get; private set; }
+    public float Horizontal { get; private set; }
     public Vector2 CursorPosition { get; private set; }
 
 
@@ -169,10 +170,10 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     #region interface implementation
     public void OnMove(InputAction.CallbackContext context)
     {
-        HorizontalMovement = context.ReadValue<float>();
-        if (HorizontalMovement != 0.0f)
+        Horizontal = context.ReadValue<float>();
+        if (Horizontal != 0.0f)
         {
-            Move?.Invoke(HorizontalMovement);
+            Move?.Invoke(Horizontal);
         }
     }
 
@@ -204,6 +205,16 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         }
     }
 
+     public void OnClimbDown(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            ClimbDown?.Invoke();
+        }
+    }
+
+
+
     public void OnCursor(InputAction.CallbackContext context)
     {
         CursorPosition = context.ReadValue<Vector2>();
@@ -234,6 +245,5 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
             Zoom?.Invoke(value > 0.0f ? 1.0f : -1.0f);
         }
     }
-
     #endregion
 }

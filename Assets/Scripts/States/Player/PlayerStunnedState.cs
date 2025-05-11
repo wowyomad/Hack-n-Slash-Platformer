@@ -1,5 +1,4 @@
 using UnityEngine;
-
 public class PlayerStunnedState : PlayerBaseState
 {
     private float m_StunDuration;
@@ -34,15 +33,5 @@ public class PlayerStunnedState : PlayerBaseState
     public override void OnExit()
     {
         m_Stunned = false;
-    }
-}
-
-public class PlayerDeadState : PlayerBaseState
-{
-    public PlayerDeadState(Player player) : base(player) { }
-
-    public override void OnEnter()
-    {
-        //Die animation, show death screen.
     }
 }

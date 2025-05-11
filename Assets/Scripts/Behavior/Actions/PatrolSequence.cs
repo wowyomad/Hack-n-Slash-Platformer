@@ -11,12 +11,9 @@ public partial class PatrolSequence : Composite
 {
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<List<GameObject>> Waypoints;
-    [SerializeReference] public BlackboardVariable<float> Proximity = new BlackboardVariable<float>(0.01f);
+    [SerializeReference] public BlackboardVariable<float> Proximity;
     [SerializeReference] public BlackboardVariable<bool> Alerted;
-    [SerializeReference] public Node Port1;
-    [SerializeReference] public Node Port2;
-
-
+    [SerializeReference] public BlackboardVariable<bool> ReversePatrolPoints;
     private NavAgent2D m_NavAgent;
     private int m_CurrentWaypointIndex = 0;
     protected override Status OnStart()
@@ -65,14 +62,23 @@ public partial class PatrolSequence : Composite
 
     private void MoveToNextWaypoint()
     {
+        m_CurrentWaypointIndex++;
+
+
         if (m_CurrentWaypointIndex >= Waypoints.Value.Count)
         {
-            Waypoints.Value.Reverse();
-            m_CurrentWaypointIndex = 0;
+            if (ReversePatrolPoints != null && ReversePatrolPoints.Value)
+            {
+                Waypoints.Value.Reverse();
+                m_CurrentWaypointIndex = 0;
+            }
+            else
+            {
+                m_CurrentWaypointIndex %= Waypoints.Value.Count;
+            }
         }
 
         m_NavAgent.SetDestination(Waypoints.Value[m_CurrentWaypointIndex].transform.position);
-        m_CurrentWaypointIndex++;
     }
     private void Initialize()
     {
