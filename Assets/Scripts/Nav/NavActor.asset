@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4718ee9443993c445b445e91142ed44d, type: 3}
   m_Name: NavActor
   m_EditorClassIdentifier: 
-  BaseSpeed: 12
+  BaseSpeed: 100
   MaxJumpDistance: 5
   MaxJumpHeight: 6
   TimeToJumpApex: 0.4

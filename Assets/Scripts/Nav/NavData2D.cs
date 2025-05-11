@@ -600,6 +600,11 @@ namespace Nav2D
                     {
                         ConnectFalls(transparent);
                     }
+
+                    if (transparent.HasFlag(NavPoint.Type.Slope))
+                    {
+                        ConnectSlopes(transparent);
+                    }
                 }
                 m_NavCells[key] = cell;
             }
