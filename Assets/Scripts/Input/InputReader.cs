@@ -40,8 +40,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public void SetUI()
     {
         m_GameInput.UI.Enable();
-        m_GameInput.Gameplay.Disable();
-        
+        m_GameInput.Gameplay.Disable(); 
     }
 
     public void OnThrow(InputAction.CallbackContext context)

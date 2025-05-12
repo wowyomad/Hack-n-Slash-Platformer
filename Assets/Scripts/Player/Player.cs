@@ -23,6 +23,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         Throw,
         Die,
         Stun,
+        Dead,
     }
 
     #region Events
@@ -136,7 +137,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void OnDisable()
     {
-        if(!m_StatesInitialized)
+        if (!m_StatesInitialized)
             return;
 
         Input.StopListening(this);
@@ -205,6 +206,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
         StateMachine.Configure(IdleState)
             .SubstateOf(AnyState)
+            .Permit(Trigger.Dead, DeadState)
             .Permit(Trigger.Jump, JumpState)
             .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
             .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
@@ -265,6 +267,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             .TriggerIf(Trigger.Idle, () => PreviousState == IdleState)
             .TriggerIf(Trigger.Walk, () => PreviousState == WalkState)
             .TriggerIf(Trigger.Air, () => Velocity.y != 0.0f);
+
+        StateMachine.Configure(DeadState);
     }
 
     public void ThrowKnife()
@@ -369,7 +373,10 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     [GameAction(ActionType.ClimbDown)]
     protected void HandleClimbDownInput()
     {
-        Controller.PassThrough();
+        if (CanFire(Trigger.Dead))
+            StateMachine.Fire(Trigger.Dead);
+        else
+            Controller.PassThrough();
     }
 
     private void LogStateChange(IState previous, IState next)
@@ -419,7 +426,6 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
         m_Timers = timers.Select(field => (ActionTimer)field.GetValue(this)).ToList();
     }
-
 
     protected internal Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
 }
