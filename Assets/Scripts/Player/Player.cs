@@ -212,7 +212,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             .Permit(Trigger.Air, AirState)
             .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
             .Permit(Trigger.Walk, WalkState)
-            .TriggerIf(Trigger.Walk, () => Input.Horizontal != 0.0f);
+            .TriggerIf(Trigger.Walk, () => Input.Horizontal != 0.0f && !WouldMoveIntoWall(Input.Horizontal));
 
         StateMachine.Configure(WalkState)
             .SubstateOf(AnyState)
@@ -223,7 +223,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
             .Permit(Trigger.Air, AirState)
             .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
             .Permit(Trigger.Idle, IdleState)
-            .TriggerIf(Trigger.Idle, () => Input.Horizontal == 0.0f && Controller.IsGrounded);
+            .TriggerIf(Trigger.Idle, () => Input.Horizontal == 0.0f && Controller.IsGrounded || WouldMoveIntoWall(Input.Horizontal));
 
         StateMachine.Configure(JumpState)
             .SubstateOf(AnyState)
@@ -426,5 +426,17 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         m_Timers = timers.Select(field => (ActionTimer)field.GetValue(this)).ToList();
     }
 
+    private bool WouldMoveIntoWall(float direction)
+    {
+        if (direction == 0.0f)
+            return false;
+
+        if (Controller.IsFacingWallLeft && direction < 0.0f)
+            return true;
+        else if (Controller.IsFacingWallRight && direction > 0.0f)
+            return true;
+
+        return false;
+    }
     protected internal Vector3 WorldCursorPosition => Camera.main.ScreenToWorldPoint(Input.CursorPosition);
 }

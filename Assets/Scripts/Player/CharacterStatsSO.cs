@@ -47,6 +47,7 @@ public class CharacterStatsSO : ScriptableObject
     private void OnValidate()
     {
         RecalculateGravity();
+
     }
 
     private void RecalculateGravity()
@@ -63,7 +64,6 @@ public class CharacterStatsSO : ScriptableObject
         JumpVelocity = (2 * m_JumpHeight) / m_JumpTime;
 
         float calculatedTimeToFall = Mathf.Sqrt(2 * m_JumpHeight / Gravity);
-        Debug.Log($"Verified Time to Fall: {calculatedTimeToFall} seconds");
     }
 
 }

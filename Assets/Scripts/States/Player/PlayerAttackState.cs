@@ -5,17 +5,16 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 {
     public bool AttackFinished { get; private set; } = false;
     private Weapon m_Weapon;
-    private CharacterController2D m_Controller;
     private CharacterStatsSO m_Stats;
 
     private float m_LastAttackTime = 0.0f;
+    private Vector2 m_LastAttackDirection = Vector2.zero;
 
     private ActionTimer m_AttackTimer;
     private float m_InitialAttackVelocityX;
 
     public PlayerAttackState(Player player) : base(player)
     {
-        m_Controller = player.GetComponent<CharacterController2D>();
         m_Stats = player.Stats;
         m_Weapon = player.WeaponReference;
 
@@ -26,16 +25,20 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
         {
             Debug.LogError("Weapon component not found on Player children.", player);
         }
-        if (m_Controller == null)
-        {
-            Debug.LogError("CharacterController2D component not found on Player.", player);
-        }
     }
 
     public override void OnEnter()
     {
         Player.TurnToCursor();
+
         float impulseScale = 1.0f;
+
+        //'resets' the cd
+        if (Controller.IsGrounded && Vector2.Dot(m_LastAttackDirection.normalized, Vector2.up) > 0.9f)
+        {
+            m_LastAttackTime = Time.time - m_Stats.AttackImpulseCooldown;
+        }
+
         if (Time.time - m_LastAttackTime < m_Stats.AttackImpulseCooldown)
         {
             if (m_Stats.AttackImpulseCooldown > 0)
@@ -47,17 +50,13 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
         Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Player.Input.CursorPosition);
         Vector3 direction = (cursorPosition - Player.transform.position).normalized;
 
-        // Snap direction to the closest of 8 directions
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        angle = Mathf.Round(angle / 45.0f) * 45.0f;
-        float snappedX = Mathf.Cos(angle * Mathf.Deg2Rad);
-        float snappedY = Mathf.Sin(angle * Mathf.Deg2Rad);
-        direction = new Vector3(snappedX, snappedY, 0).normalized;
+        direction = SnapDirectionTo8(direction);
+        m_LastAttackDirection = direction;
 
         float initialVelocityX = direction.x * m_Stats.AttackImpulse * impulseScale;
         float initialVelocityY = direction.y * m_Stats.AttackImpulse * impulseScale;
 
-        m_Controller.Velocity = new Vector2(initialVelocityX, initialVelocityY);
+        Controller.Velocity = new Vector2(initialVelocityX, initialVelocityY);
         m_InitialAttackVelocityX = initialVelocityX;
 
         m_AttackTimer.Stop();
@@ -65,6 +64,8 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 
         m_Weapon?.Attack(direction);
     }
+
+
 
     public override void OnExit()
     {
@@ -95,6 +96,15 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
             newXVelocity = Mathf.Lerp(m_InitialAttackVelocityX, targetSlowdownVelocityX, t);
         }
 
-        m_Controller.Velocity.x = newXVelocity;
+        Controller.Velocity.x = newXVelocity;
+    }
+
+    private Vector3 SnapDirectionTo8(Vector3 direction)
+    {
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        angle = Mathf.Round(angle / 45.0f) * 45.0f;
+        float snappedX = Mathf.Cos(angle * Mathf.Deg2Rad);
+        float snappedY = Mathf.Sin(angle * Mathf.Deg2Rad);
+        return new Vector3(snappedX, snappedY, 0).normalized;
     }
 }

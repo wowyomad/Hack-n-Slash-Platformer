@@ -23,7 +23,7 @@ MonoBehaviour:
   AttackCooldown: 0.2
   AttackDuration: 0.2
   AttackSlowdownScale: 0.75
-  AttackImpulseCooldown: 0.3
+  AttackImpulseCooldown: 0.4
   AttackImpulse: 25
   DashCooldown: 0.3
   DashSpeed: 25

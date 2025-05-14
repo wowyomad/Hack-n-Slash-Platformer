@@ -42,14 +42,20 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Game
-    uniqueID: 357171673
-    locked: 0
   - name: Prototype
     uniqueID: 3603512481
     locked: 0
   - name: Decorative
     uniqueID: 3725352297
+    locked: 0
+  - name: Decorative_Background
+    uniqueID: 3513842093
+    locked: 0
+  - name: Game
+    uniqueID: 357171673
+    locked: 0
+  - name: Decorative_Foreground
+    uniqueID: 2292405371
     locked: 0
   m_RenderingLayers:
   - Default
