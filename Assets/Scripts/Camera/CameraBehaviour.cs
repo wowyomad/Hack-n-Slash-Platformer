@@ -7,6 +7,8 @@ public class CameraBehaviour : MonoBehaviour
     public Transform FollowTarget;
     public InputReader Input;
 
+    public Collider2D LevelBounds;
+
     [Min(1.0f)]
     public float OffsetMultiplier = 1.0f;
 
@@ -43,6 +45,7 @@ public class CameraBehaviour : MonoBehaviour
         if (Input == null) Debug.LogError("CameraBehaviour: InputReader is not assigned!", this);
         if (Settings == null) Debug.LogError("CameraBehaviour: Settings are not assigned!", this);
         if (m_MainCamera == null) Debug.LogError("CameraBehaviour: Camera component not found!", this);
+        if (LevelBounds == null) Debug.LogError("CameraBehaviour: LevelBounds is not assigned!", this);
     }
 
     private void Start()
@@ -71,6 +74,7 @@ public class CameraBehaviour : MonoBehaviour
 
         UpdateMouseOffset();
         UpdateZoom();
+        
 
         Vector3 currentFollowTargetPosition = FollowTarget.position;
         Vector3 velocity = Time.deltaTime > Mathf.Epsilon
@@ -93,6 +97,44 @@ public class CameraBehaviour : MonoBehaviour
         Vector3 smoothedPosition = Vector3.SmoothDamp(currentPosition, targetPosition, ref m_FollowVelocity, Settings.FollowSmoothTime);
 
         m_Target.position = new Vector3(smoothedPosition.x, smoothedPosition.y, m_Target.position.z);
+
+        m_Target.position = ApplyLevelBoundsClamping(m_Target.position);    
+    }
+
+     private Vector3 ApplyLevelBoundsClamping(Vector3 positionToClamp)
+    {
+        Bounds levelBounds = LevelBounds.bounds;
+        float camHalfWidth = CameraWidth / 2f;
+        float camHalfHeight = CameraHeight / 2f;
+
+        float minX = levelBounds.min.x + camHalfWidth;
+        float maxX = levelBounds.max.x - camHalfWidth;
+        float minY = levelBounds.min.y + camHalfHeight;
+        float maxY = levelBounds.max.y - camHalfHeight;
+
+        Vector3 clampedPosition = positionToClamp;
+
+        if (minX > maxX)
+        {
+            clampedPosition.x = (levelBounds.min.x + levelBounds.max.x) / 2f;
+        }
+        else
+        {
+            clampedPosition.x = Mathf.Clamp(positionToClamp.x, minX, maxX);
+        }
+
+        if (minY > maxY)
+        {
+             clampedPosition.y = (levelBounds.min.y + levelBounds.max.y) / 2f;
+        }
+        else
+        {
+             clampedPosition.y = Mathf.Clamp(positionToClamp.y, minY, maxY);
+        }
+
+        clampedPosition.z = m_Target.position.z;
+
+        return clampedPosition;
     }
 
     private void UpdateMouseOffset()
