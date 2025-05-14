@@ -60,7 +60,6 @@ public class CharacterStatsSO : ScriptableObject
     {
         Gravity = 2 * m_JumpHeight / (m_FallTime * m_FallTime);
 
-        // Step 2: Calculate initial velocity (v_initial) to reach the desired height in the desired time
         JumpVelocity = (2 * m_JumpHeight) / m_JumpTime;
 
         float calculatedTimeToFall = Mathf.Sqrt(2 * m_JumpHeight / Gravity);

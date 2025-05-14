@@ -66,7 +66,6 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     private bool m_StatesInitialized = false;
 
     [HideInInspector] public CharacterController2D Controller;
-    [HideInInspector] public PlayerAnimationEvents AnimationEvents;
     [HideInInspector] public InputReader Input;
     protected PlayerBaseState CurrentState => StateMachine.State;
     protected PlayerBaseState PreviousState => StateMachine.PreviousState;
@@ -92,9 +91,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void Awake()
     {
-        Input = Resources.Load<InputReader>("Input/InputReader");
+        Input = InputReader.Load();
         Controller = GetComponent<CharacterController2D>();
-        AnimationEvents = GetComponentInChildren<PlayerAnimationEvents>();
         WeaponReference = GetComponentInChildren<Weapon>();
 
         InitializeFiels();
@@ -308,7 +306,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void Dash()
     {
-        if (CanFire(Trigger.Dash))
+        if (Can(Trigger.Dash))
         {
             StateMachine.Fire(Trigger.Dash);
             m_DashCooldonwTimer.Restart();
@@ -317,11 +315,16 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     private void Attack()
     {
-        if (CanFire(Trigger.Attack))
+        if (Can(Trigger.Attack))
         {
-            Fire(Trigger.Attack);
+            Do(Trigger.Attack);
             m_AttackCoodownTimer.Restart();
         }
+    }
+
+    private void ClimbDown()
+    {
+        Controller.ClimbDown();
     }
 
     public HitResult TakeHit()
@@ -373,10 +376,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     [GameAction(ActionType.ClimbDown)]
     protected void HandleClimbDownInput()
     {
-        if (CanFire(Trigger.Dead))
-            StateMachine.Fire(Trigger.Dead);
-        else
-            Controller.PassThrough();
+        ClimbDown();
     }
 
     private void LogStateChange(IState previous, IState next)
@@ -405,11 +405,10 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
     {
         if (!m_StatesInitialized) return;
 
-
     }
 
-    private bool CanFire(Trigger trigger) => StateMachine.CanFire(trigger);
-    private void Fire(Trigger trigger) => StateMachine.Fire(trigger);
+    private bool Can(Trigger trigger) => StateMachine.CanFire(trigger);
+    private void Do(Trigger trigger) => StateMachine.Fire(trigger);
 
     private void InitializeFiels()
     {

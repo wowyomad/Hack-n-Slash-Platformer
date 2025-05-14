@@ -223,7 +223,7 @@ public class NavAgent2D : MonoBehaviour
         {
             if (m_Controller.CanPassTransparentGround)
             {
-                m_Controller.PassThrough();
+                m_Controller.ClimbDown();
             }
             if (m_NavData.GetCell(transform.position, out var cell, false))
             {
@@ -457,7 +457,7 @@ public class NavAgent2D : MonoBehaviour
 
         if (NavData2D.ConnectionType.TransparentFall == connection)
         {
-            m_Controller.PassThrough();
+            m_Controller.ClimbDown();
             return;
         }
 

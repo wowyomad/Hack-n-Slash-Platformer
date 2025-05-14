@@ -48,6 +48,9 @@ TagManager:
   - name: Prototype
     uniqueID: 3603512481
     locked: 0
+  - name: Decorative
+    uniqueID: 3725352297
+    locked: 0
   m_RenderingLayers:
   - Default
   - Particle

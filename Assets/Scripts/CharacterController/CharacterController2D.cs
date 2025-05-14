@@ -47,7 +47,7 @@ public class CharacterController2D : RaycastController
         Velocity = velocity;
     }
 
-    public void PassThrough()
+    public void ClimbDown()
     {
         if (CanPassTransparentGround)
         {

@@ -23,11 +23,21 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
 
     public event Action<Vector2> CursorMove;
 
-    public bool IsJumpPressed {  get; private set; }
+    public bool IsJumpPressed { get; private set; }
     public bool IsDashPressed { get; private set; }
 
     public float Horizontal { get; private set; }
     public Vector2 CursorPosition { get; private set; }
+
+    public static InputReader Load()
+    {
+        var instance = Resources.Load<InputReader>("Input/InputReader");
+        if (instance == null)
+        {
+            Debug.LogError("InputReader not found in Resources folder.");
+        }
+        return instance;
+    }
 
 
     private GameInput m_GameInput;
@@ -40,12 +50,12 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public void SetUI()
     {
         m_GameInput.UI.Enable();
-        m_GameInput.Gameplay.Disable(); 
+        m_GameInput.Gameplay.Disable();
     }
 
     public void OnThrow(InputAction.CallbackContext context)
     {
-        if(InputActionPhase.Performed == context.phase)
+        if (InputActionPhase.Performed == context.phase)
         {
             Throw?.Invoke();
         }
@@ -204,7 +214,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         }
     }
 
-     public void OnClimbDown(InputAction.CallbackContext context)
+    public void OnClimbDown(InputAction.CallbackContext context)
     {
         if (InputActionPhase.Performed == context.phase)
         {

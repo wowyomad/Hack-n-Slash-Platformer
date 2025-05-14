@@ -2009,7 +2009,83 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      TestPlayerSprite_0: 2388768147783741988
+      TestPlayerSprite_1: -2041788756314824616
+      TestPlayerSprite_10: 1093504524247953928
+      TestPlayerSprite_11: -1597367503252526635
+      TestPlayerSprite_12: 5021621842039507906
+      TestPlayerSprite_13: 7731218691411671184
+      TestPlayerSprite_14: 5116294932371696137
+      TestPlayerSprite_15: -6016694676636427025
+      TestPlayerSprite_16: -7663190378716810687
+      TestPlayerSprite_17: -1083616335207601678
+      TestPlayerSprite_18: 497003340916588894
+      TestPlayerSprite_19: 189671850737441762
+      TestPlayerSprite_2: -6331229871288901352
+      TestPlayerSprite_20: 4027882446861485414
+      TestPlayerSprite_21: 7218845927795584852
+      TestPlayerSprite_22: -6221608766674291781
+      TestPlayerSprite_23: -2138965896662661959
+      TestPlayerSprite_24: 6337431087674897755
+      TestPlayerSprite_25: -4187026854668962292
+      TestPlayerSprite_26: -6444655877029151702
+      TestPlayerSprite_27: 2663418350375566299
+      TestPlayerSprite_28: 5310515778471182436
+      TestPlayerSprite_29: 653508245512769315
+      TestPlayerSprite_3: 2598458086037902342
+      TestPlayerSprite_30: 6365191776075356174
+      TestPlayerSprite_31: 1164771900567336140
+      TestPlayerSprite_32: -2939204114024494167
+      TestPlayerSprite_33: -2700378307626901064
+      TestPlayerSprite_34: -3265532528787158390
+      TestPlayerSprite_35: -7011859969756920855
+      TestPlayerSprite_36: -7565147170029162253
+      TestPlayerSprite_37: 6252829786306535838
+      TestPlayerSprite_38: 839359583839971274
+      TestPlayerSprite_39: -7501246636679863439
+      TestPlayerSprite_4: -3155599354870331460
+      TestPlayerSprite_40: -3987457860604293446
+      TestPlayerSprite_41: -3046487702430879558
+      TestPlayerSprite_42: -5497528947661972937
+      TestPlayerSprite_43: -7340256128096691001
+      TestPlayerSprite_44: -945334550342029853
+      TestPlayerSprite_45: 879262519512126338
+      TestPlayerSprite_46: 3908051585826573191
+      TestPlayerSprite_47: 7276387868432480185
+      TestPlayerSprite_48: -7048259361290713400
+      TestPlayerSprite_49: -6036762164812409356
+      TestPlayerSprite_5: 1203833747129294589
+      TestPlayerSprite_50: 1257050057551688887
+      TestPlayerSprite_51: -9142609824280545916
+      TestPlayerSprite_52: 2676660959938589570
+      TestPlayerSprite_53: 3602829906523140355
+      TestPlayerSprite_54: 1583682549426902071
+      TestPlayerSprite_55: -773389401752881064
+      TestPlayerSprite_56: -9078126298231949505
+      TestPlayerSprite_57: 3412399702347070401
+      TestPlayerSprite_58: 8918316676571094998
+      TestPlayerSprite_59: -7194406350417909253
+      TestPlayerSprite_6: 3908100593100832241
+      TestPlayerSprite_60: -8323095048962658279
+      TestPlayerSprite_61: 4134845827343910893
+      TestPlayerSprite_62: 6814975667883146809
+      TestPlayerSprite_63: -2479363431673958155
+      TestPlayerSprite_64: -2390050695666519478
+      TestPlayerSprite_65: -3081382897018482653
+      TestPlayerSprite_66: -2003504047569521363
+      TestPlayerSprite_67: -8371615152238339548
+      TestPlayerSprite_68: 1256377009058666904
+      TestPlayerSprite_69: 9221750932722190444
+      TestPlayerSprite_7: 6176008515705592167
+      TestPlayerSprite_70: 1081723469040023871
+      TestPlayerSprite_71: 6527233790959219308
+      TestPlayerSprite_72: 8050503846384089023
+      TestPlayerSprite_73: 4861677948785821324
+      TestPlayerSprite_74: -7055649291659692094
+      TestPlayerSprite_75: -7879324161781431462
+      TestPlayerSprite_8: 3639883897788304802
+      TestPlayerSprite_9: 848542921430495637
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
