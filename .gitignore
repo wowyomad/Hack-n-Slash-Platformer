@@ -9,6 +9,8 @@
 .vsconfig
 .vs/
 
+[Bb]uild/
+
  
 # Unity files
 [Ll]ibrary/

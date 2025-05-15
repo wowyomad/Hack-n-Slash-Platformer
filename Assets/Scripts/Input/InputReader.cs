@@ -29,6 +29,8 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public float Horizontal { get; private set; }
     public Vector2 CursorPosition { get; private set; }
 
+    private GameInput m_GameInput;
+
     public static InputReader Load()
     {
         var instance = Resources.Load<InputReader>("Input/InputReader");
@@ -40,7 +42,6 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     }
 
 
-    private GameInput m_GameInput;
     public void SetGameplay()
     {
         m_GameInput.Gameplay.Enable();
@@ -69,8 +70,6 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
 
             m_GameInput.Gameplay.SetCallbacks(this);
             m_GameInput.UI.SetCallbacks(this);
-
-            SetGameplay();
         }
     }
 
