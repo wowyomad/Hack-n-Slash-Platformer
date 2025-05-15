@@ -27,13 +27,11 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
-    //Set is called from UnityEvent (slider) or from code
     public void SetMusicVolume(float volume)
     {
         m_MusicSource.volume = volume;
     }
 
-    //Set is called from UnityEvent (slider) or from code
     public void SetGeneralVolume(float volume)
     {
         AudioListener.volume = volume;
@@ -45,7 +43,6 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    //This is called from UnityEvent (slider) or OnLoad
     public void RestoreSettings()
     {
         m_MusicSource.volume = PlayerPrefs.GetFloat(MusicVolumeKey, m_DefaultSettings.MusicVolume);
@@ -53,15 +50,12 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-//This is called from UnityEvent
     public void ApplySettings()
     {
         PlayerPrefs.SetFloat(MusicVolumeKey, m_MusicSource.volume);
         PlayerPrefs.SetFloat(GeneralVolumeKey, AudioListener.volume);
         PlayerPrefs.Save();
     }
-
-    //This is called from UnityEvent
 
     public void ResetSettings()
     {

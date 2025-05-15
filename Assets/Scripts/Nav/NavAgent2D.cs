@@ -12,6 +12,14 @@ public class NavAgent2D : MonoBehaviour
     [SerializeField] private NavData2D m_NavData;
     [SerializeField] private NavActorSO m_NavActor;
 
+
+    [Header("Movement")]
+    public bool OverrideSpeed = false;
+    public float Speed = 0.0f;
+    public float DeccelerationTime = 0.5f;
+    public float AccelerationTime = 0.5f;
+
+
     [Header("Pathfinding")]
     public bool IsAsync = false;
     public bool DontChangePathWhileSloping = true;
@@ -74,9 +82,25 @@ public class NavAgent2D : MonoBehaviour
         return false;
     }
 
+    public void SetSpeed(float speed)
+    {
+        OverrideSpeed = true;
+        Speed = speed;
+    }
+
+    public void SetAccelerationTime(float time)
+    {
+        AccelerationTime = time;
+    }
+
+    public void SetDeccelerationTime(float time)
+    {
+        DeccelerationTime = time;
+    }
+
     public void SetDestination(Vector2 target)
     {
-        if (DontChangePathWhileSloping && (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope))
+        if (false && DontChangePathWhileSloping && (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope))
         {
             return;
         }
@@ -175,11 +199,11 @@ public class NavAgent2D : MonoBehaviour
     {
         if (m_Controller.LastDisplacement.x > 0)
         {
-            Velocity = new Vector2(m_NavActor.BaseSpeed, m_Controller.Velocity.y);
+            Velocity = new Vector2(OverrideSpeed ? Speed : m_NavActor.BaseSpeed, m_Controller.Velocity.y);
         }
         else if (m_Controller.LastDisplacement.x < 0)
         {
-            Velocity = new Vector2(-m_NavActor.BaseSpeed, m_Controller.Velocity.y);
+            Velocity = new Vector2(OverrideSpeed ? -Speed : -m_NavActor.BaseSpeed, m_Controller.Velocity.y);
         }
         else
         {
@@ -191,6 +215,8 @@ public class NavAgent2D : MonoBehaviour
         if (IsPathInvalid())
         {
             m_State = AgentState.Stopped;
+            m_PassingThrough = false;
+            return;
         }
 
         if (!IsFollowing)
@@ -374,7 +400,7 @@ public class NavAgent2D : MonoBehaviour
                 if (horizontalDistance > REACH_THRESHOLD)
                 {
                     Vector2 direction = m_JumpDirection > 0 ? Vector2.right : Vector2.left;
-                    float displacement = Mathf.Min(m_JumpSpeedScale * m_NavActor.BaseSpeed * Time.deltaTime, horizontalDistance);
+                    float displacement = Mathf.Min(m_JumpSpeedScale * (OverrideSpeed ? Speed : m_NavActor.BaseSpeed) * Time.deltaTime, horizontalDistance);
                     m_Controller.Move(direction * displacement);
                 }
             }
@@ -396,7 +422,7 @@ public class NavAgent2D : MonoBehaviour
         else
         {
             Vector2 direction = (target - transform.position).normalized;
-            float displacement = Mathf.Min(m_NavActor.BaseSpeed * Time.deltaTime, distance);
+            float displacement = Mathf.Min((OverrideSpeed ? Speed : m_NavActor.BaseSpeed) * Time.deltaTime, distance);
             m_Controller.Move(direction * displacement);
         }
     }
@@ -512,15 +538,10 @@ public class NavAgent2D : MonoBehaviour
         return NavData2D.ConnectionType.None;
     }
 
-    public void ResetPath()
+    public void Stop()
     {
-        m_Path = null;
-        m_CurrentPointIndex = 0;
         m_State = AgentState.Stopped;
-        m_PathPending = false;
-        m_NewPathReady = false;
         m_PassingThrough = false;
-        m_HasEnteredTransparentGround = false;
     }
 
     public float DistanceToTarget()

@@ -12,11 +12,16 @@ public interface IDestroyable
 
 [RequireComponent(typeof(CharacterController2D))]
 [RequireComponent(typeof(NavAgent2D))]
-public class Enemy : MonoBehaviour, IHittable
+public class Enemy : MonoBehaviour, IHittable, IWeaponWielder
 {
     [HideInInspector] public CharacterController2D Controller;
     [HideInInspector] public NavAgent2D NavAgent;
     [HideInInspector] private Transform m_SpriteTransform;
+
+    [SerializeField] private float m_EysightDistance = 8.0f;
+
+    public bool IsStunned => m_Stunned;
+    private bool m_Stunned = false;
 
 
     [Header("Other")]
@@ -75,6 +80,7 @@ public class Enemy : MonoBehaviour, IHittable
         {
             OnHit?.Invoke();
             EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent { EnemyPosition = transform.position });
+
             return HitResult.Hit;
         }
         return HitResult.Nothing;
@@ -101,6 +107,36 @@ public class Enemy : MonoBehaviour, IHittable
             return;
         }
         Flip(direction > 0.0f ? 1 : -1);
+    }
+
+    public void TryHitTarget(IHittable target)
+    {
+        if (target == null) return;
+
+        HitResult status = target.TakeHit();
+        if (target is Player player)
+        {
+            Debug.Log($"Hit {player.name} with status {status}");
+        }
+    }
+
+    public bool CanSeePlayer(Vector3 targetPosition)
+    {
+        float distance = Vector3.Distance(transform.position, targetPosition);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, targetPosition - transform.position, distance, LayerMask.GetMask("Ground") | LayerMask.GetMask("TransparentGround"));
+        return hit.collider == null && distance < m_EysightDistance;
+    }
+
+    public bool CanSeePlayer(Player player)
+    {
+        if (player.CurrentState is PlayerDeadState)
+        {
+            return false;
+        }
+        Vector3 targetPosition = player.transform.position;
+        float distance = Vector3.Distance(transform.position, targetPosition);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, targetPosition - transform.position, distance, LayerMask.GetMask("Ground") | LayerMask.GetMask("TransparentGround"));
+        return hit.collider == null && distance < m_EysightDistance;
     }
 
 }

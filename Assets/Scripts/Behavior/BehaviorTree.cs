@@ -160,7 +160,7 @@ namespace Behavior
 
     public class RandomSelector : PrioritySelector
     {
-        private System.Random m_Rng = new System.Random();
+        private Random m_Rng = new Random();
         public override List<Node> SortedChildren => Children.OrderBy(_ => m_Rng.Next()).ToList();
 
         public RandomSelector(params Node[] children) : this(null, children) { }

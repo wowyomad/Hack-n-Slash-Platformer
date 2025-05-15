@@ -12,32 +12,33 @@ public class PlayerAnimation : MonoBehaviour
     public static readonly int RunAnimationHash = Animator.StringToHash("Run");
     public static readonly int AirAnimationHash = Animator.StringToHash("Air");
     public static readonly int DashAnimationHash = Animator.StringToHash("Dash");
+    public static readonly int DeadAnimationHash = Animator.StringToHash("Dead");
     public static readonly int AttackMeleeAnimationHash = Animator.StringToHash("AttackMelee");
+    private Dictionary<int, float> m_AnimationDurations = new();
 
     private AnimatorWrapper m_Animator;
     private Player m_Player;
     private InputReader m_Input;
 
-    private static Dictionary<int, float> m_AnimationDurations = new();
 
     public float GetAnimationDuration(int animationHash)
     {
         return GetAnimationDuration(animationHash, out float _);
     }
 
-    public float GetAnimationDuration(int animationHash, out float animationDuratoin)
+    public float GetAnimationDuration(int animationHash, out float animationDuration)
     {
 
         if (m_AnimationDurations.TryGetValue(animationHash, out float duration))
         {
-            animationDuratoin = duration;
+            animationDuration = duration;
         }
         else
         {
             Debug.LogWarning($"Animation with hash {animationHash} not found in durations dictionary.");
-            animationDuratoin = 0.0f;
+            animationDuration = 0.0f;
         }
-        return animationDuratoin;
+        return animationDuration;
     }
 
     private void Awake()
@@ -50,24 +51,20 @@ public class PlayerAnimation : MonoBehaviour
             animator = GetComponentInChildren<Animator>();
         }
 
-        if(animator == null)
+        if (animator == null)
         {
             Debug.LogError("Animator component not found on Player or its children.", this);
             return;
         }
 
-        m_Animator = new AnimatorWrapper(animator);
-        m_Animator.Animator.runtimeAnimatorController.animationClips.ToList().ForEach(clip =>
-        {
-            string cleanedName = clip.name.Replace(m_AnimationClipPrefix, "");
-            m_AnimationDurations.Add(Animator.StringToHash(cleanedName), clip.length);
-        });
 
+        m_Animator = new AnimatorWrapper(animator);
+        m_AnimationDurations = animator.GetClipsDurations(m_AnimationClipPrefix);
     }
 
     private void LateUpdate()
     {
-        m_Animator.Update();   
+        m_Animator.Update();
     }
 
     private void Start()
@@ -134,7 +131,7 @@ public class PlayerAnimation : MonoBehaviour
     }
     private void OnDie()
     {
-
+        m_Animator.CrossFade(DeadAnimationHash, 0.0f);
     }
 }
 

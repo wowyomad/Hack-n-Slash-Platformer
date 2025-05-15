@@ -4,14 +4,17 @@ using TheGame;
 using GameActions;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Rendering;
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
-public partial class Player : MonoBehaviour, IStateTrackable, IHittable
+public partial class Player : MonoBehaviour, IStateTrackable, IHittable, IWeaponWielder
 {
     [Header("Children Components")]
     [SerializeField] public Weapon WeaponReference;
 
+
+    public IState CurrentState => StateMachine.State;
     public enum Trigger
     {
         Idle,
@@ -67,12 +70,11 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     [HideInInspector] public CharacterController2D Controller;
     [HideInInspector] public InputReader Input;
-    protected PlayerBaseState CurrentState => StateMachine.State;
     protected PlayerBaseState PreviousState => StateMachine.PreviousState;
 
     public Vector3 Velocity => Controller.Velocity;
     public CharacterStatsSO Stats;
-    private bool IsVulnarable = true;
+    private bool IsVulnerable = true;
 
     public event Action<IState, IState> StateChanged;
     public event Action OnHit;
@@ -81,7 +83,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     public int FacingDirection { get; private set; }
 
-    public bool CanTakeHit => !IsVulnarable;
+    public bool CanTakeHit => !IsVulnerable;
     private float m_StunCooldownDuration = 1.5f;
     private bool m_CanGetStunned = false;
     private bool IsImmuneToStun = false;
@@ -193,9 +195,9 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         StateMachine = new StateMachine<PlayerBaseState, Trigger>(IdleState);
 
         StateMachine.Configure(AnyState)
-            .IgnoreIf(Trigger.Die, () => !IsVulnarable)
-            .Permit(Trigger.Die, DeadState)
-            .PermitIf(Trigger.Stun, StunnedState, () => m_CanGetStunned && !StunnedState.IsStunned && !IsImmuneToStun);
+            .IgnoreIf(Trigger.Die, () => !IsVulnerable)
+            .Permit(Trigger.Die, DeadState);
+        //.PermitIf(Trigger.Stun, StunnedState, () => m_CanGetStunned && !StunnedState.IsStunned && !IsImmuneToStun);
 
         StateMachine.Configure(StunnedState)
             .SubstateOf(AnyState)
@@ -204,7 +206,6 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
         StateMachine.Configure(IdleState)
             .SubstateOf(AnyState)
-            .Permit(Trigger.Dead, DeadState)
             .Permit(Trigger.Jump, JumpState)
             .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
             .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
@@ -329,19 +330,18 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
 
     public HitResult TakeHit()
     {
-        if (!CanTakeHit || !m_CanGetStunned)
-            return HitResult.Nothing;
-
         HitResult hitResult = HitResult.Nothing;
-
-        if (!StateMachine.CanFire(Trigger.Stun))
+        if (CurrentState is PlayerAttackState)
         {
-            StateMachine.Fire(Trigger.Stun);
-            m_StunnedCooldownTimer.Restart();
+            hitResult = HitResult.Parry;
+        }
+        else if (Can(Trigger.Die))
+        {
             hitResult = HitResult.Hit;
+            EventBus<PlayerDeadEvent>.Raise(new PlayerDeadEvent());
+            Do(Trigger.Die);
         }
 
-        OnHit?.Invoke();
         EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
         return hitResult;
     }
@@ -394,10 +394,6 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable
         if (target is Enemy enemy)
         {
             Debug.Log($"Hit {enemy.name} with status {status}");
-        }
-        else
-        {
-            Debug.Log($"Hit unknown target {target} with status {status}");
         }
     }
 

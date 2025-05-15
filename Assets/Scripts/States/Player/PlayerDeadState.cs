@@ -8,8 +8,9 @@ public class PlayerDeadState : PlayerBaseState
 
     public override void OnEnter()
     {
-        EventBus<PlayerDeadEvent>.Raise(new PlayerDeadEvent());
         Debug.Log("Player is dead");
+
+        Controller.Velocity.x = 0.0f;
     }
 }
 

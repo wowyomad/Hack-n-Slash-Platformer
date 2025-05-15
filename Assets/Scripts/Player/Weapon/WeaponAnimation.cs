@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WeaponAnimation : MonoBehaviour
 {
+    public string AnimatoinClipPrefix = "Weapon_"; 
     private Animator m_Animator;
     private Weapon m_Weapon;
     private SpriteRenderer m_SpriteRenderer; // Added SpriteRenderer reference
@@ -18,7 +19,7 @@ public class WeaponAnimation : MonoBehaviour
         m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
         m_Weapon = GetComponent<Weapon>();
 
-        m_AnimationDurations = m_Animator.GetClipsDurations("Weapon_");
+        m_AnimationDurations = m_Animator.GetClipsDurations(AnimatoinClipPrefix);
     }
 
     private void OnEnable()

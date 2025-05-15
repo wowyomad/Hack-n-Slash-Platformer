@@ -85,6 +85,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Restart",
+                    "type": "Button",
+                    "id": "40717e27-794b-402d-9786-a36d3569117d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Hold(duration=1)",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -274,6 +283,17 @@
                     "action": "Climb Down",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9bf0a603-6ada-4cd8-83d7-8edbf8cbdee8",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -300,6 +320,34 @@
                     "processors": "",
                     "groups": "",
                     "action": "Resume",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Death",
+            "id": "7574ef67-4551-4b9d-85cc-a9d9bc9d034a",
+            "actions": [
+                {
+                    "name": "DeathRestart",
+                    "type": "Button",
+                    "id": "2f8de7a0-d398-4caf-bfe4-c3b50deb03b3",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "2e8e27bd-2698-45bb-8ccf-3677aa7a555c",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DeathRestart",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

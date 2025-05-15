@@ -171,6 +171,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Restart"",
+                    ""type"": ""Button"",
+                    ""id"": ""40717e27-794b-402d-9786-a36d3569117d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": ""Hold(duration=1)"",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -360,6 +369,17 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""action"": ""Climb Down"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9bf0a603-6ada-4cd8-83d7-8edbf8cbdee8"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Restart"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -390,6 +410,34 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Death"",
+            ""id"": ""7574ef67-4551-4b9d-85cc-a9d9bc9d034a"",
+            ""actions"": [
+                {
+                    ""name"": ""DeathRestart"",
+                    ""type"": ""Button"",
+                    ""id"": ""2f8de7a0-d398-4caf-bfe4-c3b50deb03b3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""2e8e27bd-2698-45bb-8ccf-3677aa7a555c"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DeathRestart"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -405,15 +453,20 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Gameplay_ClimbDown = m_Gameplay.FindAction("Climb Down", throwIfNotFound: true);
         m_Gameplay_Dash = m_Gameplay.FindAction("Dash", throwIfNotFound: true);
         m_Gameplay_Zoom = m_Gameplay.FindAction("Zoom", throwIfNotFound: true);
+        m_Gameplay_Restart = m_Gameplay.FindAction("Restart", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Resume = m_UI.FindAction("Resume", throwIfNotFound: true);
+        // Death
+        m_Death = asset.FindActionMap("Death", throwIfNotFound: true);
+        m_Death_DeathRestart = m_Death.FindAction("DeathRestart", throwIfNotFound: true);
     }
 
     ~@GameInput()
     {
         UnityEngine.Debug.Assert(!m_Gameplay.enabled, "This will cause a leak and performance issues, GameInput.Gameplay.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, GameInput.UI.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Death.enabled, "This will cause a leak and performance issues, GameInput.Death.Disable() has not been called.");
     }
 
     /// <summary>
@@ -498,6 +551,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_ClimbDown;
     private readonly InputAction m_Gameplay_Dash;
     private readonly InputAction m_Gameplay_Zoom;
+    private readonly InputAction m_Gameplay_Restart;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -545,6 +599,10 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Zoom".
         /// </summary>
         public InputAction @Zoom => m_Wrapper.m_Gameplay_Zoom;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/Restart".
+        /// </summary>
+        public InputAction @Restart => m_Wrapper.m_Gameplay_Restart;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -598,6 +656,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Zoom.started += instance.OnZoom;
             @Zoom.performed += instance.OnZoom;
             @Zoom.canceled += instance.OnZoom;
+            @Restart.started += instance.OnRestart;
+            @Restart.performed += instance.OnRestart;
+            @Restart.canceled += instance.OnRestart;
         }
 
         /// <summary>
@@ -636,6 +697,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Zoom.started -= instance.OnZoom;
             @Zoom.performed -= instance.OnZoom;
             @Zoom.canceled -= instance.OnZoom;
+            @Restart.started -= instance.OnRestart;
+            @Restart.performed -= instance.OnRestart;
+            @Restart.canceled -= instance.OnRestart;
         }
 
         /// <summary>
@@ -765,6 +829,102 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="UIActions" /> instance referencing this action map.
     /// </summary>
     public UIActions @UI => new UIActions(this);
+
+    // Death
+    private readonly InputActionMap m_Death;
+    private List<IDeathActions> m_DeathActionsCallbackInterfaces = new List<IDeathActions>();
+    private readonly InputAction m_Death_DeathRestart;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Death".
+    /// </summary>
+    public struct DeathActions
+    {
+        private @GameInput m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public DeathActions(@GameInput wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "Death/DeathRestart".
+        /// </summary>
+        public InputAction @DeathRestart => m_Wrapper.m_Death_DeathRestart;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_Death; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="DeathActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(DeathActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="DeathActions" />
+        public void AddCallbacks(IDeathActions instance)
+        {
+            if (instance == null || m_Wrapper.m_DeathActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_DeathActionsCallbackInterfaces.Add(instance);
+            @DeathRestart.started += instance.OnDeathRestart;
+            @DeathRestart.performed += instance.OnDeathRestart;
+            @DeathRestart.canceled += instance.OnDeathRestart;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="DeathActions" />
+        private void UnregisterCallbacks(IDeathActions instance)
+        {
+            @DeathRestart.started -= instance.OnDeathRestart;
+            @DeathRestart.performed -= instance.OnDeathRestart;
+            @DeathRestart.canceled -= instance.OnDeathRestart;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="DeathActions.UnregisterCallbacks(IDeathActions)" />.
+        /// </summary>
+        /// <seealso cref="DeathActions.UnregisterCallbacks(IDeathActions)" />
+        public void RemoveCallbacks(IDeathActions instance)
+        {
+            if (m_Wrapper.m_DeathActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="DeathActions.AddCallbacks(IDeathActions)" />
+        /// <seealso cref="DeathActions.RemoveCallbacks(IDeathActions)" />
+        /// <seealso cref="DeathActions.UnregisterCallbacks(IDeathActions)" />
+        public void SetCallbacks(IDeathActions instance)
+        {
+            foreach (var item in m_Wrapper.m_DeathActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_DeathActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="DeathActions" /> instance referencing this action map.
+    /// </summary>
+    public DeathActions @Death => new DeathActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Gameplay" which allows adding and removing callbacks.
     /// </summary>
@@ -835,6 +995,13 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnZoom(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Restart" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRestart(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
@@ -850,5 +1017,20 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnResume(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Death" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="DeathActions.AddCallbacks(IDeathActions)" />
+    /// <seealso cref="DeathActions.RemoveCallbacks(IDeathActions)" />
+    public interface IDeathActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "DeathRestart" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDeathRestart(InputAction.CallbackContext context);
     }
 }

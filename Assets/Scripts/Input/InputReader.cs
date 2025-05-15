@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [CreateAssetMenu(fileName = "InputReader", menuName = "InputReader")]
-public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInput.IUIActions
+public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInput.IUIActions, GameInput.IDeathActions
 {
     public event Action<float> Move;
     public event Action<float> MoveStared; //unused
@@ -20,6 +20,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Pause;
     public event Action Resume;
     public event Action ClimbDown;
+    public event Action Restart;
 
     public event Action<Vector2> CursorMove;
 
@@ -46,11 +47,20 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         m_GameInput.Gameplay.Enable();
         m_GameInput.UI.Disable();
+        m_GameInput.Death.Disable();
     }
 
     public void SetUI()
     {
         m_GameInput.UI.Enable();
+        m_GameInput.Gameplay.Disable();
+        m_GameInput.Death.Disable();
+    }
+
+    public void SetDeath()
+    {
+        m_GameInput.Death.Enable();
+        m_GameInput.UI.Disable();
         m_GameInput.Gameplay.Disable();
     }
 
@@ -70,6 +80,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
 
             m_GameInput.Gameplay.SetCallbacks(this);
             m_GameInput.UI.SetCallbacks(this);
+            m_GameInput.Death.SetCallbacks(this);
         }
     }
 
@@ -77,6 +88,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         m_GameInput.Gameplay.Disable();
         m_GameInput.UI.Disable();
+        m_GameInput.Death.Disable();
     }
 
     private void OnValidate()
@@ -176,6 +188,22 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     }
 
     #region interface implementation
+
+    public void OnRestart(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Restart?.Invoke();
+        }
+    }
+
+    public void OnDeathRestart(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Restart?.Invoke();
+        }
+    }
     public void OnMove(InputAction.CallbackContext context)
     {
         Horizontal = context.ReadValue<float>();

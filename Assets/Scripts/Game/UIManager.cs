@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class UIManager : PersistentSingleton<UIManager>
 {
-    private InputReader m_Input;
+    [SerializeField] private InputReader m_Input;
     private GameManager m_GameManager;
+
+    [SerializeField] private bool m_ShowMainScreenOnStart = true;
 
     [SerializeField] private GameObject m_MainScreen;
     [SerializeField] private GameObject m_PauseScreen;
@@ -45,29 +47,44 @@ public class UIManager : PersistentSingleton<UIManager>
     {
         m_Input.Pause += OnPauseResume;
         m_Input.Resume += OnPauseResume;
+        m_Input.Restart += OnRestart;
+        EventBus<PlayerDeadEvent>.OnEvent += ShowDeathScreen;
     }
 
     private void OnDisable()
     {
         m_Input.Pause -= OnPauseResume;
         m_Input.Resume -= OnPauseResume;
+        m_Input.Restart -= OnRestart;
+        EventBus<PlayerDeadEvent>.OnEvent -= ShowDeathScreen;
     }
 
     public void OnPauseResume()
     {
         if (m_CurrentScreen == null || m_CurrentScreen == m_HUD)
         {
-            ShowScreen(m_MainScreen);
+            ShowScreen(m_PauseScreen);
             m_GameManager.PauseGame();
         }
-        else if (m_CurrentScreen != m_MainScreen)
+        else if (m_CurrentScreen == m_PauseScreen)
         {
-            ShowScreen(m_MainScreen);
+            ShowScreen(m_HUD);
+            m_GameManager.ResumeGame();
         }
         else if (m_CurrentScreen == m_MainScreen)
         {
-            ShowScreen(null);
-            m_GameManager.ResumeGame();
+            m_GameManager.Quit();
+        }
+        else
+        {
+            if (m_GameManager.IsGamePaused)
+            {
+                ShowScreen(m_PauseScreen);
+            }
+            else
+            {
+                ShowScreen(m_MainScreen);
+            }
         }
     }
 
@@ -84,6 +101,11 @@ public class UIManager : PersistentSingleton<UIManager>
         m_CurrentScreen = screen;
     }
 
+    public void HideAllScreens()
+    {
+        ShowScreen(null);
+    }
+
     public void ShowSettingsTab(GameObject tab)
     {
         foreach (var t in m_SettingsTabs)
@@ -97,7 +119,10 @@ public class UIManager : PersistentSingleton<UIManager>
     }
     private void Initialize()
     {
-        m_Input = InputReader.Load();
+        if (m_Input == null)
+        {
+            m_Input = InputReader.Load();
+        }
         m_GameManager = GameManager.Instance;
 
         if (m_MainScreen == null) Debug.LogError("Main Screen is not assigned!", this);
@@ -125,8 +150,31 @@ public class UIManager : PersistentSingleton<UIManager>
         m_SettingsTabs.Add(m_Settings_GameplayTab);
         m_SettingsTabs.Add(m_Settings_KeyBindingsTab);
 
-        ShowScreen(null);
+        if (m_ShowMainScreenOnStart)
+        {
+            ShowScreen(m_MainScreen);
+            m_Input.SetUI();
+        }
+        else
+        {
+            ShowScreen(null);
+            m_Input.SetUI();
+        }
         ShowSettingsTab(null);
+    }
+
+
+    public void OnRestart()
+    {
+        m_GameManager.RestartGame();
+        m_GameManager.ResumeGame();
+        ShowScreen(null);
+    }
+
+    private void ShowDeathScreen(PlayerDeadEvent e)
+    {
+        m_Input.SetDeath();
+        ShowScreen(m_DeathScreen);
     }
 
 }

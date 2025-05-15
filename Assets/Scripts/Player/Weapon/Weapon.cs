@@ -1,22 +1,20 @@
 using System;
 using TheGame;
 using UnityEngine;
-using UnityEngine.InputSystem.LowLevel;
 
 [RequireComponent(typeof(WeaponAnimation))]
 [RequireComponent(typeof(Collider2D))]
 public class Weapon : MonoBehaviour
 {
-    private Player m_Player;
+    private IWeaponWielder m_Wielder;
 
     private Collider2D m_Collider;
 
-    public event Action<Vector3, Vector3> OnAttackedDirected;
     public event Action OnAttacked;
 
     private void Awake()
     {
-        m_Player = GetComponentInParent<Player>();
+        m_Wielder = GetComponentInParent<IWeaponWielder>();
         
         m_Collider = GetComponent<Collider2D>();
     }
@@ -43,7 +41,6 @@ public class Weapon : MonoBehaviour
         EnableCollider();
         
         OnAttacked?.Invoke();
-        OnAttackedDirected?.Invoke(m_Player.transform.position, direction);
     }
 
     public void Stop()
@@ -61,10 +58,9 @@ public class Weapon : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log($"Hit {collision.tag}");
         if (collision.TryGetComponent<IHittable>(out var target))
         {
-            m_Player.TryHitTarget(target);
+            m_Wielder.TryHitTarget(target);
         }
     }
 }
