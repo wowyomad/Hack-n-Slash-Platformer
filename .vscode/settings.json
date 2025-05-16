@@ -60,13 +60,13 @@
         "*.asset": "yaml",
         "*.meta": "yaml",
         "*.prefab": "yaml",
-        "*.unity": "yaml",
+        "*.unity": "yaml"
     },
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
-        "*.sln": "*.csproj",
+        "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "TheGame.sln",
+    "dotnet.defaultSolution": "Ivy's Sacrifice.sln",
     "editor.smoothScrolling": true,
     "editor.cursorSmoothCaretAnimation": "on",
     "terminal.integrated.smoothScrolling": true,

@@ -6,15 +6,15 @@ public class CharacterController2D : RaycastController
 {
     [SerializeField] protected CollisionInfo m_Collisions;
     [SerializeField] protected bool m_Grounded;
-    [SerializeField] protected bool m_IsFacingWallLeft;
-    [SerializeField] protected bool m_IsFacingWallRight;
-    [SerializeField] protected bool m_IsPassingThrough;
+    [SerializeField] protected bool m_FacingWallLeft;
+    [SerializeField] protected bool m_FacingWallRight;
+    [SerializeField] protected bool m_PassingThrough;
     [SerializeField] protected bool m_CanPasstTransparentGround;
 
     private bool m_StartedPassingThrough;
 
-    public bool IsFacingWallLeft => m_IsFacingWallLeft;
-    public bool IsFacingWallRight => m_IsFacingWallRight;
+    public bool IsFacingWallLeft => m_FacingWallLeft;
+    public bool IsFacingWallRight => m_FacingWallRight;
     public bool IsGrounded => m_Grounded;//Hack to make 'Descending' state count as Grounded. TODO: Be better.
     public bool CanPassTransparentGround => m_CanPasstTransparentGround;
     public CollisionInfo Collisions => m_Collisions;
@@ -51,7 +51,7 @@ public class CharacterController2D : RaycastController
     {
         if (CanPassTransparentGround)
         {
-            m_IsPassingThrough = true;
+            m_PassingThrough = true;
             m_StartedPassingThrough = false;
         }
     }
@@ -91,7 +91,7 @@ public class CharacterController2D : RaycastController
 
         m_Grounded = Grounded();
         m_CanPasstTransparentGround = CanPassThrough();
-        (m_IsFacingWallLeft, m_IsFacingWallRight) = IsFacingWall();
+        (m_FacingWallLeft, m_FacingWallRight) = IsFacingWall();
 
         transform.position += Displacement;
 
@@ -196,6 +196,7 @@ public class CharacterController2D : RaycastController
             }
         }
 
+
         if (m_Collisions.ClimbingSlope)
         {
             float xDirection = Mathf.Sign(Displacement.x);
@@ -216,10 +217,23 @@ public class CharacterController2D : RaycastController
 
         if (m_Collisions.ClimbingSlope)
         {
-            m_IsPassingThrough = true;
+            m_PassingThrough = true;
         }
 
-        if (m_IsPassingThrough)
+
+        for (int i = 0; i < VerticalRayCount; i++)
+        {
+            Vector2 origin = yDirection == -1 ? m_RaycastOrigins.BottomLeft : m_RaycastOrigins.TopLeft;
+            origin += Vector2.right * (VerticalRaySpacing * i + Displacement.x);
+
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up, rayLength, TransparentGroundMask);
+            if (hit)
+            {
+                ClimbDown();
+            }
+        }
+
+        if (m_PassingThrough)
         {
             Bounds bounds = m_Collider.bounds;
             bounds.Expand(-SkinWidth * 2.0f);
@@ -228,7 +242,7 @@ public class CharacterController2D : RaycastController
             {
                 if (overlappingColliders.Length == 0)
                 {
-                    m_IsPassingThrough = false;
+                    m_PassingThrough = false;
                 }
             }
             else if (overlappingColliders.Length > 0)
@@ -269,7 +283,7 @@ public class CharacterController2D : RaycastController
 
     private LayerMask GetVerticalCollisionMask(int yDirection)
     {
-        if (yDirection == -1 && !m_IsPassingThrough)
+        if (yDirection == -1 && !m_PassingThrough)
         {
             return GroundMask | TransparentGroundMask;
         }

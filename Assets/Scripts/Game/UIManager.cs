@@ -158,7 +158,7 @@ public class UIManager : PersistentSingleton<UIManager>
         else
         {
             ShowScreen(null);
-            m_Input.SetUI();
+            m_Input.SetGameplay();
         }
         ShowSettingsTab(null);
     }

@@ -18,6 +18,7 @@ public class NavAgent2D : MonoBehaviour
     public float Speed = 0.0f;
     public float DeccelerationTime = 0.5f;
     public float AccelerationTime = 0.5f;
+    public bool TurnAgentOnMove = true;
 
 
     [Header("Pathfinding")]
@@ -32,6 +33,8 @@ public class NavAgent2D : MonoBehaviour
     [SerializeField] private int m_JumpDirection = 0;
     [SerializeField] private int m_CurrentPointIndex = 0;
     [SerializeField] private float m_JumpSpeedScale = 1.0f;
+
+    private Action<int> m_TurnCallback;
 
     private List<NavData2D.NavPoint> m_Path;
     private Vector2 m_Target = Vector2.zero;
@@ -88,6 +91,11 @@ public class NavAgent2D : MonoBehaviour
         Speed = speed;
     }
 
+    public void SetTurnCallback(Action<int> turnCallback)
+    {
+        m_TurnCallback = turnCallback;
+    }
+
     public void SetAccelerationTime(float time)
     {
         AccelerationTime = time;
@@ -100,9 +108,9 @@ public class NavAgent2D : MonoBehaviour
 
     public void SetDestination(Vector2 target)
     {
-        if (false && DontChangePathWhileSloping && (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope))
+        if (IsMoving && DontChangePathWhileSloping && (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope))
         {
-            return;
+            Stop();
         }
 
         if (IsAsync)
@@ -115,7 +123,7 @@ public class NavAgent2D : MonoBehaviour
         }
     }
 
-    public void SetDestinationInternal(Vector2 target)
+    private void SetDestinationInternal(Vector2 target)
     {
         if (m_PassingThrough) return;
 
@@ -128,7 +136,6 @@ public class NavAgent2D : MonoBehaviour
             ApplyNewPath(m_Path);
             AdjustCurrentPathIndexForAgentPosition();
         }
-
     }
 
     private void SetDestinationAsyncInternal(Vector2 target)
@@ -144,7 +151,7 @@ public class NavAgent2D : MonoBehaviour
         m_Target = target;
         Vector2 currentPosition = transform.position - new Vector3(0, m_NavData.ActorSize.y * 0.5f, 0);
 
-        NavData2D.NavPoint startPoint = m_NavData.GetClosestNavPoint(currentPosition);
+        NavData2D.NavPoint startPoint = m_NavData.GetClosestNavPoint(currentPosition, (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope) ? true : false);
         NavData2D.NavPoint endPoint = m_NavData.GetClosestNavPoint(target);
 
         Task.Run(() =>
@@ -241,6 +248,11 @@ public class NavAgent2D : MonoBehaviour
         {
             HandleWalking();
         }
+
+        if (TurnAgentOnMove && Velocity.x != 0.0f)
+        {
+            m_TurnCallback?.Invoke(Velocity.x > 0 ? 1 : -1);
+        }
     }
 
     private void HandlePassingThrough()
@@ -326,7 +338,7 @@ public class NavAgent2D : MonoBehaviour
             }
 
             NavData2D.ConnectionType connectionToNext = GetConnectionType(currentNavPoint, nextNavPoint);
-            bool isNextSegmentAJump = (connectionToNext >= NavData2D.ConnectionType.Jump && connectionToNext <= NavData2D.ConnectionType.TransparentFall);
+            bool isNextSegmentAJump = connectionToNext >= NavData2D.ConnectionType.Jump && connectionToNext <= NavData2D.ConnectionType.TransparentFall;
 
             if (isNextSegmentAJump)
             {
@@ -357,6 +369,7 @@ public class NavAgent2D : MonoBehaviour
             m_CurrentPointIndex = m_Path.Count - 1;
         }
     }
+
 
     private bool IsPathInvalid()
     {
@@ -546,6 +559,11 @@ public class NavAgent2D : MonoBehaviour
 
     public float DistanceToTarget()
     {
+        if (m_PathPending || m_NewPathReady)
+        {
+            return float.PositiveInfinity;
+        }
+        
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
         {
             return 0.0f;
@@ -558,6 +576,7 @@ public class NavAgent2D : MonoBehaviour
         }
         return distance;
     }
+
 
     private void OnDrawGizmos()
     {

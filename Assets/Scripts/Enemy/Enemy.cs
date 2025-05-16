@@ -16,7 +16,6 @@ public class Enemy : MonoBehaviour, IHittable, IWeaponWielder
 {
     [HideInInspector] public CharacterController2D Controller;
     [HideInInspector] public NavAgent2D NavAgent;
-    [HideInInspector] private Transform m_SpriteTransform;
 
     [SerializeField] private float m_EysightDistance = 8.0f;
 
@@ -44,7 +43,7 @@ public class Enemy : MonoBehaviour, IHittable, IWeaponWielder
         NavAgent = GetComponent<NavAgent2D>();
         Controller = GetComponent<CharacterController2D>();
 
-        Initialize();
+        NavAgent.SetTurnCallback(Flip);
     }
 
     private void Start()
@@ -52,26 +51,9 @@ public class Enemy : MonoBehaviour, IHittable, IWeaponWielder
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
     }
 
-    public void Initialize()
-    {
-        SpriteRenderer spriteRenderer;
-        if (TryGetComponent(out spriteRenderer))
-        {
-            m_SpriteTransform = spriteRenderer.transform;
-        }
-        else if ((spriteRenderer = GetComponentInChildren<SpriteRenderer>()) != null)
-        {
-            m_SpriteTransform = spriteRenderer.transform;
-        }
-        else
-        {
-            throw new MissingComponentException("No SpriteRenderer found on this object or its children.");
-        }
-    }
-
     private void Update()
     {
-        Flip(NavAgent.Velocity.x);
+        
     }
 
     public HitResult TakeHit()

@@ -39,6 +39,8 @@ public partial class Patrol2DAction : Action
 
         m_CurrentWaypointIndex = 0;
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
+        m_Waiting = false;
+        m_WaitTime = 0.0f;
 
         m_NavAgent.SetSpeed(Speed.Value);
         m_NavAgent.SetAccelerationTime(AccelerationTime.Value);
@@ -65,18 +67,18 @@ public partial class Patrol2DAction : Action
                 m_Waiting = false;
                 m_WaitTime = 0.0f;
 
-                if (m_CurrentWaypointIndex >= PatrolWaypoints.Value.Count)
-                {
-                    return Status.Success;
-                }
-
                 m_NavAgent.SetDestination(PatrolWaypoints.Value[m_CurrentWaypointIndex].transform.position);
             }
         }
         else if (m_NavAgent.DistanceToTarget() < DistanceThreshold.Value)
         {
-            m_CurrentWaypointIndex++;
+            m_CurrentWaypointIndex = (m_CurrentWaypointIndex + 1) % PatrolWaypoints.Value.Count;
             m_Waiting = true;
+        }
+
+        if (m_CurrentWaypointIndex >= PatrolWaypoints.Value.Count)
+        {
+            return Status.Success;
         }
 
         return Status.Running;

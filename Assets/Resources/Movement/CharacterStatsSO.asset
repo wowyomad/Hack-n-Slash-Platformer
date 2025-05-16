@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CharacterStatsSO
   m_EditorClassIdentifier: 
   HorizontalSpeed: 12
-  m_JumpHeight: 3
+  m_JumpHeight: 2.5
   m_JumpTime: 0.25
   m_FallTime: 0.2
   AccelerationTimeAirborne: 0.25
@@ -24,7 +24,7 @@ MonoBehaviour:
   AttackDuration: 0.2
   AttackSlowdownScale: 0.75
   AttackImpulseCooldown: 0.4
-  AttackImpulse: 25
+  AttackImpulse: 22
   DashCooldown: 0.3
   DashSpeed: 25
   DashDuration: 0.15

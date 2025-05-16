@@ -35,9 +35,6 @@ public class GameManager : PersistentSingleton<GameManager>
 
         m_Input.SetUI();
 
-        m_OriginalTimeScale = Time.timeScale;
-        m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
-
         Time.timeScale = 0f;
         Time.fixedDeltaTime = 0f;
     }
@@ -58,6 +55,12 @@ public class GameManager : PersistentSingleton<GameManager>
     public void RestartGame()
     {
         LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void ResetTimeScale()
+    {
+        Time.timeScale = m_OriginalTimeScale;
+        Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
     }
 
     public void LoadScene(string name)
