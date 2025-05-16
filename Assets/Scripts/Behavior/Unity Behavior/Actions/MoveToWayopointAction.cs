@@ -1,31 +1,36 @@
 using System;
+using System.Collections.Generic;
 using Unity.Behavior;
 using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "MoveToTarget", story: "[Agent] moves to [Target]", category: "Action", id: "a3cb355433384adbe043ccab43b6866a")]
-public partial class MoveToTargetAction : Action
+[NodeDescription(name: "MoveToWayopoint", story: "[Agent] moves to current waypoint", category: "Action", id: "436ac4c1018fc34f9541a4d164eae38a")]
+public partial class MoveToWayopointAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
-    [SerializeReference] public BlackboardVariable<GameObject> Target;
-
+    [SerializeReference] public BlackboardVariable<List<GameObject>> Waypoints;
+    [SerializeReference] public BlackboardVariable<int> CurrentWaypointIndex;
     [SerializeReference] public BlackboardVariable<float> Speed = new BlackboardVariable<float>(8.0f);
     [SerializeReference] public BlackboardVariable<float> DeccelerationTime = new BlackboardVariable<float>(0.25f);
     [SerializeReference] public BlackboardVariable<float> AccelerationTime = new BlackboardVariable<float>(0.35f);
     [SerializeReference] public BlackboardVariable<float> DistanceThreshold = new BlackboardVariable<float>(0.01f);
-    [SerializeReference] public BlackboardVariable<float> UpdateDestinationInterval = new BlackboardVariable<float>(0.5f);
+
     [SerializeReference] public BlackboardVariable<float> MaxPathCalculationTime = new BlackboardVariable<float>(0.5f);
 
-
-    private NavAgent2D m_NavAgent;
-    private float m_UpdateDestinationTimer = 0.0f;
     private float m_PathWaitTimer = 0.0f;
+    private NavAgent2D m_NavAgent;
+
     protected override Status OnStart()
     {
+        if (Waypoints.Value.Count <= 1)
+        {
+            return Status.Failure;
+        }
+
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
-        m_NavAgent.SetDestination(Target.Value.transform.position);
+        m_NavAgent.SetDestination(Waypoints.Value[CurrentWaypointIndex.Value].transform.position);
 
         m_NavAgent.SetSpeed(Speed.Value);
         m_NavAgent.SetAccelerationTime(AccelerationTime.Value);
@@ -62,7 +67,6 @@ public partial class MoveToTargetAction : Action
     protected override void OnEnd()
     {
         m_NavAgent.Stop();
-        m_UpdateDestinationTimer = 0.0f;
         m_PathWaitTimer = 0.0f;
     }
 }

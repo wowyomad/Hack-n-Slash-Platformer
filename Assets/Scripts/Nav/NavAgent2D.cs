@@ -20,6 +20,8 @@ public class NavAgent2D : MonoBehaviour
     public float AccelerationTime = 0.5f;
     public bool TurnAgentOnMove = true;
 
+    public bool IsPathPending => m_NewPathPending || m_NewPathReady;
+
 
     [Header("Pathfinding")]
     public bool IsAsync = false;
@@ -39,7 +41,8 @@ public class NavAgent2D : MonoBehaviour
     private List<NavData2D.NavPoint> m_Path;
     private Vector2 m_Target = Vector2.zero;
     private AgentState m_State;
-    private bool m_PathPending = false;
+    private bool m_NewPathPending = false;
+
 
     private List<NavData2D.NavPoint> m_PathBuffer;
     private bool m_NewPathReady = false;
@@ -56,7 +59,7 @@ public class NavAgent2D : MonoBehaviour
     public bool IsJumping => m_State == AgentState.Jumping;
     public bool IsMoving => m_State == AgentState.Moving;
     public bool IsFollowing => m_State != AgentState.None && m_State != AgentState.Stopped;
-    public bool IsPathReady => !m_PathPending;
+    public bool IsPathReady => !m_NewPathPending;
     public Vector3? CurrentPathTarget => (IsPathReady && m_Path != null && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
     public Vector2 Velocity { get; private set; }
     public enum AgentState
@@ -145,9 +148,9 @@ public class NavAgent2D : MonoBehaviour
         if (m_NavData == null)
             throw new NullReferenceException("NavData2D is not assigned");
 
-        if (m_PathPending) return;
+        if (m_NewPathPending) return;
 
-        m_PathPending = true;
+        m_NewPathPending = true;
         m_Target = target;
         Vector2 currentPosition = transform.position - new Vector3(0, m_NavData.ActorSize.y * 0.5f, 0);
 
@@ -166,7 +169,7 @@ public class NavAgent2D : MonoBehaviour
                 lock (m_PathLock)
                 {
                     m_NewPathReady = true;
-                    m_PathPending = false;
+                    m_NewPathPending = false;
                 }
             }
             catch (Exception e)
@@ -174,7 +177,7 @@ public class NavAgent2D : MonoBehaviour
                 Debug.LogError("Error while calculating path: " + e.Message + "\n" + e.StackTrace);
                 lock (m_PathLock)
                 {
-                    m_PathPending = false;
+                    m_NewPathPending = false;
                 }
             }
         });
@@ -217,14 +220,18 @@ public class NavAgent2D : MonoBehaviour
             Velocity = new Vector2(0, m_Controller.Velocity.y);
         }
 
-        HandleAsyncPathResult();
-
-        if (IsPathInvalid())
+        if (HandleAsyncPathResult())
         {
-            m_State = AgentState.Stopped;
-            m_PassingThrough = false;
             return;
         }
+        
+
+        if (IsPathInvalid())
+            {
+                m_State = AgentState.Stopped;
+                m_PassingThrough = false;
+                return;
+            }
 
         if (!IsFollowing)
         {
@@ -280,32 +287,35 @@ public class NavAgent2D : MonoBehaviour
         }
     }
 
-    private void HandleAsyncPathResult()
+    private bool HandleAsyncPathResult()
     {
+        bool pathUpdated = false; ;
         if (m_NewPathReady)
         {
             lock (m_PathLock)
             {
-                if (!m_NewPathReady) return;
+                if (!m_NewPathReady) return false;
                 m_NewPathReady = false;
 
                 List<NavData2D.NavPoint> temp = m_Path;
                 m_Path = m_PathBuffer;
                 m_PathBuffer = temp;
 
-                ApplyNewPath(m_Path);
+                pathUpdated = ApplyNewPath(m_Path);
                 AdjustCurrentPathIndexForAgentPosition();
             }
         }
+        return pathUpdated;
     }
 
-    private void ApplyNewPath(List<NavData2D.NavPoint> newPath)
+    private bool ApplyNewPath(List<NavData2D.NavPoint> newPath)
     {
         if (newPath == null || newPath.Count == 0)
         {
             m_State = AgentState.Stopped;
             m_Path = newPath;
             m_CurrentPointIndex = 0;
+            return false;
         }
         else
         {
@@ -313,6 +323,7 @@ public class NavAgent2D : MonoBehaviour
             m_Path = newPath;
             m_Target = m_Path[m_Path.Count - 1].Position;
             m_CurrentPointIndex = 0;
+            return true;
         }
     }
 
@@ -559,7 +570,7 @@ public class NavAgent2D : MonoBehaviour
 
     public float DistanceToTarget()
     {
-        if (m_PathPending || m_NewPathReady)
+        if (IsPathPending || m_Path.Count == 0)
         {
             return float.PositiveInfinity;
         }
