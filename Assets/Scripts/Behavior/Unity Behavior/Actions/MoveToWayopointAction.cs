@@ -22,14 +22,15 @@ public partial class MoveToWayopointAction : Action
     private float m_PathWaitTimer = 0.0f;
     private NavAgent2D m_NavAgent;
 
+    private bool m_Initialized = false;
+
     protected override Status OnStart()
     {
-        if (Waypoints.Value.Count <= 1)
+        if (!m_Initialized)
         {
-            return Status.Failure;
+            Initialize();
         }
 
-        m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
         m_NavAgent.SetDestination(Waypoints.Value[CurrentWaypointIndex.Value].transform.position);
 
         m_NavAgent.SetSpeed(Speed.Value);
@@ -68,6 +69,17 @@ public partial class MoveToWayopointAction : Action
     {
         m_NavAgent.Stop();
         m_PathWaitTimer = 0.0f;
+    }
+
+    private void Initialize()
+    {
+        m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
+        if (m_NavAgent == null)
+        {
+            Debug.LogError("NavAgent2D component not found on Agent GameObject.");
+            return;
+        }
+        m_Initialized = true;
     }
 }
 

@@ -6,6 +6,7 @@ using UnityEngine;
 [Condition(name: "CanSeePlayer", story: "[Agent] can see [Player]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
 public partial class CanSeePlayerCondition : Condition
 {
+    
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<GameObject> Player;
 
@@ -16,7 +17,7 @@ public partial class CanSeePlayerCondition : Condition
 
     public override bool IsTrue()
     {
-        return m_Self.CanSeePlayer(m_Player);
+        return m_Self.CanSeeEntity(m_Player);
     }
 
     public override void OnStart()

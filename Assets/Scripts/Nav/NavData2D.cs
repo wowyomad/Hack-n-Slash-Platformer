@@ -17,7 +17,6 @@ namespace Nav2D
 
         private Dictionary<Vector3Int, NavCell> m_NavCells = new Dictionary<Vector3Int, NavCell>();
 
-        [SerializeField] private List<NavPointEntry> m_SerializedNavPoints = new List<NavPointEntry>();
         [SerializeField] private NavWeights m_NavWeights;
 
         [Header("Tilemap")]
@@ -87,14 +86,13 @@ namespace Nav2D
             DeserializeNavPoints();
         }
 
-        private void Awake()
+        private void Start()
         {
             m_CellSize = m_GroundTilemap.cellSize;
 
             Generate();
             m_Awaken = true;
         }
-
         private void OnDisable()
         {
 
@@ -311,7 +309,7 @@ namespace Nav2D
                 surfaceNormal = mainHit.normal;
             }
 
-            if (false && m_NumberOfRays > 1)
+            if (m_NumberOfRays > 1)
             {
                 Vector2 perp = new Vector2(-surfaceNormal.y, surfaceNormal.x);
 
@@ -487,7 +485,7 @@ namespace Nav2D
                             }
                             else
                             {
-                                
+
                                 continue;
                             }
                         }
@@ -728,7 +726,6 @@ namespace Nav2D
             {
                 yOffsetForLeftNeighbor = 1;
                 yOffsetForRightNeighbor = -1;
-
             }
             else
             {
@@ -747,7 +744,6 @@ namespace Nav2D
                 Vector3Int neighborCellPosForSlope = navPoint.CellPos + dir + new Vector3Int(0, yOffset, 0);
                 Vector3Int neighborCellPosForSurface = navPoint.CellPos + dir;
 
-
                 if (m_NavCells.TryGetValue(neighborCellPosForSlope, out NavCell neighborCell) && neighborCell.Ground != null)
                 {
                     var ground = neighborCell.Ground;
@@ -757,13 +753,11 @@ namespace Nav2D
                     {
                         navPoint.Connections.Add(new Connection { Point = ground, Type = ConnectionType.Slope, Weight = m_NavWeights.SlopeWeight });
                     }
-
                     else if (transparent != null && !navPoint.Connections.Exists(c => c.Point == transparent && c.Type == ConnectionType.Slope))
                     {
                         navPoint.Connections.Add(new Connection { Point = transparent, Type = ConnectionType.Slope, Weight = m_NavWeights.SlopeWeight });
                     }
                 }
-
                 else if (m_NavCells.TryGetValue(neighborCellPosForSurface, out NavCell neighborCell2) && neighborCell2.Ground != null)
                 {
                     var ground = neighborCell2.Ground;
@@ -779,6 +773,7 @@ namespace Nav2D
                     }
                 }
             }
+
         }
 
         private void ConnectJumps(NavPoint navPoint)
@@ -1038,6 +1033,32 @@ namespace Nav2D
             Vector3 offset = useOffset ? new Vector3(0, m_ActorSize.y / 2f + m_NavPointVerticalOffset, 0) : Vector3.zero;
             Vector3Int cellPos = m_GroundTilemap.WorldToCell(worldPosition - offset);
             return m_NavCells.TryGetValue(cellPos, out cell);
+        }
+
+        public bool GetCellsInArea(Vector3 worldPosition, Bounds bounds, out List<NavCell> cell)
+        {
+            // Center the area around worldPosition, using bounds.size as the area to search
+            Vector3 areaMin = worldPosition - bounds.extents;
+            Vector3 areaMax = worldPosition + bounds.extents;
+
+            Vector3Int cellPosMin = m_GroundTilemap.WorldToCell(areaMin);
+            Vector3Int cellPosMax = m_GroundTilemap.WorldToCell(areaMax);
+
+            cell = new List<NavCell>();
+
+            for (int x = cellPosMin.x; x <= cellPosMax.x; x++)
+            {
+                for (int y = cellPosMin.y; y <= cellPosMax.y; y++)
+                {
+                    Vector3Int pos = new Vector3Int(x, y, 0);
+                    if (m_NavCells.TryGetValue(pos, out var navCell))
+                    {
+                        cell.Add(navCell);
+                    }
+                }
+            }
+
+            return cell.Count > 0;
         }
 
         public bool HasTileInAnyLayer(Vector3Int cellPos)

@@ -54,7 +54,7 @@ public partial class Patrol2DAction : Action
     protected override Status OnUpdate()
     {
 
-        if (Self.CanSeePlayer(Player))
+        if (Self.CanSeeEntity(Player))
         {
             return Status.Failure;
         }

@@ -39,7 +39,7 @@ public partial class UpdateAlertedStateAction : Action
                 }
                 else
                 {
-                    Alerted.Value = Self.CanSeePlayer(Target.Value.transform.position);
+                    Alerted.Value = Self.CanSeeTarget(Target.Value.transform.position);
                 }
                 return Status.Success;
             }

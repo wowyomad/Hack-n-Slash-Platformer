@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Nav;
 using Nav2D;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController2D))]
+[RequireComponent(typeof(Collider2D))]
 public class NavAgent2D : MonoBehaviour
 {
     [Header("Components")]
     [SerializeField] private NavData2D m_NavData;
     [SerializeField] private NavActorSO m_NavActor;
+    private Collider2D m_Collider;
 
 
     [Header("Movement")]
@@ -152,9 +155,11 @@ public class NavAgent2D : MonoBehaviour
 
         m_NewPathPending = true;
         m_Target = target;
-        Vector2 currentPosition = transform.position - new Vector3(0, m_NavData.ActorSize.y * 0.5f, 0);
+        bool isInsideTransparentGround = m_NavData.GetCellsInArea(transform.position, m_Collider.bounds, out var cells) && cells.Any(cell => cell.Transparent != null);
+        float verticalOffset = isInsideTransparentGround ? m_NavData.ActorSize.y * 0.5f : 0.0f;
+        Vector2 currentPosition = transform.position - new Vector3(0, verticalOffset, 0);
 
-        NavData2D.NavPoint startPoint = m_NavData.GetClosestNavPoint(currentPosition, (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope) ? true : false);
+        NavData2D.NavPoint startPoint = m_NavData.GetClosestNavPoint(currentPosition, isInsideTransparentGround || m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope ? true : false);
         NavData2D.NavPoint endPoint = m_NavData.GetClosestNavPoint(target);
 
         Task.Run(() =>
@@ -193,6 +198,7 @@ public class NavAgent2D : MonoBehaviour
         {
             throw new NullReferenceException("NavActor is not assigned");
         }
+        m_Collider = GetComponent<Collider2D>();
         m_Controller = GetComponent<CharacterController2D>();
         m_Path = new List<NavData2D.NavPoint>();
         m_PathBuffer = new List<NavData2D.NavPoint>();
@@ -224,14 +230,14 @@ public class NavAgent2D : MonoBehaviour
         {
             return;
         }
-        
+
 
         if (IsPathInvalid())
-            {
-                m_State = AgentState.Stopped;
-                m_PassingThrough = false;
-                return;
-            }
+        {
+            m_State = AgentState.Stopped;
+            m_PassingThrough = false;
+            return;
+        }
 
         if (!IsFollowing)
         {
@@ -574,7 +580,7 @@ public class NavAgent2D : MonoBehaviour
         {
             return float.PositiveInfinity;
         }
-        
+
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
         {
             return 0.0f;

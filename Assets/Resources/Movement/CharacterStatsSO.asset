@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42a77b2a81b087a499ae80c64182444d, type: 3}
   m_Name: CharacterStatsSO
   m_EditorClassIdentifier: 
-  HorizontalSpeed: 12
+  HorizontalSpeed: 11
   m_JumpHeight: 3
   m_JumpTime: 0.25
   m_FallTime: 0.2

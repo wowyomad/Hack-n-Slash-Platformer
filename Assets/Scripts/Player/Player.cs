@@ -4,11 +4,22 @@ using TheGame;
 using GameActions;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Rendering;
+
+namespace TheGame
+{
+ 
+    public abstract class Entity : MonoBehaviour
+    {
+        public virtual bool IsAlive { get; protected set; }
+        public virtual bool IsDead => !IsAlive;
+    }
+}
+
+
 
 [SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
-public partial class Player : MonoBehaviour, IStateTrackable, IHittable, IWeaponWielder
+public partial class Player : Entity, IStateTrackable, IHittable, IWeaponWielder
 {
     [Header("Children Components")]
     [SerializeField] public Weapon WeaponReference;
@@ -78,6 +89,7 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable, IWeapon
 
     public event Action<IState, IState> StateChanged;
     public event Action OnHit;
+    public override bool IsAlive => StateMachine.State != DeadState;
 
     public bool IsGrounded => Controller.IsGrounded;
 
@@ -85,9 +97,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable, IWeapon
 
     public bool CanTakeHit => !IsVulnerable;
     private float m_StunCooldownDuration = 1.5f;
-    private bool m_CanGetStunned = false;
-    private bool IsImmuneToStun = false;
 
+    private bool m_CanGetStunned = false;
 
     private List<ActionTimer> m_Timers;
 
@@ -144,6 +155,8 @@ public partial class Player : MonoBehaviour, IStateTrackable, IHittable, IWeapon
 
         StateMachine.StateChangedEvent -= OnStateChanged;
     }
+
+
 
     public void Update()
     {

@@ -15,15 +15,19 @@ public partial class MoveToTargetAction : Action
     [SerializeReference] public BlackboardVariable<float> DeccelerationTime = new BlackboardVariable<float>(0.25f);
     [SerializeReference] public BlackboardVariable<float> AccelerationTime = new BlackboardVariable<float>(0.35f);
     [SerializeReference] public BlackboardVariable<float> DistanceThreshold = new BlackboardVariable<float>(0.01f);
-    [SerializeReference] public BlackboardVariable<float> UpdateDestinationInterval = new BlackboardVariable<float>(0.5f);
     [SerializeReference] public BlackboardVariable<float> MaxPathCalculationTime = new BlackboardVariable<float>(0.5f);
 
 
     private NavAgent2D m_NavAgent;
-    private float m_UpdateDestinationTimer = 0.0f;
     private float m_PathWaitTimer = 0.0f;
+
     protected override Status OnStart()
     {
+        if (Agent.Value == null || Target.Value == null)
+        {
+            LogFailure("Agent or Target is null");
+            return Status.Failure;
+        }
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
         m_NavAgent.SetDestination(Target.Value.transform.position);
 
@@ -62,7 +66,6 @@ public partial class MoveToTargetAction : Action
     protected override void OnEnd()
     {
         m_NavAgent.Stop();
-        m_UpdateDestinationTimer = 0.0f;
         m_PathWaitTimer = 0.0f;
     }
 }
