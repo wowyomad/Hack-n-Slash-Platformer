@@ -114,9 +114,10 @@ public class NavAgent2D : MonoBehaviour
 
     public void SetDestination(Vector2 target)
     {
-        if (IsMoving && DontChangePathWhileSloping && (m_Controller.Collisions.ClimbingSlope || m_Controller.Collisions.DescendingSlope))
+        if (IsMoving && DontChangePathWhileSloping && m_Controller.Collisions.ClimbingSlope)
         {
-            Stop();
+            StartCoroutine(WaitForSlopeAndSetDestination(target));
+            return;
         }
 
         if (IsAsync)
@@ -127,6 +128,17 @@ public class NavAgent2D : MonoBehaviour
         {
             SetDestinationInternal(target);
         }
+    }
+
+    private System.Collections.IEnumerator WaitForSlopeAndSetDestination(Vector2 target)
+    {
+        m_NewPathPending = true;
+        while (m_Controller.Collisions.ClimbingSlope)
+        {
+            yield return null;
+        }
+        m_NewPathPending = false;
+        SetDestination(target);
     }
 
     private void SetDestinationInternal(Vector2 target)

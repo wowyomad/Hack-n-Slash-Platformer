@@ -3,12 +3,13 @@ using Unity.Behavior;
 using UnityEngine;
 
 [Serializable, Unity.Properties.GeneratePropertyBag]
-[Condition(name: "CanSeePlayer", story: "[Agent] can see [Player]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
+[Condition(name: "CanSeePlayer", story: "[Agent] can see [Player] [True]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
 public partial class CanSeePlayerCondition : Condition
 {
     
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<GameObject> Player;
+    [SerializeReference] public BlackboardVariable<bool> True = new BlackboardVariable<bool>(true);
 
     private Enemy m_Self;
     private Player m_Player;
@@ -17,7 +18,7 @@ public partial class CanSeePlayerCondition : Condition
 
     public override bool IsTrue()
     {
-        return m_Self.CanSeeEntity(m_Player);
+        return m_Self.CanSeeEntity(m_Player) == True.Value;
     }
 
     public override void OnStart()

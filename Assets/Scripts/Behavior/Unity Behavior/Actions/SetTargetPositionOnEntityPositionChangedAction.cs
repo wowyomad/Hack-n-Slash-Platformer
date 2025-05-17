@@ -41,9 +41,8 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
         }
 
         m_LastPosition = MovingTarget.Value.position;
-        m_InitialDistance = distance;
 
-        if (m_InitialDistance > PositionChangedThreshold.Value)
+        if (distance > PositionChangedThreshold.Value)
         {
             m_HasMoved = true;
         }
@@ -53,14 +52,12 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
 
     protected override Status OnUpdate()
     {
-        float distance = Vector3.Distance(Agent.Value.position, MovingTarget.Value.position);
-
+        float distance = Vector3.Distance(m_LastPosition, MovingTarget.Value.position);
         m_Timer += Time.deltaTime;
         if (m_Timer >= Duration.Value || distance > MaximumDistance.Value)
         {
             if (m_HasMoved)
             {
-                Assign(m_LastPosition);
                 return Status.Success;
             }
             else
@@ -79,6 +76,11 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
 
     protected override void OnEnd()
     {
+        if (m_HasMoved && MovingTarget.Value != null)
+        {
+            Assign(MovingTarget.Value.position);
+        }
+
         m_Timer = 0.0f;
         m_LastPosition = Vector3.zero;
         m_InitialDistance = 0.0f;

@@ -17,9 +17,14 @@ public partial class MoveToTargetAction : Action
     [SerializeReference] public BlackboardVariable<float> DistanceThreshold = new BlackboardVariable<float>(0.01f);
     [SerializeReference] public BlackboardVariable<float> MaxPathCalculationTime = new BlackboardVariable<float>(0.5f);
 
+    [SerializeReference] public BlackboardVariable<bool> UpdatePath = new BlackboardVariable<bool>(false);
+    [SerializeReference] public BlackboardVariable<float> UpdatePathInterval = new BlackboardVariable<float>(0.25f);
+    [SerializeReference] public BlackboardVariable<float> UpdatePathDistanceThreshold = new BlackboardVariable<float>(2.0f);
+
 
     private NavAgent2D m_NavAgent;
     private float m_PathWaitTimer = 0.0f;
+    private float m_PathUpdateTimer = 0.0f;
 
     protected override Status OnStart()
     {
@@ -40,6 +45,22 @@ public partial class MoveToTargetAction : Action
 
     protected override Status OnUpdate()
     {
+        if (UpdatePath.Value)
+        {
+            if (m_PathUpdateTimer >= UpdatePathInterval.Value)
+            {
+                if (Vector3.Distance(Agent.Value.transform.position, Target.Value.transform.position) > UpdatePathDistanceThreshold.Value)
+                {
+                    m_NavAgent.SetDestination(Target.Value.transform.position);
+                    m_PathUpdateTimer = 0.0f;
+                }
+            }
+            else
+            {
+                m_PathUpdateTimer += Time.deltaTime;
+            }
+        }
+
         if (m_NavAgent.DistanceToTarget() < DistanceThreshold.Value)
         {
             return Status.Success;
