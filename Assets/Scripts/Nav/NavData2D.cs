@@ -574,7 +574,7 @@ namespace Nav2D
                     ConnectSurfaceNeighbors(transparent);
                     ConnectJumps(transparent);
                     ConnectTransparentJumpAbove(transparent);
-                    ConnectTransparentFallBelow(transparent);
+                   //f ConnectTransparentFallBelow(transparent);
 
                     if (transparent.HasFlag(NavPoint.Type.Edge))
                     {
@@ -714,6 +714,11 @@ namespace Nav2D
 
         private void ConnectSlopes(NavPoint navPoint)
         {
+
+            if (navPoint.CellPos.x == 5 && navPoint.CellPos.y == 7)
+            {
+                Debug.Log("Debugging here");
+            }
             int yOffsetForLeftNeighbor;
             int yOffsetForRightNeighbor;
 
@@ -744,6 +749,7 @@ namespace Nav2D
                 Vector3Int neighborCellPosForSlope = navPoint.CellPos + dir + new Vector3Int(0, yOffset, 0);
                 Vector3Int neighborCellPosForSurface = navPoint.CellPos + dir;
 
+                // 1) try the diagonal (slope) neighbor
                 if (m_NavCells.TryGetValue(neighborCellPosForSlope, out NavCell neighborCell) && neighborCell.Ground != null)
                 {
                     var ground = neighborCell.Ground;
@@ -758,6 +764,7 @@ namespace Nav2D
                         navPoint.Connections.Add(new Connection { Point = transparent, Type = ConnectionType.Slope, Weight = m_NavWeights.SlopeWeight });
                     }
                 }
+                // 2) fall back to straight neighbor if no diagonal
                 else if (m_NavCells.TryGetValue(neighborCellPosForSurface, out NavCell neighborCell2) && neighborCell2.Ground != null)
                 {
                     var ground = neighborCell2.Ground;
@@ -773,7 +780,38 @@ namespace Nav2D
                     }
                 }
             }
+          
+            Vector3Int downCheckOffset = Vector3Int.zero;
+            if (navPoint.Normal.x < -VERY_SMALL_FLOAT)
+            {
+                downCheckOffset = Vector3Int.left + Vector3Int.down;
+            }
+            else if (navPoint.Normal.x > VERY_SMALL_FLOAT)
+            {
+                downCheckOffset = Vector3Int.right + Vector3Int.down;
+            }
 
+            if (downCheckOffset != Vector3Int.zero)
+            {
+                Vector3Int downPos = navPoint.CellPos + downCheckOffset;
+                if (m_NavCells.TryGetValue(downPos, out NavCell downCell))
+                {
+                    bool hasSlopeBelow = (downCell.Ground != null && downCell.Ground.HasFlag(NavPoint.Type.Slope))
+                                      || (downCell.Transparent != null && downCell.Transparent.HasFlag(NavPoint.Type.Slope));
+                    if (!hasSlopeBelow && downCell.Transparent != null)
+                    {
+                        if (!navPoint.Connections.Exists(c => c.Point == downCell.Transparent && c.Type == ConnectionType.Surface))
+                        {
+                            navPoint.Connections.Add(new Connection
+                            {
+                                Point = downCell.Transparent,
+                                Type = ConnectionType.Surface,
+                                Weight = m_NavWeights.SurfaceWeight
+                            });
+                        }
+                    }
+                }
+             }
         }
 
         private void ConnectJumps(NavPoint navPoint)
@@ -965,7 +1003,6 @@ namespace Nav2D
                 if (m_NavCells.TryGetValue(belowPos, out var belowCell) && belowCell.Ground != null)
                 {
                     var below = belowCell.Ground;
-                    Debug.Log($"Connecting {navPoint.Position} to {below.Position} below");
                     navPoint.Connections.Add(new Connection
                     {
                         Point = below,
