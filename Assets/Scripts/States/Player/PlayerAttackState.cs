@@ -1,7 +1,6 @@
-using TheGame;
 using UnityEngine;
 
-public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
+public class PlayerAttackState : PlayerBaseState
 {
     public bool AttackFinished { get; private set; } = false;
     private Weapon m_Weapon;
@@ -64,8 +63,6 @@ public class PlayerAttackState : PlayerBaseState, IPlayerVulnarableState
 
         m_Weapon?.Attack(direction);
     }
-
-
 
     public override void OnExit()
     {

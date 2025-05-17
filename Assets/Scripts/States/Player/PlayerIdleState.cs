@@ -1,7 +1,6 @@
-using TheGame;
 using UnityEngine;
 
-public class PlayerIdleState : PlayerBaseState, IPlayerVulnarableState
+public class PlayerIdleState : PlayerBaseState
 {
     private float m_VelocitySmoothing;
     public PlayerIdleState(Player player) : base(player) { }

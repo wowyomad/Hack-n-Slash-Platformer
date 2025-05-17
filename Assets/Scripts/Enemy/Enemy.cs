@@ -56,6 +56,9 @@ public class Enemy : Entity, IHittable, IWeaponWielder
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
+
+        var behaviorGraphAgent = GetComponent<Unity.Behavior.BehaviorGraphAgent>();
+
     }
 
     private void Update()

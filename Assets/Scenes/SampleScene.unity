@@ -8197,6 +8197,10 @@ PrefabInstance:
       propertyPath: AnimatoinClipPrefix
       value: Enemy_Weapon_
       objectReference: {fileID: 0}
+    - target: {fileID: 5410435712964537296, guid: 4fab707bd2187f344bf699b83404bc7b, type: 3}
+      propertyPath: AnimatoinClipPrefix
+      value: Enemy_Weapon
+      objectReference: {fileID: 0}
     - target: {fileID: 8176191483741844718, guid: 4fab707bd2187f344bf699b83404bc7b, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7
@@ -35018,13 +35022,25 @@ PrefabInstance:
       propertyPath: AnimatoinClipPrefix
       value: Player_Weapon_
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 3920731948978484947, guid: ef3d897f83ac99d44839dffb87171a74, type: 3}
+      propertyPath: AnimatoinClipPrefix
+      value: Player_Weapon_
+      objectReference: {fileID: 0}
+    - target: {fileID: 6536775654058714929, guid: ef3d897f83ac99d44839dffb87171a74, type: 3}
+      propertyPath: m_Name
+      value: Weapon
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 3054328505641700800, guid: ef3d897f83ac99d44839dffb87171a74, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3035308244963648459, guid: ef3d897f83ac99d44839dffb87171a74, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7181259423605534610}
+    - targetCorrespondingSourceObject: {fileID: 3035308244963648459, guid: ef3d897f83ac99d44839dffb87171a74, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7181259423605534614}
   m_SourcePrefab: {fileID: 100100000, guid: ef3d897f83ac99d44839dffb87171a74, type: 3}
 --- !u!1 &3951353675390059478 stripped
 GameObject:
@@ -35170,6 +35186,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 815456ebab19355498a3211b090a6546, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7181259423605534614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3951353675390059478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2562cfb83e3259459c7eaaf5d7b5016, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AnimationClipPrefix: Player_
 --- !u!1001 &8906333547214706455
 PrefabInstance:
   m_ObjectHideFlags: 0

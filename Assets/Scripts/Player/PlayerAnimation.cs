@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class PlayerAnimation : MonoBehaviour
@@ -43,12 +42,11 @@ public class PlayerAnimation : MonoBehaviour
 
     private void Awake()
     {
-        m_Player = GetComponent<Player>();
+        m_Player = GetComponentInParent<Player>();
 
-        Animator animator = null;
-        if (!TryGetComponent(out animator))
+        if (!TryGetComponent(out Animator animator))
         {
-            animator = GetComponentInChildren<Animator>();
+            animator = GetComponent<Animator>();
         }
 
         if (animator == null)

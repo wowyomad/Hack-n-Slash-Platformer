@@ -20,7 +20,6 @@ public partial class MoveToPositionAction : Action
 
 
     private NavAgent2D m_NavAgent;
-    private float m_UpdateDestinationTimer = 0.0f;
     private float m_PathWaitTimer = 0.0f;
 
     protected override Status OnStart()
@@ -68,7 +67,6 @@ public partial class MoveToPositionAction : Action
     protected override void OnEnd()
     {
         m_NavAgent.Stop();
-        m_UpdateDestinationTimer = 0.0f;
         m_PathWaitTimer = 0.0f;
     }
 }

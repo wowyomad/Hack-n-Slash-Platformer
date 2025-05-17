@@ -142,7 +142,7 @@ public partial class Player : Entity, IStateTrackable, IHittable, IWeaponWielder
         StateMachine.StateChangedEvent += InvokeStateChangedEvent;
 
 #if UNITY_EDITOR
-        StateMachine.StateChangedEvent += LogStateChange;
+        //StateMachine.StateChangedEvent += LogStateChange;
 #endif
     }
 

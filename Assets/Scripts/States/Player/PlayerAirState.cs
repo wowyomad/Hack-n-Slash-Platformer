@@ -1,7 +1,7 @@
 using UnityEngine;
 using TheGame;
 
-public class PlayerAirState : PlayerBaseState, IPlayerVulnarableState
+public class PlayerAirState : PlayerBaseState
 {
     private float m_VelocitySmoothing = 0.0f;
 

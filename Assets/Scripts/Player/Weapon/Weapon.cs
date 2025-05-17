@@ -2,7 +2,6 @@ using System;
 using TheGame;
 using UnityEngine;
 
-[RequireComponent(typeof(WeaponAnimation))]
 [RequireComponent(typeof(Collider2D))]
 public class Weapon : MonoBehaviour
 {
@@ -52,7 +51,7 @@ public class Weapon : MonoBehaviour
     {
         if (direction == Vector3.zero) return;
         float angle = Mathf.Atan2(direction.y, Mathf.Abs(direction.x)) * Mathf.Rad2Deg;
-        transform.parent.localRotation = Quaternion.Euler(0, 0, angle);
+        transform.localRotation = Quaternion.Euler(0, 0, angle);
 
     }
 

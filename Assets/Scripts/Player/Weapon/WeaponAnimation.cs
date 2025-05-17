@@ -7,7 +7,7 @@ public class WeaponAnimation : MonoBehaviour
     public string AnimatoinClipPrefix = "Weapon_"; 
     private Animator m_Animator;
     private Weapon m_Weapon;
-    private SpriteRenderer m_SpriteRenderer; // Added SpriteRenderer reference
+    private SpriteRenderer m_SpriteRenderer;
 
     public static readonly int AttackAnimationHash = Animator.StringToHash("Attack");
 
@@ -15,9 +15,9 @@ public class WeaponAnimation : MonoBehaviour
 
     private void Awake()
     {
-        m_Animator = GetComponentInChildren<Animator>();
-        m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        m_Weapon = GetComponent<Weapon>();
+        m_Animator = GetComponent<Animator>();
+        m_SpriteRenderer = GetComponent<SpriteRenderer>();
+        m_Weapon = GetComponentInParent<Weapon>();
 
         m_AnimationDurations = m_Animator.GetClipsDurations(AnimatoinClipPrefix);
     }
