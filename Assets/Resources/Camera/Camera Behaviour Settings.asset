@@ -20,7 +20,7 @@ MonoBehaviour:
   MaxMouseOffsetX: 0.5
   MaxMouseOffsetY: 0.75
   MouseInfluenceSmoothTime: 0.2
-  ResetMouseOffsetOutsideBounds: 0
+  ResetMouseOffsetOutsideBounds: 1
   MinZoom: 0.5
   MaxZoom: 1
   ZoomStep: 1

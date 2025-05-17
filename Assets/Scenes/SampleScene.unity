@@ -35207,6 +35207,11 @@ PrefabInstance:
         mscorlib]]'
       objectReference: {fileID: 0}
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: 'managedReferences[197659601482023718]'
+      value: 'Unity.Behavior Unity.Behavior.BlackboardVariable`1[[System.Boolean,
+        mscorlib]]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: managedReferences[197659432871526874].Name
       value: Agent
       objectReference: {fileID: 0}
@@ -35235,8 +35240,12 @@ PrefabInstance:
       value: CantReachTarget
       objectReference: {fileID: 0}
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: managedReferences[197659601482023718].Name
+      value: SteadyPatrol
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: m_BlackboardVariableOverridesList.Array.size
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: managedReferences[197659554864432102].m_Value
@@ -35255,6 +35264,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: managedReferences[197659601482023718].m_Value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: 'm_BlackboardVariableOverridesList.Array.data[1]'
       value: 197659578872627749
       objectReference: {fileID: 0}
@@ -35269,6 +35282,10 @@ PrefabInstance:
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: 'm_BlackboardVariableOverridesList.Array.data[4]'
       value: 197659600443932988
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: 'm_BlackboardVariableOverridesList.Array.data[5]'
+      value: 197659601482023718
       objectReference: {fileID: 0}
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: managedReferences[197659554864432102].GUID.m_Value0
@@ -35311,6 +35328,14 @@ PrefabInstance:
       value: 8300606326014698656
       objectReference: {fileID: 0}
     - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: managedReferences[197659601482023718].GUID.m_Value0
+      value: 13906311451296400116
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: managedReferences[197659601482023718].GUID.m_Value1
+      value: 13589535634780339432
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773562661118576644, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: managedReferences[197659578872627749].m_Value.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -35331,8 +35356,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1344889421}
     - target: {fileID: 2263829809775027894, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: m_EysightAngle
+      value: 45
+      objectReference: {fileID: 0}
+    - target: {fileID: 2263829809775027894, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
+      propertyPath: m_BacksightAngle
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 2263829809775027894, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: m_EysightDistance
-      value: 20
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 2263829809775027894, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: m_BacksightDistance

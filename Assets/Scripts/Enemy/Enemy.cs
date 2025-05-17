@@ -18,8 +18,9 @@ public class Enemy : Entity, IHittable, IWeaponWielder
     [HideInInspector] public NavAgent2D NavAgent;
 
     [SerializeField] private float m_EysightDistance = 12.0f;
+    [SerializeField] private float m_EysightAngle = 60.0f;
     [SerializeField] private float m_BacksightDistance = 5.0f;
-    [SerializeField] private float m_NearTransparentDistanceThreshold = 2.0f;
+    [SerializeField] private float m_BacksightAngle = 45.0f;
 
     public bool IsStunned => m_Stunned;
     private bool m_Stunned = false;
@@ -108,24 +109,77 @@ public class Enemy : Entity, IHittable, IWeaponWielder
 
     public bool CanSeeTarget(Vector3 targetPosition)
     {
-        int direction = targetPosition.x > transform.position.x ? 1 : -1;
+        Vector3 directionToTarget = (targetPosition - transform.position).normalized;
+        float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
+
+        float angleToTarget = Vector3.Angle(transform.right * FacingDirection, directionToTarget);
+
+        bool targetInFront = (targetPosition.x > transform.position.x && FacingDirection == 1) || (targetPosition.x < transform.position.x && FacingDirection == -1);
+
         float compareDistance;
-        if (direction != FacingDirection)
+        float compareAngle;
+
+        if (targetInFront)
         {
             compareDistance = m_EysightDistance;
+            compareAngle = m_EysightAngle / 2;
         }
         else
         {
             compareDistance = m_BacksightDistance;
+            compareAngle = m_BacksightAngle / 2;
+            angleToTarget = 180.0f - angleToTarget;
         }
-        float distance = Vector3.Distance(transform.position, targetPosition);
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, targetPosition - transform.position, distance, LayerMask.GetMask("Ground", "TransparentGround"));
-        return hit.collider == null && distance < compareDistance;
+
+        if (distanceToTarget > compareDistance || angleToTarget > compareAngle)
+        {
+            return false;
+        }
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, directionToTarget, distanceToTarget, LayerMask.GetMask("Ground", "TransparentGround"));
+        return hit.collider == null;
     }
 
     public bool CanSeeEntity(Entity entity)
     {
         return CanSeeTarget(entity.transform.position);
     }
+
+    #if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        DrawVisionCone(m_EysightDistance, m_EysightAngle, Color.green);
+
+        DrawVisionCone(m_BacksightDistance, m_BacksightAngle, Color.yellow, true);
+    }
+
+    private void DrawVisionCone(float distance, float angle, Color color, bool isBacksight = false)
+    {
+        Gizmos.color = color;
+        Vector3 forwardDirection = transform.right * FacingDirection * (isBacksight ? -1 : 1);
+        
+        Quaternion upRayRotation = Quaternion.AngleAxis(-angle / 2, Vector3.forward);
+        Quaternion downRayRotation = Quaternion.AngleAxis(angle / 2, Vector3.forward);
+
+        Vector3 upRayDirection = upRayRotation * forwardDirection;
+        Vector3 downRayDirection = downRayRotation * forwardDirection;
+
+        Gizmos.DrawRay(transform.position, upRayDirection * distance);
+        Gizmos.DrawRay(transform.position, downRayDirection * distance);
+
+        int segments = 20;
+        float segmentAngle = angle / segments;
+        Vector3 prevPoint = transform.position + upRayDirection * distance;
+
+        for (int i = 1; i <= segments; i++)
+        {
+            Quaternion segmentRotation = Quaternion.AngleAxis(segmentAngle * i - angle/2, Vector3.forward);
+            Vector3 currentPointDirection = segmentRotation * forwardDirection;
+            Vector3 currentPoint = transform.position + currentPointDirection * distance;
+            Gizmos.DrawLine(prevPoint, currentPoint);
+            prevPoint = currentPoint;
+        }
+    }
+#endif
 
 }
