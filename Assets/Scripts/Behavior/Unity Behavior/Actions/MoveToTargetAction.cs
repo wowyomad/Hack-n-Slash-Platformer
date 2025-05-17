@@ -21,6 +21,8 @@ public partial class MoveToTargetAction : Action
     [SerializeReference] public BlackboardVariable<float> UpdatePathInterval = new BlackboardVariable<float>(0.25f);
     [SerializeReference] public BlackboardVariable<float> UpdatePathDistanceThreshold = new BlackboardVariable<float>(2.0f);
 
+    [SerializeReference] public BlackboardVariable<bool> CantReachTarget;
+
 
     private NavAgent2D m_NavAgent;
     private float m_PathWaitTimer = 0.0f;
@@ -28,6 +30,13 @@ public partial class MoveToTargetAction : Action
 
     protected override Status OnStart()
     {
+        if (CantReachTarget == null)
+        {
+            LogFailure("CantReachTarget is null", true);
+            return Status.Failure;
+        }
+        CantReachTarget.Value = false;
+
         if (Agent.Value == null || Target.Value == null)
         {
             LogFailure("Agent or Target is null");
@@ -68,6 +77,7 @@ public partial class MoveToTargetAction : Action
 
         if (!m_NavAgent.IsFollowing && !m_NavAgent.IsPathPending)
         {
+            CantReachTarget.Value = true;
             return Status.Failure;
         }
 
@@ -77,6 +87,8 @@ public partial class MoveToTargetAction : Action
             if (m_PathWaitTimer >= MaxPathCalculationTime.Value)
             {
                 LogFailure("Path calculation timed out");
+
+                CantReachTarget.Value = true;
                 return Status.Failure;
             }
         }

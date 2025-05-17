@@ -108,9 +108,19 @@ public class Enemy : Entity, IHittable, IWeaponWielder
 
     public bool CanSeeTarget(Vector3 targetPosition)
     {
+        int direction = targetPosition.x > transform.position.x ? 1 : -1;
+        float compareDistance;
+        if (direction != FacingDirection)
+        {
+            compareDistance = m_EysightDistance;
+        }
+        else
+        {
+            compareDistance = m_BacksightDistance;
+        }
         float distance = Vector3.Distance(transform.position, targetPosition);
         RaycastHit2D hit = Physics2D.Raycast(transform.position, targetPosition - transform.position, distance, LayerMask.GetMask("Ground", "TransparentGround"));
-        return hit.collider == null && distance < m_EysightDistance;
+        return hit.collider == null && distance < compareDistance;
     }
 
     public bool CanSeeEntity(Entity entity)

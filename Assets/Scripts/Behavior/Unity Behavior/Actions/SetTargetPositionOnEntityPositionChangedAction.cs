@@ -30,22 +30,7 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
             return Status.Failure;
         }
 
-        if (Duration.Value <= 0.0f)
-        {
-            if (distance > PositionChangedThreshold.Value)
-            {
-                Assign(MovingTarget.Value.position);
-                return Status.Success;
-            }
-            return Status.Failure;
-        }
-
         m_LastPosition = MovingTarget.Value.position;
-
-        if (distance > PositionChangedThreshold.Value)
-        {
-            m_HasMoved = true;
-        }
 
         return Status.Running;
     }
