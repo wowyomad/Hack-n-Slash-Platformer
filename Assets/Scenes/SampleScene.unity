@@ -35357,7 +35357,7 @@ PrefabInstance:
       objectReference: {fileID: 1344889421}
     - target: {fileID: 2263829809775027894, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: m_EysightAngle
-      value: 45
+      value: 55
       objectReference: {fileID: 0}
     - target: {fileID: 2263829809775027894, guid: b1c9fd19e4dd87e4abe08d8ddb05f89e, type: 3}
       propertyPath: m_BacksightAngle

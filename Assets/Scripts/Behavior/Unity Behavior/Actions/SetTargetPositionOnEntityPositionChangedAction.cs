@@ -38,6 +38,7 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
     protected override Status OnUpdate()
     {
         float distance = Vector3.Distance(m_LastPosition, MovingTarget.Value.position);
+
         m_Timer += Time.deltaTime;
         if (m_Timer >= Duration.Value || distance > MaximumDistance.Value)
         {
@@ -54,6 +55,7 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
         {
             m_HasMoved = true;
             m_LastPosition = MovingTarget.Value.position;
+            return Status.Success;
         }
 
         return Status.Running;
@@ -63,7 +65,7 @@ public partial class SetTargetPositionOnEntityPositionChangedAction : Action
     {
         if (m_HasMoved && MovingTarget.Value != null)
         {
-            Assign(MovingTarget.Value.position);
+            Assign(m_LastPosition);
         }
 
         m_Timer = 0.0f;
