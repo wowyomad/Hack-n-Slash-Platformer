@@ -8,7 +8,7 @@ namespace TheGame
         public virtual bool IsAlive { get; protected set; }
         public bool IsDead => !IsAlive;
 
-        public int FacingDirection { get; protected set; }
+        public int FacingDirection { get; protected set; } = 1;
 
         public virtual event Action OnHit;
 

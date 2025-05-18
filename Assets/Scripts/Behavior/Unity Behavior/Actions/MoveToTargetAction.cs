@@ -29,7 +29,8 @@ public partial class MoveToTargetAction : Action
     private Entity m_TargetEntity;
     private float m_PathWaitTimer = 0.0f;
     private float m_PathUpdateTimer = 0.0f;
-
+    private Vector3 m_LastTargetPosition;
+    private Vector3 m_LastAgentPosition;
     private bool m_Initialized = false;
 
     protected override Status OnStart()
@@ -47,6 +48,14 @@ public partial class MoveToTargetAction : Action
 
         CantReachTarget.Value = false;
 
+        if (m_LastTargetPosition == Target.Value.transform.position && m_LastAgentPosition == Agent.Value.transform.position)
+        {
+            return Status.Failure;
+        }
+
+        m_LastTargetPosition = Target.Value.transform.position;
+        m_LastAgentPosition = Agent.Value.transform.position;
+        
         m_NavAgent.SetDestination(Target.Value.transform.position);
         m_NavAgent.SetSpeed(Speed.Value);
         m_NavAgent.SetAccelerationTime(AccelerationTime.Value);
@@ -62,8 +71,9 @@ public partial class MoveToTargetAction : Action
             if (m_PathUpdateTimer >= UpdatePathInterval.Value)
             {
                 var position = Target.Value.transform.position;
-                if (m_Self.CanSeeEntity(m_TargetEntity, true))
+                if ((Mathf.Abs(m_LastTargetPosition.x - position.x) > 0.01f || Mathf.Abs(m_LastTargetPosition.y - position.y) > 0.01f) && m_Self.CanSeeEntity(m_TargetEntity, true))
                 {
+                    m_LastTargetPosition = position;
                     m_NavAgent.SetDestination(position);
                     m_PathUpdateTimer = 0.0f;
                 }
@@ -85,6 +95,10 @@ public partial class MoveToTargetAction : Action
             {
                 CantReachTarget.Value = true;
             }
+            else
+            {
+                m_NavAgent.Stop();
+            }
             return Status.Failure;
         }
 
@@ -94,7 +108,6 @@ public partial class MoveToTargetAction : Action
             if (m_PathWaitTimer >= MaxPathCalculationTime.Value)
             {
                 LogFailure("Path calculation timed out");
-
                 return Status.Failure;
             }
         }
@@ -122,7 +135,6 @@ public partial class MoveToTargetAction : Action
 
     protected override void OnEnd()
     {
-        m_NavAgent.Stop();
         m_PathWaitTimer = 0.0f;
     }
 }

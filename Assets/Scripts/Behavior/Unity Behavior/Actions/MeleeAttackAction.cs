@@ -17,33 +17,29 @@ public partial class MeleeAttackAction : Action
     [SerializeReference] public BlackboardVariable<float> AttackDuration = new BlackboardVariable<float>(0.3f);
 
     public Enemy Self;
-    public MeleeWeapon Weapon;
+    public MeleeCombat Melee;
 
     private float m_AttackTimer;
     private float m_LastAttackTime;
     private float m_AttackDelayTimer;
     protected override Status OnStart()
     {
-        {
-            Debug.LogError("Under reconstruction");
-            return Status.Failure;
-        }
-
-
         if (Time.time - m_LastAttackTime < Cooldown.Value)
         {
             return Status.Failure;
         }
 
         Self = Agent.Value.GetComponent<Enemy>();
-        Weapon = Self.GetComponentInChildren<MeleeWeapon>();
+        Melee = Self.GetComponentInChildren<MeleeCombat>();
         m_AttackTimer = 0f;
         m_AttackDelayTimer = 0f;
 
         Vector3 direction = (Target.Value.transform.position - Self.transform.position).normalized;
+        HitData hitData = new HitData(GameObject);
+        hitData.Direction = direction;
+        Melee.StartAttack(hitData);
 
         Self.Flip(direction.x);
-
 
         return Status.Running;
     }
@@ -69,7 +65,7 @@ public partial class MeleeAttackAction : Action
 
     protected override void OnEnd()
     {
-
+        
     }
 }
 

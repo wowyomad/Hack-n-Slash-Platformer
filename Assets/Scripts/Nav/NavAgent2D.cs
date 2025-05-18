@@ -13,7 +13,14 @@ public class NavAgent2D : MonoBehaviour
     [Header("Components")]
     [SerializeField] private NavData2D m_NavData;
     [SerializeField] private NavActorSO m_NavActor;
+    [SerializeField] private Animator m_Animator;
     private Collider2D m_Collider;
+
+    [Header("Animation Triggers")]
+    [SerializeField] private string m_AnimationTriggerIdle = "Idle";
+    [SerializeField] private string m_AnimationTriggerWalk = "Walk";
+    [SerializeField] private string m_AnimationTriggerRun = "Run";
+    [SerializeField] private string m_AnimationTriggerJump = "Jump";
 
 
     [Header("Movement")]
@@ -55,6 +62,7 @@ public class NavAgent2D : MonoBehaviour
     static private readonly float REACH_THRESHOLD = 0.005f;
 
     private bool m_ShortJump = false;
+    private AgentState m_PreviousState = AgentState.None;
     [SerializeField] private bool m_PassingThrough;
     [SerializeField] private bool m_HasEnteredTransparentGround = false;
     [SerializeField] private bool m_HasJumped = false;
@@ -74,6 +82,32 @@ public class NavAgent2D : MonoBehaviour
         Jumping,
     }
 
+
+    private void SetAgentState(AgentState newState)
+    {
+        if (m_State == newState)
+            return;
+
+        m_PreviousState = m_State;
+        m_State = newState;
+
+        if (m_Animator != null)
+        {
+            switch (m_State)
+            {
+                case AgentState.Stopped:
+                    m_Animator.SetTrigger(m_AnimationTriggerIdle);
+                    break;
+                case AgentState.Moving:
+                    m_Animator.SetTrigger(m_AnimationTriggerWalk);
+                    break;
+                case AgentState.Jumping:
+                    m_Animator.SetTrigger(m_AnimationTriggerJump);
+                    break;
+                // AgentState.None does not have a specific trigger here
+            }
+        }
+    }
 
     private void ResetTemps()
     {
@@ -213,6 +247,15 @@ public class NavAgent2D : MonoBehaviour
 
     private void Awake()
     {
+        if (m_Animator == null)
+        {
+            m_Animator = GetComponent<Animator>();
+            if (m_Animator == null)
+            {
+                m_Animator = GetComponentInChildren<Animator>();
+            }
+        }
+
         if (m_NavData == null)
         {
             throw new NullReferenceException("NavData2D is not assigned");
@@ -257,7 +300,7 @@ public class NavAgent2D : MonoBehaviour
 
         if (IsPathInvalid())
         {
-            m_State = AgentState.Stopped;
+            SetAgentState(AgentState.Stopped);
             m_PassingThrough = false;
             return;
         }
@@ -289,6 +332,8 @@ public class NavAgent2D : MonoBehaviour
         {
             m_TurnCallback?.Invoke(Velocity.x > 0 ? 1 : -1);
         }
+
+
     }
 
     private void HandlePassingThrough()
@@ -346,16 +391,19 @@ public class NavAgent2D : MonoBehaviour
 
     private bool ApplyNewPath(List<NavData2D.NavPoint> newPath)
     {
+        //TODO: set Jump state as well when appropriate
+        //TODO: don't even set state here
+        // m_PreviousState = m_State; // Handled by SetAgentState
         if (newPath == null || newPath.Count == 0)
         {
-            m_State = AgentState.Stopped;
+            SetAgentState(AgentState.Stopped);
             m_Path = newPath;
             m_CurrentPointIndex = 0;
             return false;
         }
         else
         {
-            m_State = AgentState.Moving;
+            SetAgentState(AgentState.Moving);
             m_Path = newPath;
             m_Target = m_Path[m_Path.Count - 1].Position;
             m_CurrentPointIndex = 0;
@@ -434,7 +482,7 @@ public class NavAgent2D : MonoBehaviour
         {
             if (m_Controller.IsGrounded)
             {
-                GoNext();
+                GoNext(); // GoNext will call SetAgentState
                 return;
             }
         }
@@ -448,10 +496,10 @@ public class NavAgent2D : MonoBehaviour
 
         if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
         {
-            m_State = AgentState.Moving;
+            // SetAgentState(AgentState.Moving); // Removed: GoNext will set the appropriate state.
             m_JumpDirection = 0;
             m_ShortJump = false;
-            GoNext();
+            GoNext(); // GoNext will call SetAgentState
         }
         else if (m_JumpDirection != 0)
         {
@@ -470,7 +518,6 @@ public class NavAgent2D : MonoBehaviour
     private void HandleWalking()
     {
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count) return;
-
 
         Vector3 target = m_Path[m_CurrentPointIndex].Position;
         target.y = transform.position.y;
@@ -493,30 +540,53 @@ public class NavAgent2D : MonoBehaviour
         m_CurrentPointIndex++;
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
         {
-            m_State = AgentState.Stopped;
-            return;
-        }
-        var previousPoint = m_Path[m_CurrentPointIndex - 1];
-        var currentPoint = m_Path[m_CurrentPointIndex];
-        var connection = GetConnectionType(previousPoint, currentPoint);
-        if (connection >= NavData2D.ConnectionType.Jump && connection <= NavData2D.ConnectionType.TransparentFall)
-        {
-            Jump(previousPoint, currentPoint, connection);
-            m_State = AgentState.Jumping;
+            SetAgentState(AgentState.Stopped);
         }
         else
         {
-            if (connection == NavData2D.ConnectionType.Slope)
+            var previousPoint = m_Path[m_CurrentPointIndex - 1];
+            var currentPoint = m_Path[m_CurrentPointIndex];
+            var connection = GetConnectionType(previousPoint, currentPoint);
+            if (connection >= NavData2D.ConnectionType.Jump && connection <= NavData2D.ConnectionType.TransparentFall)
             {
-                float dy = currentPoint.Position.y - previousPoint.Position.y;
-                if (dy < -0.001f)
-                {
-                    m_PassingThrough = true;
-                }
-
+                Jump(previousPoint, currentPoint, connection);
+                SetAgentState(AgentState.Jumping);
             }
-            m_State = AgentState.Moving;
+            else
+            {
+                if (connection == NavData2D.ConnectionType.Slope)
+                {
+                    float dy = currentPoint.Position.y - previousPoint.Position.y;
+                    if (dy < -0.001f)
+                    {
+                        m_PassingThrough = true;
+                    }
+
+                }
+                SetAgentState(AgentState.Moving);
+            }
         }
+
+        // Removed animation logic block, now handled by SetAgentState
+        // if (m_Animator != null)
+        // {
+        //     if (m_PreviousState != m_State)
+        //     {
+        //         switch (m_State)
+        //         {
+        //             case AgentState.Stopped:
+        //                 m_Animator.SetTrigger(m_AnimationTriggerIdle);
+        //                 break;
+        //             case AgentState.Moving:
+        //                 m_Animator.SetTrigger(m_AnimationTriggerWalk);
+        //                 break;
+        //             case AgentState.Jumping:
+        //                 m_Animator.SetTrigger(m_AnimationTriggerJump);
+        //                 break;
+        //         }
+        //         m_PreviousState = m_State;
+        //     }
+        // }
     }
 
     private bool IsStuck()
@@ -600,8 +670,20 @@ public class NavAgent2D : MonoBehaviour
 
     public void Stop()
     {
-        m_State = AgentState.Stopped;
+        if (m_State == AgentState.Stopped) // Check current state before calling SetAgentState to avoid redundant calls if already stopped.
+        {
+            return;
+        }
+
+        SetAgentState(AgentState.Stopped);
+        // m_PreviousState = AgentState.Stopped; // Handled by SetAgentState
         m_PassingThrough = false;
+
+        // Removed animation logic, handled by SetAgentState
+        // if (m_Animator != null)
+        // {
+        //     m_Animator.SetTrigger(m_AnimationTriggerIdle);
+        // }
     }
 
     public float DistanceToTarget()
