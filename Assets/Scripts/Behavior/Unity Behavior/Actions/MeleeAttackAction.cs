@@ -3,6 +3,7 @@ using Unity.Behavior;
 using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
+using TheGame;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "MeleeAttack", story: "[Agent] attacks [Target]", category: "Action", id: "a9a52b5e84147b09b5e3cfe9ccfec74a")]
@@ -16,7 +17,7 @@ public partial class MeleeAttackAction : Action
     [SerializeReference] public BlackboardVariable<float> AttackDuration = new BlackboardVariable<float>(0.3f);
 
     public Enemy Self;
-    public Weapon Weapon;
+    public MeleeWeapon Weapon;
 
     private float m_AttackTimer;
     private float m_LastAttackTime;
@@ -29,7 +30,7 @@ public partial class MeleeAttackAction : Action
         }
 
         Self = Agent.Value.GetComponent<Enemy>();
-        Weapon = Self.GetComponentInChildren<Weapon>();
+        Weapon = Self.GetComponentInChildren<MeleeWeapon>();
         m_AttackTimer = 0f;
         m_AttackDelayTimer = 0f;
 

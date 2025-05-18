@@ -4,6 +4,7 @@ using Unity.Behavior;
 using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
+using TheGame;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "Patrol2D", story: "[Agent] patrols [PatrolWaypoints] until sees [Target]", category: "Action", id: "185a75690c390c236f543af8d58b9217")]

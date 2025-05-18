@@ -112,7 +112,7 @@ public class SomeThrowable : MonoBehaviour, IThrowable
             if (m_HitCount < m_Stats.MaximumHits && CanHitTarget(target))
             {
                 m_HitCount++;
-                HitResult result = target.TakeHit();
+                HitResult result = target.TakeHit(new HitData(gameObject));
                 if (result != HitResult.Nothing)
                 {
                     Vector2 hitNormal = (transform.position - other.transform.position).normalized; // Approximate normal

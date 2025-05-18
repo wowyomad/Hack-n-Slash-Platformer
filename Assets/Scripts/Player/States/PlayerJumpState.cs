@@ -1,7 +1,7 @@
 using TheGame;
 using UnityEngine;
 
-public class PlayerJumpState : PlayerBaseState, IPlayerVulnarableState
+public class PlayerJumpState : PlayerBaseState
 {
     public enum EntryMode
     {

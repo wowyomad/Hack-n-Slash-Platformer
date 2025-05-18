@@ -1,21 +1,23 @@
 using System;
 using UnityEngine;
-using Behavior;
 using TheGame;
-using Unity.VisualScripting;
+using Unity.Behavior;
 
 public interface IDestroyable
 {
     public event Action<IDestroyable> OnDestroy;
 }
 
-
 [RequireComponent(typeof(CharacterController2D))]
+[RequireComponent(typeof(MeleeCombat))]
 [RequireComponent(typeof(NavAgent2D))]
-public class Enemy : Entity, IHittable, IWeaponWielder
+[RequireComponent(typeof(BehaviorGraphAgent))]
+public class Enemy : Entity
 {
     [HideInInspector] public CharacterController2D Controller;
+    [HideInInspector] public MeleeCombat MeleeCombatController;
     [HideInInspector] public NavAgent2D NavAgent;
+    [HideInInspector] public BehaviorGraphAgent BTAgent;
 
     [SerializeField] private float m_EysightDistance = 12.0f;
     [SerializeField] private float m_EysightAngle = 60.0f;
@@ -24,14 +26,15 @@ public class Enemy : Entity, IHittable, IWeaponWielder
     [SerializeField] private float m_CloseSightRadius = 3.0f;
     [SerializeField] private float m_AlertedSightRadius = 10.0f;
 
+
+    [Header("Blackboard variable names")]
+    [SerializeField] private string m_TookHitVariableName = "TookHit";
+    [SerializeField] private string m_LastHitResultVariableName = "LastHitResult";
+    [SerializeField] private string m_LastHitAttackerVariableName = "LastHitAttacker";
+
+
     public bool IsStunned => m_Stunned;
     private bool m_Stunned = false;
-
-    public override bool IsAlive => true;
-
-
-    [Header("Other")]
-
 
     #region convinience
     public int FacingDirection { get; private set; }
@@ -42,13 +45,15 @@ public class Enemy : Entity, IHittable, IWeaponWielder
     #endregion
 
     #region events
-    public event Action OnHit;
+    public override event System.Action OnHit;
     #endregion
 
     private void Awake()
     {
         NavAgent = GetComponent<NavAgent2D>();
         Controller = GetComponent<CharacterController2D>();
+        MeleeCombatController = GetComponent<MeleeCombat>();
+        BTAgent = GetComponent<BehaviorGraphAgent>();
 
         NavAgent.SetTurnCallback(Flip);
     }
@@ -56,9 +61,6 @@ public class Enemy : Entity, IHittable, IWeaponWielder
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
-
-        var behaviorGraphAgent = GetComponent<Unity.Behavior.BehaviorGraphAgent>();
-
     }
 
     private void Update()
@@ -66,16 +68,25 @@ public class Enemy : Entity, IHittable, IWeaponWielder
 
     }
 
-    public HitResult TakeHit()
+    public override HitResult TakeHit(HitData attackData)
     {
-        if (CanTakeHit)
+        if (IsDead) return HitResult.Nothing;
+
+        HitResult result = HitResult.Hit;
+
+        //logic
+
+        if (result == HitResult.Hit)
         {
             OnHit?.Invoke();
             EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent { EnemyPosition = transform.position });
 
-            return HitResult.Hit;
+            BTAgent.SetVariableValue(m_TookHitVariableName, true);
+            BTAgent.SetVariableValue(m_LastHitResultVariableName, result);
+            BTAgent.SetVariableValue(m_LastHitAttackerVariableName, attackData.Attacker);
         }
-        return HitResult.Nothing;
+
+        return result;
     }
     public void Flip(int direction)
     {
@@ -99,17 +110,6 @@ public class Enemy : Entity, IHittable, IWeaponWielder
             return;
         }
         Flip(direction > 0.0f ? 1 : -1);
-    }
-
-    public void TryHitTarget(IHittable target)
-    {
-        if (target == null) return;
-
-        HitResult status = target.TakeHit();
-        if (target is Player player)
-        {
-            Debug.Log($"Hit {player.name} with status {status}");
-        }
     }
 
     public bool CanSeeTarget(Vector3 targetPosition, bool alerted = false)

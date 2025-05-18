@@ -3,6 +3,7 @@ using Unity.Behavior;
 using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
+using TheGame;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "UpdateAlertedState", story: "Update [Alerted] state from [Agent] and [Target]", category: "Action", id: "88479ed90ba1fd8670874c258f14dda8")]

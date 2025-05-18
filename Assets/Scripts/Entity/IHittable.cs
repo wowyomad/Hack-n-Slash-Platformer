@@ -1,21 +1,25 @@
-using System;
 using UnityEngine;
 
 namespace TheGame
 {
     public interface IHittable
     {
-        HitResult TakeHit();
-        event Action OnHit;
+        HitResult TakeHit(HitData attackData);
+        public event System.Action OnHit;
     }
 
-    public interface IHittableBetter
+    [System.Serializable]
+    public class HitData : ScriptableObject
     {
-        HitResult TakeHit(AttackData attackData);
-        event Action OnHit;
-    }
-    public struct AttackData
-    {
+        public HitData(GameObject attacker)
+        {
+            HitDirection = Vector2.zero;
+            StaggerForce = 0.0f;
+            IsBlockable = false;
+            IsParryable = false;
+            Attacker = attacker;
+        }
+        public Vector2 HitDirection;
         public float StaggerForce;
         public bool IsBlockable;
         public bool IsParryable;
@@ -29,7 +33,6 @@ namespace TheGame
         Block,
         Parry
     }
-
 
 }
 

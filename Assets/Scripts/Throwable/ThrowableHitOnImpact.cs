@@ -7,7 +7,7 @@ public class ThrowableHitOnImpact : MonoBehaviour, IThrowableImpactEffect
     {
         if (victim.TryGetComponent<IHittable>(out var hittable))
         {
-            hittable.TakeHit();
+            hittable.TakeHit(new HitData(gameObject));
         }
     }
 }
