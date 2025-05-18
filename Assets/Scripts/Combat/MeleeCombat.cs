@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using UnityEngine;
 
 namespace TheGame
@@ -9,11 +10,14 @@ namespace TheGame
         public bool IsAttacking => m_Attacking;
 
         public event System.Action OnAttackAnimationComplete;
-        public event System.Action<HitResult, GameObject> OnTargetHitProcessed; //Target, Result
+        public event System.Action<HitResult, GameObject> OnTargetHit; //Target, Result
 
         [Header("References")]
         [SerializeField] private Animator m_Animator;
         [SerializeField] private MeleeWeapon m_Weapon;
+
+        [Header("Animation Settings")]
+        [SerializeField] private bool m_UseAnimationEvents = true;
 
 
         [Header("Animation Triggers")]
@@ -30,10 +34,27 @@ namespace TheGame
 
         public void StartAttack(HitData hitData)
         {
+            if (m_Attacking)
+            {
+                Debug.LogWarning($"{m_OwnerEntity.gameObject.name} tried to attack while already attacking.");
+                return;
+            }
+
             m_Attacking = true;
             m_CurrentHitData = hitData;
+            m_HitTargetsThisAttack.Clear();
 
-            m_Animator.SetTrigger(m_AttackAnimationTrigger);
+            m_Weapon.RotateInDirection(m_CurrentHitData.Direction); //For collider + sprite if present
+
+            if (m_UseAnimationEvents)
+            {
+                m_Animator.SetTrigger(m_AttackAnimationTrigger);
+            }
+            else
+            {
+                m_Weapon.EnableCollider();
+                m_Weapon.InvokeAttack();
+            }
         }
 
         public void CancellAttack()
@@ -41,21 +62,33 @@ namespace TheGame
             if (!m_Attacking) return;
 
             m_Attacking = false;
-            m_Animator.SetTrigger("CancelAttack");
+
+            if (m_UseAnimationEvents)
+            {
+                m_Animator.SetTrigger("CancelAttack");
+            }
+            else
+            {
+                m_Weapon.DisableCollider();
+            }
         }
 
         public void OnAnimationEvent_HitboxActive()
         {
+            if (!m_UseAnimationEvents) return;
             m_Weapon.EnableCollider();
         }
 
         public void OnAnimationEvent_HitboxInactive()
         {
+            if (!m_UseAnimationEvents) return;
             m_Weapon.DisableCollider();
         }
 
         public void OnAnimationEvent_AttackComplete()
         {
+            if (!m_UseAnimationEvents) return;
+
             m_Attacking = false;
             OnAttackAnimationComplete?.Invoke();
         }
@@ -75,11 +108,12 @@ namespace TheGame
 
             ProcessHitResult(targetMonoBehaviour.gameObject, result);
 
-            OnTargetHitProcessed?.Invoke(result, targetMonoBehaviour.gameObject);
+            OnTargetHit?.Invoke(result, targetMonoBehaviour.gameObject);
         }
 
         public void ProcessHitResult(GameObject target, HitResult result)
         {
+            //just log the resutl for now
             switch (result)
             {
                 case HitResult.Hit:
@@ -91,12 +125,14 @@ namespace TheGame
                 case HitResult.Parry:
                     Debug.Log($"{gameObject.name}'s attack was Parried by {target.name}.");
                     break;
+                case HitResult.Stun:
+                    Debug.Log($"{gameObject.name}'s attack Stunned {target.name}.");
+                    break;
                 case HitResult.Nothing:
                     Debug.Log($"{gameObject.name}'s attack did nothing to {target.name}.");
                     break;
             }
         }
-
 
         private void Awake()
         {

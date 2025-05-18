@@ -85,8 +85,6 @@ namespace TheGame
 
         public bool IsGrounded => Controller.IsGrounded;
 
-        public int FacingDirection { get; private set; }
-
         public bool CanTakeHit => !IsVulnerable;
         private float m_StunCooldownDuration = 1.5f;
 
@@ -119,7 +117,6 @@ namespace TheGame
 
         private void Start()
         {
-
             FacingDirection = transform.localScale.x > 0 ? 1 : -1;
 
             Controller.ApplyGravity = true;
@@ -155,21 +152,6 @@ namespace TheGame
         {
             StateMachine.Update();
             m_Timers.ForEach(timer => timer.Tick());
-        }
-
-        public void Flip(int direction)
-        {
-            if (direction != FacingDirection)
-            {
-                FacingDirection = -FacingDirection;
-                transform.localScale = new Vector3(FacingDirection, 1.0f, 1.0f);
-            }
-        }
-
-        public void Flip(float direction)
-        {
-            if (direction != 0.0f)
-                Flip((int)direction);
         }
 
         public void TurnToCursor()

@@ -5,7 +5,7 @@ namespace TheGame
     public class PlayerAttackState : PlayerBaseState
     {
         public bool AttackFinished { get; private set; } = false;
-        private MeleeWeapon m_Weapon;
+        private MeleeCombat m_Melee;
         private CharacterStatsSO m_Stats;
 
         private float m_LastAttackTime = 0.0f;
@@ -17,14 +17,14 @@ namespace TheGame
         public PlayerAttackState(Player player) : base(player)
         {
             m_Stats = player.Stats;
-            m_Weapon = player.WeaponReference;
+            m_Melee = player.GetComponent<MeleeCombat>();
 
             m_AttackTimer = new ActionTimer();
             m_AttackTimer.SetFinishedCallback(() => AttackFinished = true);
 
-            if (m_Weapon == null)
+            if (m_Melee == null)
             {
-                Debug.LogError("Weapon component not found on Player children.", player);
+                Debug.LogError("MeleeCombat component not found on Player.", player);
             }
         }
 
@@ -63,12 +63,15 @@ namespace TheGame
             m_AttackTimer.Stop();
             m_AttackTimer.Start(m_Stats.AttackDuration);
 
-            m_Weapon?.Attack(direction);
+            HitData hitData = new HitData(Player.gameObject);
+            hitData.Direction = direction;
+
+            m_Melee.StartAttack(hitData);
         }
 
         public override void OnExit()
         {
-            m_Weapon?.Stop();
+            m_Melee.CancellAttack();
             m_LastAttackTime = Time.time;
 
             AttackFinished = false;

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7408525963196417339}
   - component: {fileID: 4524528210805276420}
   - component: {fileID: 7567376747001676808}
-  - component: {fileID: 3054328505641700800}
+  - component: {fileID: 1753380829603043273}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -96,6 +96,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WeaponReference: {fileID: 0}
+  MeleeCombat: {fileID: 0}
   m_EnemyLayerMask:
     serializedVersion: 2
     m_Bits: 536870912
@@ -133,9 +134,9 @@ MonoBehaviour:
     SlopeAngle: 0
     PreviousSlopeAngle: 0
   m_Grounded: 0
-  m_IsFacingWallLeft: 0
-  m_IsFacingWallRight: 0
-  m_IsPassingThrough: 0
+  m_FacingWallLeft: 0
+  m_FacingWallRight: 0
+  m_PassingThrough: 0
   m_CanPasstTransparentGround: 0
   ApplyGravity: 0
   Gravity: 0
@@ -144,7 +145,7 @@ MonoBehaviour:
   m_MaxDescendAngle: 80
   Velocity: {x: 0, y: 0, z: 0}
   DisplayDebugRays: 0
---- !u!114 &3054328505641700800
+--- !u!114 &1753380829603043273
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -153,10 +154,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1716449755615276368}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2562cfb83e3259459c7eaaf5d7b5016, type: 3}
+  m_Script: {fileID: 11500000, guid: 8b130e00e6a546b41a3ee9692278dec7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AnimationClipPrefix: Player_
+  m_Animator: {fileID: 0}
+  m_Weapon: {fileID: 0}
+  m_UseAnimationEvents: 0
+  m_AttackAnimationTrigger: StartAttack
+  m_CancelAttackAnimationTrigger: CancelAttack
 --- !u!1 &3035308244963648459
 GameObject:
   m_ObjectHideFlags: 0
@@ -184,7 +189,7 @@ Transform:
   m_GameObject: {fileID: 3035308244963648459}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.461, y: 0.379, z: 0}
+  m_LocalPosition: {x: 0.4, y: 0.18, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

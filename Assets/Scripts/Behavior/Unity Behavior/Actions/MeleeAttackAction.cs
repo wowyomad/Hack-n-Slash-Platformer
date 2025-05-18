@@ -24,6 +24,12 @@ public partial class MeleeAttackAction : Action
     private float m_AttackDelayTimer;
     protected override Status OnStart()
     {
+        {
+            Debug.LogError("Under reconstruction");
+            return Status.Failure;
+        }
+
+
         if (Time.time - m_LastAttackTime < Cooldown.Value)
         {
             return Status.Failure;
@@ -37,7 +43,7 @@ public partial class MeleeAttackAction : Action
         Vector3 direction = (Target.Value.transform.position - Self.transform.position).normalized;
 
         Self.Flip(direction.x);
-        Weapon.Attack(direction);
+
 
         return Status.Running;
     }
@@ -63,7 +69,7 @@ public partial class MeleeAttackAction : Action
 
     protected override void OnEnd()
     {
-        Weapon.Stop();
+
     }
 }
 

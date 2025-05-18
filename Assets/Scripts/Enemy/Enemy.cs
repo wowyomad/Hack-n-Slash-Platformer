@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using TheGame;
 using Unity.Behavior;
+using Unity.VisualScripting;
 
 public interface IDestroyable
 {
@@ -14,6 +15,16 @@ public interface IDestroyable
 [RequireComponent(typeof(BehaviorGraphAgent))]
 public class Enemy : Entity
 {
+    [BlackboardEnum]
+    public enum State
+    {
+        NotAttack,
+        Attack,
+        Dead,
+    }
+
+    public override bool IsAlive => m_CurrentState != null && m_CurrentState.Value != State.Dead;
+
     [HideInInspector] public CharacterController2D Controller;
     [HideInInspector] public MeleeCombat MeleeCombatController;
     [HideInInspector] public NavAgent2D NavAgent;
@@ -28,21 +39,13 @@ public class Enemy : Entity
 
 
     [Header("Blackboard variable names")]
+    [SerializeField] private string m_CurrentStateVariableName = "CurrentState";
     [SerializeField] private string m_TookHitVariableName = "TookHit";
     [SerializeField] private string m_LastHitResultVariableName = "LastHitResult";
     [SerializeField] private string m_LastHitAttackerVariableName = "LastHitAttacker";
 
+    private BlackboardVariable<State> m_CurrentState;
 
-    public bool IsStunned => m_Stunned;
-    private bool m_Stunned = false;
-
-    #region convinience
-    public int FacingDirection { get; private set; }
-    #endregion
-
-    #region flags
-    public bool CanTakeHit { get; private set; } = true;
-    #endregion
 
     #region events
     public override event System.Action OnHit;
@@ -51,11 +54,14 @@ public class Enemy : Entity
     private void Awake()
     {
         NavAgent = GetComponent<NavAgent2D>();
+        NavAgent.SetTurnCallback(Flip);
+
         Controller = GetComponent<CharacterController2D>();
         MeleeCombatController = GetComponent<MeleeCombat>();
         BTAgent = GetComponent<BehaviorGraphAgent>();
 
-        NavAgent.SetTurnCallback(Flip);
+        ValidateBlackboardVairiables();
+        InitializeVariablesFromBlackboard();
     }
 
     private void Start()
@@ -63,9 +69,29 @@ public class Enemy : Entity
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
     }
 
+
+    private float m_RandomTimer = 0.0f;
+    private float m_RandomDuration = 0.0f;
     private void Update()
     {
+        if (m_RandomDuration == 0.0f)
+        {
+            m_RandomDuration = UnityEngine.Random.Range(1.0f, 3.0f);
+            m_RandomTimer = 0.0f;
+        }
 
+        if (m_RandomTimer > m_RandomDuration)
+        {
+            BTAgent.GetVariable<Boolean>(m_TookHitVariableName, out var tookHit);
+            tookHit.Value = !tookHit.Value;
+            BTAgent.SetVariableValue<Boolean>(m_TookHitVariableName, tookHit);
+
+            m_RandomDuration = m_RandomTimer = 0.0f;
+        }
+        else
+        {
+            m_RandomTimer += Time.deltaTime;
+        }
     }
 
     public override HitResult TakeHit(HitData attackData)
@@ -74,9 +100,24 @@ public class Enemy : Entity
 
         HitResult result = HitResult.Hit;
 
-        //logic
 
-        if (result == HitResult.Hit)
+        switch (m_CurrentState.Value)
+        {
+            case State.NotAttack:
+                result = HitResult.Hit;
+                break;
+            case State.Attack:
+                result = HitResult.Stun;
+                break;
+            case State.Dead:
+                result = HitResult.Nothing;
+                break;
+            default:
+                Debug.LogError($"State {m_CurrentState.Value} not implemented");
+                break;
+        }
+
+        if (result != HitResult.Nothing)
         {
             OnHit?.Invoke();
             EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent { EnemyPosition = transform.position });
@@ -88,30 +129,7 @@ public class Enemy : Entity
 
         return result;
     }
-    public void Flip(int direction)
-    {
-        if (direction == 0)
-        {
-            return;
-        }
-        direction = direction > 0 ? 1 : -1;
-
-        if (direction != FacingDirection)
-        {
-            FacingDirection = -FacingDirection;
-            transform.localScale = new Vector3(FacingDirection, 1.0f, 1.0f);
-        }
-    }
-
-    public void Flip(float direction)
-    {
-        if (direction == 0.0f)
-        {
-            return;
-        }
-        Flip(direction > 0.0f ? 1 : -1);
-    }
-
+    
     public bool CanSeeTarget(Vector3 targetPosition, bool alerted = false)
     {
         Vector3 directionToTarget = (targetPosition - transform.position).normalized;
@@ -157,6 +175,32 @@ public class Enemy : Entity
     public bool CanSeeEntity(Entity entity, bool alerted = false)
     {
         return CanSeeTarget(entity.transform.position);
+    }
+
+    private void ValidateBlackboardVairiables()
+    {
+        if (!BTAgent.GetVariable(m_TookHitVariableName, out BlackboardVariable<bool> tookHit))
+        {
+            Debug.LogError($"Blackboard variable '{m_TookHitVariableName}' not found");
+        }
+
+        if (!BTAgent.GetVariable(m_LastHitResultVariableName, out BlackboardVariable<HitResult> lastHitResult))
+        {
+            Debug.LogError($"Blackboard variable '{m_LastHitResultVariableName}' not found");
+        }
+
+        if (!BTAgent.GetVariable(m_LastHitAttackerVariableName, out BlackboardVariable<GameObject> lastHitAttacker))
+        {
+            Debug.LogError($"Blackboard variable '{m_LastHitAttackerVariableName}' not found");
+        }
+    }
+
+    private void InitializeVariablesFromBlackboard()
+    {
+        if (!BTAgent.GetVariable(m_CurrentStateVariableName, out m_CurrentState))
+        {
+            Debug.LogError($"Blackboard variable '{m_CurrentStateVariableName}' not found");
+        }
     }
 
 #if UNITY_EDITOR

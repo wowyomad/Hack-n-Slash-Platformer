@@ -1075,8 +1075,9 @@ namespace Nav2D
         public bool GetCellsInArea(Vector3 worldPosition, Bounds bounds, out List<NavCell> cell)
         {
             // Center the area around worldPosition, using bounds.size as the area to search
-            Vector3 areaMin = worldPosition - bounds.extents;
-            Vector3 areaMax = worldPosition + bounds.extents;
+            Vector3 areaMin = worldPosition - bounds.extents * 0.95f ;
+            Vector3 areaMax = worldPosition + bounds.extents * 0.95f;
+
 
             Vector3Int cellPosMin = m_GroundTilemap.WorldToCell(areaMin);
             Vector3Int cellPosMax = m_GroundTilemap.WorldToCell(areaMax);

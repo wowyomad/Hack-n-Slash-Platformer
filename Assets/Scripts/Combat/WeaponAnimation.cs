@@ -34,14 +34,12 @@ namespace TheGame
             m_Weapon.OnAttacked -= PlayAnimation;
         }
 
-
-
         private void PlayAnimation()
         {
             m_SpriteRenderer.enabled = true;
             m_Animator.Rebind();
             m_Animator.Update(0f);
-            m_Animator.Play(AttackAnimationHash, 0, 0.0f);
+            //m_Animator.Play(AttackAnimationHash, 0, 0.0f);
 
             if (m_AnimationDurations.TryGetValue(AttackAnimationHash, out float duration))
             {

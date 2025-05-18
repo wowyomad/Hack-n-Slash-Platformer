@@ -177,7 +177,8 @@ public class NavAgent2D : MonoBehaviour
 
         m_NewPathPending = true;
         m_Target = target;
-        bool isInsideTransparentGround = m_NavData.GetCellsInArea(transform.position, m_Collider.bounds, out var cells) && cells.Any(cell => cell.Transparent != null);
+        Vector3 colliderOffset = m_Collider.offset;
+        bool isInsideTransparentGround = m_NavData.GetCellsInArea(transform.position + colliderOffset, m_Collider.bounds, out var cells) && cells.Any(cell => cell.Transparent != null);
         float verticalOffset = isInsideTransparentGround ? m_NavData.ActorSize.y * 0.5f : 0.0f;
         Vector2 currentPosition = transform.position - new Vector3(0, verticalOffset, 0);
 

@@ -9,29 +9,21 @@ namespace TheGame
     }
 
     [System.Serializable]
-    public class HitData : ScriptableObject
+    public class HitData
     {
         public HitData(GameObject attacker)
         {
-            HitDirection = Vector2.zero;
+            Direction = Vector2.zero;
             StaggerForce = 0.0f;
             IsBlockable = false;
             IsParryable = false;
             Attacker = attacker;
         }
-        public Vector2 HitDirection;
+        public Vector2 Direction;
         public float StaggerForce;
         public bool IsBlockable;
         public bool IsParryable;
         public GameObject Attacker;
-    }
-
-    public enum HitResult
-    {
-        Nothing,
-        Hit,
-        Block,
-        Parry
     }
 
 }

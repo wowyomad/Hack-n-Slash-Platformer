@@ -217,7 +217,8 @@ public class CharacterController2D : RaycastController
 
         if (m_Collisions.ClimbingSlope)
         {
-            m_PassingThrough = true;
+            // m_PassingThrough = true;
+            // TODO: why did I even put this here??
         }
 
 
@@ -229,7 +230,8 @@ public class CharacterController2D : RaycastController
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up, rayLength, TransparentGroundMask);
             if (hit)
             {
-                ClimbDown();
+                //ClimbDown(); 
+                // TODO: AND THIS????????
             }
         }
 
@@ -237,7 +239,7 @@ public class CharacterController2D : RaycastController
         {
             Bounds bounds = m_Collider.bounds;
             bounds.Expand(-SkinWidth * 2.0f);
-            Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(bounds.center, bounds.size * 0.95f, 0, TransparentGroundMask);
+            Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(bounds.center, new Vector2(.9f, bounds.size.y * 0.95f), 0, TransparentGroundMask);
             if (m_StartedPassingThrough)
             {
                 if (overlappingColliders.Length == 0)
