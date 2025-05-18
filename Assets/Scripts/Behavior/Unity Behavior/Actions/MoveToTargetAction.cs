@@ -50,12 +50,18 @@ public partial class MoveToTargetAction : Action
 
         if (m_LastTargetPosition == Target.Value.transform.position && m_LastAgentPosition == Agent.Value.transform.position)
         {
-            return Status.Failure;
+            return Status.Success;
+        }
+
+        float distance = Vector3.Distance(Target.Value.transform.position, Agent.Value.transform.position);
+        if (distance < DistanceThreshold.Value)
+        {
+            return Status.Success;
         }
 
         m_LastTargetPosition = Target.Value.transform.position;
         m_LastAgentPosition = Agent.Value.transform.position;
-        
+
         m_NavAgent.SetDestination(Target.Value.transform.position);
         m_NavAgent.SetSpeed(Speed.Value);
         m_NavAgent.SetAccelerationTime(AccelerationTime.Value);
@@ -86,6 +92,7 @@ public partial class MoveToTargetAction : Action
 
         if (m_NavAgent.DistanceToTarget() < DistanceThreshold.Value)
         {
+            m_NavAgent.Stop();
             return Status.Success;
         }
 
@@ -135,6 +142,11 @@ public partial class MoveToTargetAction : Action
 
     protected override void OnEnd()
     {
+        // if (CurrentStatus == Status.Success)
+        // {
+        //    m_NavAgent.Stop();
+        // }
+
         m_PathWaitTimer = 0.0f;
     }
 }

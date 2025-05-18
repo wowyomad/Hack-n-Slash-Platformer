@@ -57,6 +57,7 @@ public class NavAgent2D : MonoBehaviour
 
     private List<NavData2D.NavPoint> m_PathBuffer;
     private bool m_NewPathReady = false;
+    private bool m_DismissPath = false;
     private object m_PathLock = new object();
 
     static private readonly float REACH_THRESHOLD = 0.005f;
@@ -104,7 +105,7 @@ public class NavAgent2D : MonoBehaviour
                 case AgentState.Jumping:
                     m_Animator.SetTrigger(m_AnimationTriggerJump);
                     break;
-                // AgentState.None does not have a specific trigger here
+                    // AgentState.None does not have a specific trigger here
             }
         }
     }
@@ -210,6 +211,7 @@ public class NavAgent2D : MonoBehaviour
         if (m_NewPathPending) return;
 
         m_NewPathPending = true;
+        m_DismissPath = false;
         m_Target = target;
         Vector3 colliderOffset = m_Collider.offset;
         bool isInsideTransparentGround = m_NavData.GetCellsInArea(transform.position + colliderOffset, m_Collider.bounds, out var cells) && cells.Any(cell => cell.Transparent != null);
@@ -230,8 +232,19 @@ public class NavAgent2D : MonoBehaviour
                 m_NavData.GetPath_ThreadSafe(startPoint, endPoint, currentPosition, target, m_PathBuffer);
                 lock (m_PathLock)
                 {
-                    m_NewPathReady = true;
-                    m_NewPathPending = false;
+                    if (!m_DismissPath)
+                    {
+                        m_NewPathReady = true;
+                        m_NewPathPending = false;
+                    }
+                    else
+                    {
+                        m_NewPathPending = false;
+                        m_NewPathReady = false;
+                        m_DismissPath = false;
+                        m_PathBuffer.Clear();
+                    }
+
                 }
             }
             catch (Exception e)
@@ -363,37 +376,48 @@ public class NavAgent2D : MonoBehaviour
 
     private bool HandleAsyncPathResult()
     {
-        bool correctPath = false;
-        if (m_NewPathReady)
+        if (m_DismissPath)
         {
-            lock (m_PathLock)
+            m_NewPathPending = false;
+            m_NewPathReady = false;
+            m_DismissPath = false;
+            return false;
+        }
+        else
+        {
+            bool correctPath = false;
+            if (m_NewPathReady)
             {
-                if (!m_NewPathReady) return false;
-                m_NewPathReady = false;
-
-                List<NavData2D.NavPoint> temp = m_Path;
-                m_Path = m_PathBuffer;
-                m_PathBuffer = temp;
-
-                correctPath = ApplyNewPath(m_Path);
-                if (correctPath)
+                lock (m_PathLock)
                 {
-                    AdjustCurrentPathIndexForAgentPosition();
-                }
-                else
-                {
-                    InvalidPath = true;
+                    if (!m_NewPathReady) return false;
+                    m_NewPathReady = false;
+
+                    List<NavData2D.NavPoint> temp = m_Path;
+                    m_Path = m_PathBuffer;
+                    m_PathBuffer = temp;
+
+                    correctPath = ApplyNewPath(m_Path);
+                    if (correctPath)
+                    {
+                        AdjustCurrentPathIndexForAgentPosition();
+                    }
+                    else
+                    {
+                        InvalidPath = true;
+                    }
                 }
             }
+            return correctPath;
         }
-        return correctPath;
+
+
     }
 
     private bool ApplyNewPath(List<NavData2D.NavPoint> newPath)
     {
         //TODO: set Jump state as well when appropriate
         //TODO: don't even set state here
-        // m_PreviousState = m_State; // Handled by SetAgentState
         if (newPath == null || newPath.Count == 0)
         {
             SetAgentState(AgentState.Stopped);
@@ -482,7 +506,7 @@ public class NavAgent2D : MonoBehaviour
         {
             if (m_Controller.IsGrounded)
             {
-                GoNext(); // GoNext will call SetAgentState
+                GoNext();
                 return;
             }
         }
@@ -496,10 +520,9 @@ public class NavAgent2D : MonoBehaviour
 
         if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
         {
-            // SetAgentState(AgentState.Moving); // Removed: GoNext will set the appropriate state.
             m_JumpDirection = 0;
             m_ShortJump = false;
-            GoNext(); // GoNext will call SetAgentState
+            GoNext();
         }
         else if (m_JumpDirection != 0)
         {
@@ -566,27 +589,6 @@ public class NavAgent2D : MonoBehaviour
                 SetAgentState(AgentState.Moving);
             }
         }
-
-        // Removed animation logic block, now handled by SetAgentState
-        // if (m_Animator != null)
-        // {
-        //     if (m_PreviousState != m_State)
-        //     {
-        //         switch (m_State)
-        //         {
-        //             case AgentState.Stopped:
-        //                 m_Animator.SetTrigger(m_AnimationTriggerIdle);
-        //                 break;
-        //             case AgentState.Moving:
-        //                 m_Animator.SetTrigger(m_AnimationTriggerWalk);
-        //                 break;
-        //             case AgentState.Jumping:
-        //                 m_Animator.SetTrigger(m_AnimationTriggerJump);
-        //                 break;
-        //         }
-        //         m_PreviousState = m_State;
-        //     }
-        // }
     }
 
     private bool IsStuck()
@@ -670,20 +672,18 @@ public class NavAgent2D : MonoBehaviour
 
     public void Stop()
     {
-        if (m_State == AgentState.Stopped) // Check current state before calling SetAgentState to avoid redundant calls if already stopped.
+        if (m_NewPathPending || m_NewPathReady)
+        {
+            m_DismissPath = true;
+        }
+        if (m_State == AgentState.Stopped)
         {
             return;
         }
 
         SetAgentState(AgentState.Stopped);
-        // m_PreviousState = AgentState.Stopped; // Handled by SetAgentState
         m_PassingThrough = false;
 
-        // Removed animation logic, handled by SetAgentState
-        // if (m_Animator != null)
-        // {
-        //     m_Animator.SetTrigger(m_AnimationTriggerIdle);
-        // }
     }
 
     public float DistanceToTarget()

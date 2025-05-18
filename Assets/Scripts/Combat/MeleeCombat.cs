@@ -36,8 +36,8 @@ namespace TheGame
         {
             if (m_Attacking)
             {
+                CancellAttack();
                 Debug.LogWarning($"{m_OwnerEntity.gameObject.name} tried to attack while already attacking.");
-                return;
             }
 
             m_Attacking = true;
@@ -67,10 +67,8 @@ namespace TheGame
             {
                 m_Animator.SetTrigger("CancelAttack");
             }
-            else
-            {
-                m_Weapon.DisableCollider();
-            }
+
+            m_Weapon.DisableCollider();
         }
 
         public void OnAnimationEvent_HitboxActive()

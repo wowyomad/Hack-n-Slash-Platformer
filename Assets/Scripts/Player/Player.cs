@@ -16,6 +16,7 @@ namespace TheGame
         [HideInInspector] public MeleeWeapon WeaponReference;
         [HideInInspector] public MeleeCombat MeleeCombat;
 
+        public override bool IsAlive => CurrentState != DeadState;
 
         public IState CurrentState => StateMachine.State;
         public enum Trigger
@@ -81,7 +82,6 @@ namespace TheGame
 
         public event Action<IState, IState> StateChanged;
         public override event Action OnHit;
-        public override bool IsAlive => StateMachine.State != DeadState;
 
         public bool IsGrounded => Controller.IsGrounded;
 

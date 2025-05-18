@@ -103,7 +103,7 @@ namespace TheGame
         }
         private void OnWalk()
         {
-            m_Animator.CrossFade(WalkAnimationHash, 0.0f);
+            m_Animator.CrossFade(RunAnimationHash, 0.0f);
         }
         private void OnJump()
         {

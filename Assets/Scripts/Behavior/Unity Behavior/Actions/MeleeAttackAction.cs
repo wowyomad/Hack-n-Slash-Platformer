@@ -4,6 +4,7 @@ using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
 using TheGame;
+using NUnit.Framework.Interfaces;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "MeleeAttack", story: "[Agent] attacks [Target]", category: "Action", id: "a9a52b5e84147b09b5e3cfe9ccfec74a")]
@@ -11,61 +12,90 @@ public partial class MeleeAttackAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<GameObject> Target;
-    [SerializeReference] public BlackboardVariable<float> Cooldown;
+    [SerializeReference] public BlackboardVariable<HitResult> LastAttackOutcome;
     [SerializeReference] public BlackboardVariable<float> Delay;
-
     [SerializeReference] public BlackboardVariable<float> AttackDuration = new BlackboardVariable<float>(0.3f);
 
     public Enemy Self;
     public MeleeCombat Melee;
 
-    private float m_AttackTimer;
-    private float m_LastAttackTime;
     private float m_AttackDelayTimer;
+    private bool m_AttackInterrupted = false;
     protected override Status OnStart()
     {
-        if (Time.time - m_LastAttackTime < Cooldown.Value)
+
+        if (LastAttackOutcome == null)
         {
+            LogFailure("LastAttackOutcome reference must be set!");
             return Status.Failure;
         }
 
         Self = Agent.Value.GetComponent<Enemy>();
-        Melee = Self.GetComponentInChildren<MeleeCombat>();
-        m_AttackTimer = 0f;
+        Melee = Self.GetComponent<MeleeCombat>();
         m_AttackDelayTimer = 0f;
+        m_AttackInterrupted = false;
 
-        Vector3 direction = (Target.Value.transform.position - Self.transform.position).normalized;
-        HitData hitData = new HitData(GameObject);
-        hitData.Direction = direction;
-        Melee.StartAttack(hitData);
+        if (Melee.IsAttacking)
+        {
+            Melee.CancellAttack();
+        }
 
-        Self.Flip(direction.x);
+        Melee.OnTargetHit += HandleTargetHitResult;
+
+        Attack();
 
         return Status.Running;
-    }
-
-    protected override Status OnUpdate()
-    {
-        if (m_AttackDelayTimer >= Delay.Value)
-        {
-            if (m_AttackTimer >= AttackDuration.Value)
-            {
-                return Status.Success;
-            }
-            m_AttackTimer += Time.deltaTime;
-        }
-        else
-        {
-            m_AttackDelayTimer += Time.deltaTime;
-        }
-        return Status.Running;
-
-
     }
 
     protected override void OnEnd()
     {
-        
+        Melee.OnTargetHit -= HandleTargetHitResult;
+    }
+
+    protected override Status OnUpdate()
+    {
+        if (m_AttackInterrupted)
+        {
+            return Status.Failure;
+        }
+        if (!Melee.IsAttacking)
+        {
+            return Status.Success;
+        }
+
+        return Status.Running;
+    }
+
+    private void HandleTargetHitResult(HitResult hitResult, GameObject target)
+    {
+        switch (hitResult)
+        {
+            case HitResult.Block:
+                m_AttackInterrupted = true;
+                LastAttackOutcome.Value = HitResult.Block;
+                break;
+            case HitResult.Parry:
+                m_AttackInterrupted = true;
+                LastAttackOutcome.Value = HitResult.Parry;
+                break;
+            case HitResult.Stun:
+                m_AttackInterrupted = true;
+                LastAttackOutcome.Value = HitResult.Stun;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void Attack()
+    {
+        Vector3 direction = (Target.Value.transform.position - Self.transform.position).normalized;
+        HitData hitData = new HitData(GameObject);
+        hitData.Direction = direction;
+
+        Self.Flip(direction.x);
+
+        Melee.StartAttack(hitData);
     }
 }
 
