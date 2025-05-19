@@ -6,7 +6,7 @@ public class DefaultSettingsSO : ScriptableObject
     public float GeneralVolume = 0.75f;
 }
 
-public class SettingsManager : MonoBehaviour
+public class SettingsManager : PersistentSingleton<SettingsManager>
 {
     [SerializeField] private AudioSource m_MusicSource;
     [SerializeField] private string MusicVolumeKey = "MusicVolume";
@@ -17,8 +17,15 @@ public class SettingsManager : MonoBehaviour
 
     private InputReader Input;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        
+        if (Instance != this)
+        {
+            return;
+        }
+    
         Input = Resources.Load<InputReader>("Input/InputReader");
 
         if (m_DefaultSettings == null)

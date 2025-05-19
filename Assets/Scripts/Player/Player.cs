@@ -16,7 +16,9 @@ namespace TheGame
         [HideInInspector] public MeleeWeapon WeaponReference;
         [HideInInspector] public MeleeCombat MeleeCombat;
 
-        public override bool IsAlive => CurrentState != DeadState;
+        public override bool IsAlive => !IsInvincible || CurrentState != DeadState;
+
+        public bool IsInvincible = false;
 
         public IState CurrentState => StateMachine.State;
         public enum Trigger
@@ -184,7 +186,7 @@ namespace TheGame
 
             StateMachine.Configure(AnyState)
                 .IgnoreIf(Trigger.Die, () => !IsVulnerable)
-                .Permit(Trigger.Die, DeadState);
+                .PermitIf(Trigger.Die, DeadState, () => !IsInvincible);
             //.PermitIf(Trigger.Stun, StunnedState, () => m_CanGetStunned && !StunnedState.IsStunned && !IsImmuneToStun);
 
             StateMachine.Configure(StunnedState)

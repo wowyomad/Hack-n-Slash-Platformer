@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BaseSpeed: 13
   MaxJumpDistance: 5
-  MaxJumpHeight: 6
+  MaxJumpHeight: 5
   TimeToJumpApex: 0.4
   MaxGravityScale: 1.5

@@ -3,6 +3,7 @@ using UnityEngine;
 using TheGame;
 using Unity.Behavior;
 using Unity.VisualScripting;
+using Behavior;
 
 public interface IDestroyable
 {
@@ -60,18 +61,20 @@ public class Enemy : Entity
         MeleeCombatController = GetComponent<MeleeCombat>();
         BTAgent = GetComponent<BehaviorGraphAgent>();
 
-        ValidateBlackboardVairiables();
-        InitializeVariablesFromBlackboard();
+        
     }
 
     private void Start()
     {
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
+
+        ValidateBlackboardVairiables();
+        InitializeVariablesFromBlackboard();
     }
 
     private void Update()
     {
-        
+
     }
 
     public override HitResult TakeHit(HitData attackData)
@@ -108,6 +111,11 @@ public class Enemy : Entity
         }
 
         return result;
+
+       
+
+
+
     }
 
     public bool CanSeeTarget(Vector3 targetPosition, bool alerted = false)

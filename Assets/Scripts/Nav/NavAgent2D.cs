@@ -100,18 +100,23 @@ public class NavAgent2D : MonoBehaviour
         m_PreviousState = m_State;
         m_State = newState;
 
+        return;
+
         if (m_Animator != null)
         {
             switch (m_State)
             {
                 case AgentState.Stopped:
                     m_Animator.SetTrigger(m_AnimationTriggerIdle);
+                    Debug.Log("Triggering Idle");
                     break;
                 case AgentState.Moving:
                     m_Animator.SetTrigger(m_AnimationTriggerWalk);
+                    Debug.Log("Triggering Walk");
                     break;
                 case AgentState.Jumping:
                     m_Animator.SetTrigger(m_AnimationTriggerJump);
+                    Debug.Log("Triggering Jump");
                     break;
                     // AgentState.None does not have a specific trigger here
             }
@@ -342,6 +347,16 @@ public class NavAgent2D : MonoBehaviour
             Velocity = new Vector2(0, m_Controller.Velocity.y);
         }
 
+        if (m_State == AgentState.Stopped)
+        {
+            m_Animator.SetInteger("Speed", 0);
+        }
+        else
+        {
+            int speed = OverrideSpeed ? (int)Speed : (int)m_NavActor.BaseSpeed;
+            m_Animator.SetInteger("Speed", speed);
+        }
+
         if (HandleAsyncPathResult())
         {
             return;
@@ -377,6 +392,8 @@ public class NavAgent2D : MonoBehaviour
         {
             HandleWalking();
         }
+
+
 
         if (TurnAgentOnMove && Velocity.x != 0.0f)
         {
@@ -747,7 +764,7 @@ public class NavAgent2D : MonoBehaviour
     private void OnDrawGizmos()
     {
         if (!m_DrawPath) return;
-        
+
         if (m_Path != null && m_Path.Count > 1)
         {
             int startIndex = Mathf.Max(0, m_CurrentPointIndex);

@@ -149,27 +149,6 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   spriteSheetImportData:
-  - name: A_0
-    originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 194
-      y: 702
-      width: 16
-      height: 16
-    spriteID: dbba5ed26673b5f4faf2884b587b25ab
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 0, y: 0}
   - name: A_1
     originalName: 
     pivot: {x: 0.5, y: 0.5}
