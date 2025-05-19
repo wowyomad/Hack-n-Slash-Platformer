@@ -69,29 +69,9 @@ public class Enemy : Entity
         FacingDirection = transform.localScale.x > 0 ? 1 : -1;
     }
 
-
-    private float m_RandomTimer = 0.0f;
-    private float m_RandomDuration = 0.0f;
     private void Update()
     {
-        if (m_RandomDuration == 0.0f)
-        {
-            m_RandomDuration = UnityEngine.Random.Range(1.0f, 3.0f);
-            m_RandomTimer = 0.0f;
-        }
-
-        if (m_RandomTimer > m_RandomDuration)
-        {
-            BTAgent.GetVariable<Boolean>(m_TookHitVariableName, out var tookHit);
-            tookHit.Value = !tookHit.Value;
-            BTAgent.SetVariableValue<Boolean>(m_TookHitVariableName, tookHit);
-
-            m_RandomDuration = m_RandomTimer = 0.0f;
-        }
-        else
-        {
-            m_RandomTimer += Time.deltaTime;
-        }
+        
     }
 
     public override HitResult TakeHit(HitData attackData)
@@ -129,7 +109,7 @@ public class Enemy : Entity
 
         return result;
     }
-    
+
     public bool CanSeeTarget(Vector3 targetPosition, bool alerted = false)
     {
         Vector3 directionToTarget = (targetPosition - transform.position).normalized;

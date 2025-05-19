@@ -20,8 +20,9 @@ public class CharacterStatsSO : ScriptableObject
     [Header("Attack")]
     public float AttackCooldown = 0.4f;
     public float AttackDuration = 0.2f;
-    public float AttackSlowdownScale = 0.5f;
+    public float AttackSlowdownFactor = 0.5f;
     public float AttackImpulseCooldown = 0.6f;
+    public float AttackHorizontalImpulseReductionFactor = 0.25f;
     public float AttackImpulse = 20.0f;
 
     public float Gravity { get; private set; }

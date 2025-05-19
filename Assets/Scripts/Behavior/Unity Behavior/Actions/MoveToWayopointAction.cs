@@ -6,12 +6,12 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "MoveToWayopoint", story: "[Agent] moves to current waypoint", category: "Action", id: "436ac4c1018fc34f9541a4d164eae38a")]
+[NodeDescription(name: "MoveToWayopoint", story: "[Agent] moves to waypoint [Index] from [Waypoints]", category: "Action", id: "436ac4c1018fc34f9541a4d164eae38a")]
 public partial class MoveToWayopointAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
+    [SerializeReference] public BlackboardVariable<int> Index;
     [SerializeReference] public BlackboardVariable<List<GameObject>> Waypoints;
-    [SerializeReference] public BlackboardVariable<int> CurrentWaypointIndex;
     [SerializeReference] public BlackboardVariable<float> Speed = new BlackboardVariable<float>(8.0f);
     [SerializeReference] public BlackboardVariable<float> DeccelerationTime = new BlackboardVariable<float>(0.25f);
     [SerializeReference] public BlackboardVariable<float> AccelerationTime = new BlackboardVariable<float>(0.35f);
@@ -31,7 +31,7 @@ public partial class MoveToWayopointAction : Action
             Initialize();
         }
 
-        m_NavAgent.SetDestination(Waypoints.Value[CurrentWaypointIndex.Value].transform.position);
+        m_NavAgent.SetDestination(Waypoints.Value[Index.Value].transform.position);
 
         m_NavAgent.SetSpeed(Speed.Value);
         m_NavAgent.SetAccelerationTime(AccelerationTime.Value);

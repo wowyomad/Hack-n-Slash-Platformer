@@ -49,10 +49,15 @@ namespace TheGame
             }
 
             Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Player.Input.CursorPosition);
-            Vector3 direction = (cursorPosition - Player.transform.position).normalized;
+            Vector2 direction = (cursorPosition - Player.transform.position).normalized;
 
             direction = SnapDirectionTo8(direction);
             m_LastAttackDirection = direction;
+
+            if (Controller.IsGrounded && (direction == Vector2.left || direction == Vector2.right))
+            {
+                impulseScale *= m_Stats.AttackHorizontalImpulseReductionFactor;
+            }
 
             float initialVelocityX = direction.x * m_Stats.AttackImpulse * impulseScale;
             float initialVelocityY = direction.y * m_Stats.AttackImpulse * impulseScale;
@@ -85,7 +90,7 @@ namespace TheGame
 
             float newXVelocity;
 
-            float targetSlowdownVelocityX = m_InitialAttackVelocityX * m_Stats.AttackSlowdownScale;
+            float targetSlowdownVelocityX = m_InitialAttackVelocityX * m_Stats.AttackSlowdownFactor;
 
             if (m_AttackTimer.ElapsedTime >= m_Stats.AttackDuration)
             {
@@ -101,13 +106,13 @@ namespace TheGame
             Controller.Velocity.x = newXVelocity;
         }
 
-        private Vector3 SnapDirectionTo8(Vector3 direction)
+        private Vector3 SnapDirectionTo8(Vector2 direction)
         {
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             angle = Mathf.Round(angle / 45.0f) * 45.0f;
             float snappedX = Mathf.Cos(angle * Mathf.Deg2Rad);
             float snappedY = Mathf.Sin(angle * Mathf.Deg2Rad);
-            return new Vector3(snappedX, snappedY, 0).normalized;
+            return new Vector2(snappedX, snappedY).normalized;
         }
     }
 

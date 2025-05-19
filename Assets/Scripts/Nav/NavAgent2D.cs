@@ -10,6 +10,14 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class NavAgent2D : MonoBehaviour
 {
+    public enum AgentState
+    {
+        None,
+        Stopped,
+        Moving,
+        Jumping,
+    }
+
     [Header("Components")]
     [SerializeField] private NavData2D m_NavData;
     [SerializeField] private NavActorSO m_NavActor;
@@ -47,17 +55,20 @@ public class NavAgent2D : MonoBehaviour
     [SerializeField] private int m_CurrentPointIndex = 0;
     [SerializeField] private float m_JumpSpeedScale = 1.0f;
 
+
+    [Header("Internal")]
+
     private Action<int> m_TurnCallback;
 
     private List<NavData2D.NavPoint> m_Path;
-    private Vector2 m_Target = Vector2.zero;
+    [SerializeField] private Vector2 m_Target = Vector2.zero;
     private AgentState m_State;
-    private bool m_NewPathPending = false;
+    [SerializeField] private bool m_NewPathPending = false;
 
 
     private List<NavData2D.NavPoint> m_PathBuffer;
-    private bool m_NewPathReady = false;
-    private bool m_DismissPath = false;
+    [SerializeField] private bool m_NewPathReady = false;
+    [SerializeField] private bool m_DismissPath = false;
     private object m_PathLock = new object();
 
     static private readonly float REACH_THRESHOLD = 0.005f;
@@ -75,14 +86,11 @@ public class NavAgent2D : MonoBehaviour
     public bool IsPathReady => !m_NewPathPending;
     public Vector3? CurrentPathTarget => (IsPathReady && m_Path != null && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
     public Vector2 Velocity { get; private set; }
-    public enum AgentState
-    {
-        None,
-        Stopped,
-        Moving,
-        Jumping,
-    }
 
+
+    [Header("Debug")]
+    [SerializeField]
+    private bool m_DrawPath = true;
 
     private void SetAgentState(AgentState newState)
     {
@@ -208,10 +216,14 @@ public class NavAgent2D : MonoBehaviour
         if (m_NavData == null)
             throw new NullReferenceException("NavData2D is not assigned");
 
+        // If a path is already pending, we might want to see if this new target
+        // is different. If so, we could potentially set m_DismissPath = true for the
+        // *current* pending path, and then immediately queue this new one.
+        // However, for now, the simple gate:
         if (m_NewPathPending) return;
 
-        m_NewPathPending = true;
-        m_DismissPath = false;
+        m_NewPathPending = true; // Mark as pending *before* starting the task
+        m_DismissPath = false;   // Reset dismiss for this new path request
         m_Target = target;
         Vector3 colliderOffset = m_Collider.offset;
         bool isInsideTransparentGround = m_NavData.GetCellsInArea(transform.position + colliderOffset, m_Collider.bounds, out var cells) && cells.Any(cell => cell.Transparent != null);
@@ -223,28 +235,44 @@ public class NavAgent2D : MonoBehaviour
 
         Task.Run(() =>
         {
+            bool calculationDone = false;
             try
             {
+                // Lock to clear the buffer that this task will use.
+                // If m_NewPathPending was a perfect gate, no other task should be here.
                 lock (m_PathLock)
                 {
+                    // If, despite m_NewPathPending, this task was superseded or dismissed before it even started
+                    // the main calculation (e.g. Stop() called immediately after SetDestinationAsyncInternal)
+                    if (m_DismissPath)
+                    { // Check if this specific request was dismissed
+                        m_NewPathPending = false; // This task will not fulfill the pending request
+                        m_DismissPath = false;    // Reset for next potential use
+                        return; // Don't proceed with calculation
+                    }
                     m_PathBuffer.Clear();
                 }
+
                 m_NavData.GetPath_ThreadSafe(startPoint, endPoint, currentPosition, target, m_PathBuffer);
+                calculationDone = true; // Mark that the path data is now in m_PathBuffer
+
                 lock (m_PathLock)
                 {
+                    // Only proceed if this path wasn't dismissed *during* calculation
+                    // and if this task is still the one fulfilling the m_NewPathPending request.
                     if (!m_DismissPath)
                     {
                         m_NewPathReady = true;
-                        m_NewPathPending = false;
+                        // m_NewPathPending is set to false because this task has provided a result (or an empty path)
                     }
                     else
                     {
-                        m_NewPathPending = false;
-                        m_NewPathReady = false;
-                        m_DismissPath = false;
+                        // Path was dismissed during calculation. Clear the buffer this task used.
                         m_PathBuffer.Clear();
+                        m_NewPathReady = false; // Ensure not ready
                     }
-
+                    m_NewPathPending = false; // This task's attempt to fulfill pending is now over
+                    m_DismissPath = false;    // Reset dismiss flag
                 }
             }
             catch (Exception e)
@@ -252,7 +280,16 @@ public class NavAgent2D : MonoBehaviour
                 Debug.LogError("Error while calculating path: " + e.Message + "\n" + e.StackTrace);
                 lock (m_PathLock)
                 {
+                    // If an error occurred, ensure we are no longer pending.
+                    // If calculation was done, m_PathBuffer might have partial data, clear it.
+                    // If calculation wasn't done, m_PathBuffer was cleared at the start of this task.
+                    if (calculationDone)
+                    { // If error happened after GetPath_ThreadSafe
+                        m_PathBuffer.Clear();
+                    }
                     m_NewPathPending = false;
+                    m_NewPathReady = false;
+                    m_DismissPath = false; // Reset dismiss flag
                 }
             }
         });
@@ -706,9 +743,11 @@ public class NavAgent2D : MonoBehaviour
         return distance;
     }
 
-
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
+        if (!m_DrawPath) return;
+        
         if (m_Path != null && m_Path.Count > 1)
         {
             int startIndex = Mathf.Max(0, m_CurrentPointIndex);
@@ -726,4 +765,5 @@ public class NavAgent2D : MonoBehaviour
             }
         }
     }
+#endif
 }
