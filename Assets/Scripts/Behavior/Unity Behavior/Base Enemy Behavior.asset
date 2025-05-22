@@ -28,7 +28,7 @@ MonoBehaviour:
         AuthoringAssetID:
           m_Value0: 15336683188695497179
           m_Value1: 8660111217189652714
-        m_DebugInfo: {fileID: 0}
+        m_DebugInfo: {fileID: 1291268253123871717}
         Root:
           rid: 197659703405183875
         BlackboardReference:
@@ -9647,10 +9647,6 @@ MonoBehaviour:
   m_CodeBreakPointsList:
   - m_Value0: 9496594042760500844
     m_Value1: 14713870219376017715
-  - m_Value0: 7981372871352744419
-    m_Value1: 18287576828042879203
-  - m_Value0: 8402895783138426032
-    m_Value1: 17413475269531692724
 --- !u!114 &4087945680394144369
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -708,7 +708,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8188237940391912730, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8981534295418624990, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
       propertyPath: m_NavData
@@ -35699,6 +35699,10 @@ PrefabInstance:
     - target: {fileID: 8188237940391912730, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
       propertyPath: m_Name
       value: Knight_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188237940391912730, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8981534295418624990, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
       propertyPath: m_NavData
