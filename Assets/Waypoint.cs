@@ -7,4 +7,12 @@ public class Waypoint : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawSphere(transform.position, 0.2f);
     }
+
+    static int WaypointCounter = 0;
+
+    protected void Start()
+    {
+        WaypointCounter++;
+        Debug.Log("Waypoint " + WaypointCounter + " created at position: " + transform.position);
+    }
 }

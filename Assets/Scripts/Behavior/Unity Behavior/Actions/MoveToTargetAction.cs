@@ -25,8 +25,6 @@ public partial class MoveToTargetAction : Action
 
 
     private NavAgent2D m_NavAgent;
-    private Enemy m_Self;
-    private Entity m_TargetEntity;
     private float m_PathWaitTimer = 0.0f;
     private float m_PathUpdateTimer = 0.0f;
     private Vector3 m_LastTargetPosition;
@@ -38,6 +36,12 @@ public partial class MoveToTargetAction : Action
         if (!m_Initialized)
         {
             Intialize();
+        }
+
+        if (Target == null || Target.Value == null)
+        {
+            LogFailure("Target is null", true);
+            return Status.Failure;
         }
 
         if (CantReachTarget == null)
@@ -128,12 +132,6 @@ public partial class MoveToTargetAction : Action
 
     private void Intialize()
     {
-        if (Target.Value.TryGetComponent<Entity>(out var targetEntity))
-        {
-            m_TargetEntity = targetEntity;
-        }
-
-        m_Self = Agent.Value.GetComponent<Enemy>();
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
 
         m_Initialized = true;

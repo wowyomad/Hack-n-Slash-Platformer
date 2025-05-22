@@ -18,25 +18,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &4184343030370630755
-RectTransform:
+--- !u!4 &4184343030370630755
+Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7049941513874741288}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.45, y: -0.35000002, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 793323243493187850}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.05, y: -1.35}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &6194706960912272999
 Animator:
   serializedVersion: 7
@@ -126,6 +122,7 @@ GameObject:
   - component: {fileID: 756799647220470395}
   - component: {fileID: 7113205125457961906}
   - component: {fileID: 4822618296271439782}
+  - component: {fileID: 6968550137562080000}
   - component: {fileID: 6886308112935815565}
   - component: {fileID: 8981534295418624990}
   - component: {fileID: 6271697378530476676}
@@ -137,15 +134,16 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &793323243493187850
-RectTransform:
+--- !u!4 &793323243493187850
+Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8188237940391912730}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -1.11, y: 22.55, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -153,11 +151,6 @@ RectTransform:
   - {fileID: 5509922198930515057}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 14.272001, y: 10.846}
-  m_SizeDelta: {x: 1, y: 2}
-  m_Pivot: {x: 0, y: 0}
 --- !u!70 &756799647220470395
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -238,16 +231,36 @@ MonoBehaviour:
   MeleeCombatController: {fileID: 0}
   NavAgent: {fileID: 0}
   BTAgent: {fileID: 0}
-  m_EysightDistance: 13
-  m_EysightAngle: 55
-  m_BacksightDistance: 8
-  m_BacksightAngle: 60
-  m_CloseSightRadius: 3
-  m_AlertedSightRadius: 10
   m_CurrentStateVariableName: CurrentState
   m_TookHitVariableName: TookHit
   m_LastHitResultVariableName: LastHitResult
   m_LastHitAttackerVariableName: LastHitAttacker
+  m_AlertedVariableName: State_Alerted
+--- !u!114 &6968550137562080000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8188237940391912730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5b6783287d55e34ab7f8abdc2f27470, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EyesightDistance: 12
+  m_EyesightAngle: 60
+  m_BacksightDistance: 5
+  m_BacksightAngle: 45
+  m_CloseSightRadius: 3
+  m_AlertedCloseSightRadius: 10
+  m_AlertedDistanceMultiplier: 1.4
+  m_StandardOcclusionMask:
+    serializedVersion: 2
+    m_Bits: 2281701376
+  m_AlertedOcclusionMask:
+    serializedVersion: 2
+    m_Bits: 2147483648
 --- !u!114 &6886308112935815565
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,6 +317,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_NavData: {fileID: 0}
   m_NavActor: {fileID: 11400000, guid: 857bf71452bf5da419eeace7b0799efd, type: 2}
+  m_Animator: {fileID: 0}
+  m_AnimationTriggerIdle: Idle
+  m_AnimationTriggerWalk: Walk
+  m_AnimationTriggerRun: Run
+  m_AnimationTriggerJump: Jump
   OverrideSpeed: 0
   Speed: 0
   DeccelerationTime: 0.5
@@ -316,9 +334,14 @@ MonoBehaviour:
   m_JumpDirection: 0
   m_CurrentPointIndex: 0
   m_JumpSpeedScale: 1
+  m_Target: {x: 0, y: 0}
+  m_NewPathPending: 0
+  m_NewPathReady: 0
+  m_DismissPath: 0
   m_PassingThrough: 0
   m_HasEnteredTransparentGround: 0
   m_HasJumped: 0
+  m_DrawPath: 1
 --- !u!114 &6271697378530476676
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -336,7 +359,6 @@ MonoBehaviour:
   - rid: 197659432871526874
   - rid: 197659578872627749
   - rid: 197659578872627845
-  - rid: 197659588824400757
   - rid: 197659600443932988
   - rid: 197659601482023718
   m_IsInitialised: 0
@@ -369,14 +391,6 @@ MonoBehaviour:
           m_Value0: 3336286924233382131
           m_Value1: 10755347355006498367
         Name: Player
-        m_Value: {fileID: 0}
-    - rid: 197659588824400757
-      type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]', ns: Unity.Behavior, asm: Unity.Behavior}
-      data:
-        GUID:
-          m_Value0: 15862863935862715390
-          m_Value1: 7202431512548350668
-        Name: Target
         m_Value: {fileID: 0}
     - rid: 197659600443932988
       type: {class: 'BlackboardVariable`1[[System.Boolean, mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}

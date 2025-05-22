@@ -1,14 +1,11 @@
 using System;
 using UnityEngine;
-using TheGame;
 using GameActions;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace TheGame
 {
-
-    [SelectionBase]
     [RequireComponent(typeof(CharacterController2D))]
     public class Player : Entity, IStateTrackable, IWeaponWielder
     {

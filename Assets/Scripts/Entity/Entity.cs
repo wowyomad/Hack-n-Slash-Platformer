@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace TheGame
 {
+    [SelectionBase]
     public abstract class Entity : MonoBehaviour, IHittable
     {
         public virtual bool IsAlive { get; protected set; }
