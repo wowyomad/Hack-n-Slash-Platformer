@@ -9,7 +9,7 @@ public interface IDestroyable
 {
     public event Action<IDestroyable> OnDestroy;
 }
-
+[SelectionBase]
 [RequireComponent(typeof(CharacterController2D))]
 [RequireComponent(typeof(MeleeCombat))]
 [RequireComponent(typeof(NavAgent2D))]
@@ -36,7 +36,8 @@ public class Enemy : Entity
     [SerializeField] private float m_BacksightDistance = 5.0f;
     [SerializeField] private float m_BacksightAngle = 45.0f;
     [SerializeField] private float m_CloseSightRadius = 3.0f;
-    [SerializeField] private float m_AlertedSightRadius = 10.0f;
+    [SerializeField] private float m_AlertedCloseSightRadius = 10.0f;
+    [SerializeField] private float m_AlertedDistanceMultiplier = 1.4f;
 
 
     [Header("Blackboard variable names")]
@@ -61,7 +62,7 @@ public class Enemy : Entity
         MeleeCombatController = GetComponent<MeleeCombat>();
         BTAgent = GetComponent<BehaviorGraphAgent>();
 
-        
+
     }
 
     private void Start()
@@ -111,44 +112,45 @@ public class Enemy : Entity
         }
 
         return result;
-
-       
-
-
-
     }
 
-    public bool CanSeeTarget(Vector3 targetPosition, bool alerted = false)
+    public bool CanSeeTarget(Vector3 targetPosition, bool alerted)
     {
         Vector3 directionToTarget = (targetPosition - transform.position).normalized;
         float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
 
+        float closRadius = alerted ? m_AlertedCloseSightRadius : m_CloseSightRadius;
+        int layerMask = alerted
+            ? LayerMask.GetMask("Ground")
+            : LayerMask.GetMask("Ground", "TransparentGround");
 
-        float closRadius = alerted ? m_AlertedSightRadius : m_CloseSightRadius;
-
+        // Short-range vision
         if (distanceToTarget <= closRadius)
         {
-            RaycastHit2D shortHit = Physics2D.Raycast(transform.position, directionToTarget, distanceToTarget, LayerMask.GetMask("Ground", "TransparentGround"));
+            RaycastHit2D shortHit = Physics2D.Raycast(
+                transform.position,
+                directionToTarget,
+                distanceToTarget,
+                layerMask
+            );
             return shortHit.collider == null;
         }
 
+        // Long-range vision with alerted distance multiplier
         float angleToTarget = Vector3.Angle(transform.right * FacingDirection, directionToTarget);
+        bool targetInFront = (targetPosition.x > transform.position.x && FacingDirection == 1)
+                           || (targetPosition.x < transform.position.x && FacingDirection == -1);
 
-        bool targetInFront = (targetPosition.x > transform.position.x && FacingDirection == 1) || (targetPosition.x < transform.position.x && FacingDirection == -1);
+        // pick base distance & angle
+        float baseDistance = targetInFront ? m_EysightDistance : m_BacksightDistance;
+        float compareAngle = targetInFront ? m_EysightAngle / 2 : m_BacksightAngle / 2;
 
-        float compareDistance;
-        float compareAngle;
+        // apply multiplier if alerted
+        float compareDistance = baseDistance * (alerted ? m_AlertedDistanceMultiplier : 1f);
 
-        if (targetInFront)
+        if (!targetInFront)
         {
-            compareDistance = m_EysightDistance;
-            compareAngle = m_EysightAngle / 2;
-        }
-        else
-        {
-            compareDistance = m_BacksightDistance;
-            compareAngle = m_BacksightAngle / 2;
-            angleToTarget = 180.0f - angleToTarget;
+            angleToTarget = 180f - angleToTarget;
         }
 
         if (distanceToTarget > compareDistance || angleToTarget > compareAngle)
@@ -156,13 +158,18 @@ public class Enemy : Entity
             return false;
         }
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, directionToTarget, distanceToTarget, LayerMask.GetMask("Ground", "TransparentGround"));
+        RaycastHit2D hit = Physics2D.Raycast(
+            transform.position,
+            directionToTarget,
+            distanceToTarget,
+            layerMask
+        );
         return hit.collider == null;
     }
 
-    public bool CanSeeEntity(Entity entity, bool alerted = false)
+    public bool CanSeeEntity(Entity entity, bool alerted)
     {
-        return CanSeeTarget(entity.transform.position);
+        return CanSeeTarget(entity.transform.position, alerted);
     }
 
     private void ValidateBlackboardVairiables()
@@ -195,11 +202,16 @@ public class Enemy : Entity
     private void OnDrawGizmosSelected()
     {
         DrawVisionCone(m_EysightDistance, m_EysightAngle, Color.green);
-
         DrawVisionCone(m_BacksightDistance, m_BacksightAngle, Color.yellow, true);
 
+        Color alertedEyeCol = Color.green * 0.5f;
+        Color alertedBackCol = Color.yellow * 0.5f;
+        DrawVisionCone(m_EysightDistance * m_AlertedDistanceMultiplier, m_EysightAngle, alertedEyeCol);
+        DrawVisionCone(m_BacksightDistance * m_AlertedDistanceMultiplier, m_BacksightAngle, alertedBackCol, true);
+
+
         DrawVisionCircle(m_CloseSightRadius, Color.blue);
-        DrawVisionCircle(m_AlertedSightRadius, Color.red);
+        DrawVisionCircle(m_AlertedCloseSightRadius, Color.red);
     }
 
     private void DrawVisionCircle(float radius, Color color)

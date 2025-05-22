@@ -77,7 +77,7 @@ public partial class MoveToTargetAction : Action
             if (m_PathUpdateTimer >= UpdatePathInterval.Value)
             {
                 var position = Target.Value.transform.position;
-                if ((Mathf.Abs(m_LastTargetPosition.x - position.x) > 0.01f || Mathf.Abs(m_LastTargetPosition.y - position.y) > 0.01f) && m_Self.CanSeeEntity(m_TargetEntity, true))
+                if (Mathf.Abs(m_LastTargetPosition.x - position.x) > 0.01f || Mathf.Abs(m_LastTargetPosition.y - position.y) > 0.01f)
                 {
                     m_LastTargetPosition = position;
                     m_NavAgent.SetDestination(position);
@@ -133,7 +133,6 @@ public partial class MoveToTargetAction : Action
             m_TargetEntity = targetEntity;
         }
 
-
         m_Self = Agent.Value.GetComponent<Enemy>();
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
 
@@ -142,11 +141,6 @@ public partial class MoveToTargetAction : Action
 
     protected override void OnEnd()
     {
-        // if (CurrentStatus == Status.Success)
-        // {
-        //    m_NavAgent.Stop();
-        // }
-
         m_PathWaitTimer = 0.0f;
     }
 }

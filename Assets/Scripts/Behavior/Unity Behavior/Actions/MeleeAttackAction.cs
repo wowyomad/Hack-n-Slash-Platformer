@@ -7,11 +7,11 @@ using TheGame;
 using NUnit.Framework.Interfaces;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "MeleeAttack", story: "[Agent] attacks [Target]", category: "Action", id: "a9a52b5e84147b09b5e3cfe9ccfec74a")]
+[NodeDescription(name: "MeleeAttack", story: "[Agent] attacks target at [Position]", category: "Action", id: "a9a52b5e84147b09b5e3cfe9ccfec74a")]
 public partial class MeleeAttackAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
-    [SerializeReference] public BlackboardVariable<GameObject> Target;
+    [SerializeReference] public BlackboardVariable<Transform> Position;
     [SerializeReference] public BlackboardVariable<HitResult> LastAttackOutcome;
     [SerializeReference] public BlackboardVariable<float> Delay;
     [SerializeReference] public BlackboardVariable<float> AttackDuration = new BlackboardVariable<float>(0.3f);
@@ -72,24 +72,22 @@ public partial class MeleeAttackAction : Action
         {
             case HitResult.Block:
                 m_AttackInterrupted = true;
-                LastAttackOutcome.Value = HitResult.Block;
                 break;
             case HitResult.Parry:
                 m_AttackInterrupted = true;
-                LastAttackOutcome.Value = HitResult.Parry;
                 break;
             case HitResult.Stun:
                 m_AttackInterrupted = true;
-                LastAttackOutcome.Value = HitResult.Stun;
                 break;
             default:
                 break;
         }
+        LastAttackOutcome.Value = hitResult;
     }
 
     private void Attack()
     {
-        Vector3 direction = (Target.Value.transform.position - Self.transform.position).normalized;
+        Vector3 direction = (Position.Value.transform.position - Self.transform.position).normalized;
         HitData hitData = new HitData(GameObject);
         hitData.Direction = direction;
 

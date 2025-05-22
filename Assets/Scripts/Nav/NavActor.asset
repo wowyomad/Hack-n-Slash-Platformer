@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: NavActor
   m_EditorClassIdentifier: 
   BaseSpeed: 13
-  MaxJumpDistance: 5
+  MaxJumpDistance: 1
   MaxJumpHeight: 5
   TimeToJumpApex: 0.4
   MaxGravityScale: 1.5

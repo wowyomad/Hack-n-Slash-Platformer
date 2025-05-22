@@ -6,13 +6,13 @@ namespace TheGame
 {
 
     [Serializable, Unity.Properties.GeneratePropertyBag]
-    [Condition(name: "CanSeePlayer", story: "[Agent] can see [Player] [True]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
+    [Condition(name: "CanSeePlayer", story: "[Agent] can see [Player] while [IsAlerted]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
     public partial class CanSeePlayerCondition : Condition
     {
 
         [SerializeReference] public BlackboardVariable<GameObject> Agent;
         [SerializeReference] public BlackboardVariable<GameObject> Player;
-        [SerializeReference] public BlackboardVariable<bool> True = new BlackboardVariable<bool>(true);
+        [SerializeReference] public BlackboardVariable<AlertedState> IsAlerted;
 
         private Enemy m_Self;
         private Player m_Player;
@@ -21,7 +21,16 @@ namespace TheGame
 
         public override bool IsTrue()
         {
-            return m_Self.CanSeeEntity(m_Player) == True.Value;
+            switch (IsAlerted.Value)
+            {
+                case AlertedState.Alerted:
+                    return m_Self.CanSeeEntity(m_Player, true);
+                case AlertedState.NotAlerted:
+                    return m_Self.CanSeeEntity(m_Player, false);
+                default:
+                    Debug.LogError("Invalid operator in CanSeePlayerCondition");
+                    return false;
+            }
         }
 
         public override void OnStart()

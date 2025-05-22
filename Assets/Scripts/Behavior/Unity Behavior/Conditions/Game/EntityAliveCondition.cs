@@ -4,10 +4,18 @@ using Unity.Behavior;
 using UnityEngine;
 
 [Serializable, Unity.Properties.GeneratePropertyBag]
-[Condition(name: "EntityAlive", story: "[Entity] is alive", category: "Conditions", id: "ed22ebf3d38257b2ef9b882854f48003")]
+[Condition(name: "EntityAlive", story: "[Entity] is [State]", category: "Conditions", id: "ed22ebf3d38257b2ef9b882854f48003")]
 public partial class EntityAliveCondition : Condition
 {
-    [SerializeReference] public BlackboardVariable<GameObject> Entity;
+
+    public enum EntityState
+    {
+        Alive,
+        Dead
+    }
+    [SerializeReference] public BlackboardVariable<Entity> Entity;
+
+    [SerializeReference] public BlackboardVariable<EntityState> State;
     private Entity m_Entity;
 
     private bool m_Initialized = false;
@@ -24,7 +32,16 @@ public partial class EntityAliveCondition : Condition
     }
     public override bool IsTrue()
     {
-        return m_Entity != null && m_Entity.IsAlive;
+        switch (State.Value)
+        {
+            case EntityState.Alive:
+                return m_Entity.IsAlive;
+            case EntityState.Dead:
+                return !m_Entity.IsAlive;
+            default:
+                Debug.LogError("Invalid operator in EntityAliveCondition");
+                return false;
+        }
     }
 
     public override void OnStart()
