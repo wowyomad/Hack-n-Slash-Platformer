@@ -4,7 +4,7 @@ namespace TheGame
 {
     namespace EnemySensor
     {
-        
+
         public class VisualSensor : Sensor
         {
             [Header("Visual Parameters")]
@@ -21,6 +21,10 @@ namespace TheGame
             [Header("Occlusion Layers")]
             [SerializeField] private LayerMask m_StandardOcclusionMask;
             [SerializeField] private LayerMask m_AlertedOcclusionMask;
+
+            [Header("Debug")]
+            [SerializeField] private bool m_DrawGizmos = true;
+            [SerializeField] private bool m_DrawGizmosOnlyWhenSelected = true;
 
             private void Awake()
             {
@@ -108,49 +112,59 @@ namespace TheGame
 #if UNITY_EDITOR
             private void OnDrawGizmosSelected()
             {
-                DrawVisionCone(m_EyesightDistance * m_AlertedDistanceMultiplier, m_EyesightAngle, Color.yellow * 0.5f);
-                DrawVisionCone(m_BacksightDistance * m_AlertedDistanceMultiplier, m_BacksightAngle, Color.yellow * 0.5f, true);
-                DrawVisionCone(m_EyesightDistance, m_EyesightAngle, Color.green);
-                DrawVisionCone(m_BacksightDistance, m_BacksightAngle, Color.green, true);
+                if (m_DrawGizmos && m_DrawGizmosOnlyWhenSelected)
+                {
+                    DrawGizmos();
+                }
+            }
 
+            private void OnDrawGizmos()
+            {
+                if (m_DrawGizmos && !m_DrawGizmosOnlyWhenSelected)
+                {
+                    DrawGizmos();
+                }
+            }
 
-                DrawVisionCircle(m_CloseSightRadius, Color.blue);
-                DrawVisionCircle(m_AlertedCloseSightRadius, Color.red);
+            private void DrawGizmos()
+            {
+                int direction = Owner != null ? Owner.FacingDirection : 1;
+
+                if (Owner == null)
+                {
+                    DrawVisionCone(m_EyesightDistance * m_AlertedDistanceMultiplier, m_EyesightAngle, Color.yellow, direction);
+                    DrawVisionCone(m_BacksightDistance * m_AlertedDistanceMultiplier, m_BacksightAngle, Color.yellow, -direction);
+                    DrawVisionCone(m_EyesightDistance, m_EyesightAngle, Color.green, direction);
+                    DrawVisionCone(m_BacksightDistance, m_BacksightAngle, Color.green, -direction);
+
+                    DrawVisionCircle(m_CloseSightRadius, Color.green);
+                    DrawVisionCircle(m_AlertedCloseSightRadius, Color.yellow);
+                }
+                else if (Owner.IsAlerted)
+                {
+                    DrawVisionCone(m_EyesightDistance * m_AlertedDistanceMultiplier, m_EyesightAngle, Color.yellow, direction);
+                    DrawVisionCone(m_BacksightDistance * m_AlertedDistanceMultiplier, m_BacksightAngle, Color.yellow, -direction);
+                    DrawVisionCircle(m_AlertedCloseSightRadius, Color.yellow);
+
+                }
+                else
+                {
+                    DrawVisionCone(m_EyesightDistance, m_EyesightAngle, Color.green, direction);
+                    DrawVisionCone(m_BacksightDistance, m_BacksightAngle, Color.green, -direction);
+                    DrawVisionCircle(m_CloseSightRadius, Color.green);
+
+                }
             }
 
             private void DrawVisionCircle(float radius, Color color)
             {
-                Gizmos.color = color;
-                Gizmos.DrawWireSphere(transform.position, radius);
+                GizmosEx.DrawCircle(transform.position, radius, color);
             }
 
-            private void DrawVisionCone(float distance, float angle, Color color, bool isBacksight = false)
+            private void DrawVisionCone(float distance, float angle, Color color, int direction)
             {
-                Gizmos.color = color;
-                Vector3 forwardDirection = transform.right * (isBacksight ? -1 : 1);
-
-                Quaternion upRayRotation = Quaternion.AngleAxis(-angle / 2, Vector3.forward);
-                Quaternion downRayRotation = Quaternion.AngleAxis(angle / 2, Vector3.forward);
-
-                Vector3 upRayDirection = upRayRotation * forwardDirection;
-                Vector3 downRayDirection = downRayRotation * forwardDirection;
-
-                Gizmos.DrawRay(transform.position, upRayDirection * distance);
-                Gizmos.DrawRay(transform.position, downRayDirection * distance);
-
-
-                int segments = 20;
-                float segmentAngle = angle / segments;
-                Vector3 prevPoint = transform.position + upRayDirection * distance;
-
-                for (int i = 1; i <= segments; i++)
-                {
-                    Quaternion segmentRotation = Quaternion.AngleAxis(segmentAngle * i - angle / 2, Vector3.forward);
-                    Vector3 currentPointDirection = segmentRotation * forwardDirection;
-                    Vector3 currentPoint = transform.position + currentPointDirection * distance;
-                    Gizmos.DrawLine(prevPoint, currentPoint);
-                    prevPoint = currentPoint;
-                }
+                Vector2 dir = new Vector2(direction, 0.0f);
+                GizmosEx.DrawCone(transform.position, dir, distance, angle, color);
             }
 #endif
         }

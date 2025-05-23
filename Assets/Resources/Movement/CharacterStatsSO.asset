@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42a77b2a81b087a499ae80c64182444d, type: 3}
   m_Name: CharacterStatsSO
   m_EditorClassIdentifier: 
-  HorizontalSpeed: 11
-  m_JumpHeight: 3.5
+  HorizontalSpeed: 9.5
+  m_JumpHeight: 3.2
   m_JumpTime: 0.25
   m_FallTime: 0.3
   AccelerationTimeAirborne: 0.1
@@ -26,7 +26,7 @@ MonoBehaviour:
   AttackImpulseCooldown: 0.4
   AttackHorizontalImpulseReductionFactor: 0.25
   AttackImpulse: 30
-  DashCooldown: 0.5
-  DashSpeed: 25
+  DashCooldown: 0.7
+  DashSpeed: 22
   DashDuration: 0.15
   VelocityThreshold: 0.01

@@ -254,13 +254,15 @@ MonoBehaviour:
   m_BacksightAngle: 45
   m_CloseSightRadius: 3
   m_AlertedCloseSightRadius: 10
-  m_AlertedDistanceMultiplier: 1.4
+  m_AlertedDistanceMultiplier: 2
   m_StandardOcclusionMask:
     serializedVersion: 2
     m_Bits: 2281701376
   m_AlertedOcclusionMask:
     serializedVersion: 2
     m_Bits: 2147483648
+  m_DrawGizmos: 1
+  m_DrawGizmosOnlyWhenSelected: 0
 --- !u!114 &6886308112935815565
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GraphOwnerName: Agent
   m_AutoSaveLastSaveLocation: 1
-  m_SaveFolder: Scripts/Behavior/Unity Behavior/Conditions/General
+  m_SaveFolder: Scripts/Behavior/Unity Behavior/Actions
   m_UseSeparateSaveFolders: 0
   m_SaveFolderAction: 
   m_SaveFolderModifier: 

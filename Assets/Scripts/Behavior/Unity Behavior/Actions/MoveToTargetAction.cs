@@ -20,7 +20,8 @@ public partial class MoveToTargetAction : Action
 
     [SerializeReference] public BlackboardVariable<bool> UpdatePath = new BlackboardVariable<bool>(false);
     [SerializeReference] public BlackboardVariable<float> UpdatePathInterval = new BlackboardVariable<float>(0.25f);
-
+    [SerializeReference] public BlackboardVariable<bool> PredictTargetMovement = new BlackboardVariable<bool>(false);
+    [SerializeReference] public BlackboardVariable<Vector2> TargetVelocity;
     [SerializeReference] public BlackboardVariable<bool> CantReachTarget;
 
 
@@ -81,6 +82,16 @@ public partial class MoveToTargetAction : Action
             if (m_PathUpdateTimer >= UpdatePathInterval.Value)
             {
                 var position = Target.Value.transform.position;
+                if (PredictTargetMovement.Value)
+                {
+                    Vector3 targetVelocity = TargetVelocity.Value;
+                    targetVelocity.y = 0.0f;
+                    if (targetVelocity != null)
+                    {
+                        position += targetVelocity * UpdatePathInterval.Value * 2.0f;
+                    }
+                }
+
                 if (Mathf.Abs(m_LastTargetPosition.x - position.x) > 0.01f || Mathf.Abs(m_LastTargetPosition.y - position.y) > 0.01f)
                 {
                     m_LastTargetPosition = position;
@@ -100,24 +111,18 @@ public partial class MoveToTargetAction : Action
             return Status.Success;
         }
 
-        if (!m_NavAgent.IsFollowing && !m_NavAgent.IsPathPending)
-        {
-            if (m_NavAgent.InvalidPath)
-            {
-                CantReachTarget.Value = true;
-            }
-            else
-            {
-                m_NavAgent.Stop();
-            }
-            return Status.Failure;
-        }
 
-        if (m_NavAgent.IsPathPending)
+        if (m_NavAgent.IsPathPending || m_NavAgent.InvalidPath)
         {
             m_PathWaitTimer += Time.deltaTime;
             if (m_PathWaitTimer >= MaxPathCalculationTime.Value)
             {
+                if (m_NavAgent.InvalidPath)
+                {
+                    CantReachTarget.Value = true;
+                    m_NavAgent.Stop();
+                    LogFailure("Can't reach target", true);
+                }
                 LogFailure("Path calculation timed out");
                 return Status.Failure;
             }
@@ -133,7 +138,6 @@ public partial class MoveToTargetAction : Action
     private void Intialize()
     {
         m_NavAgent = Agent.Value.GetComponent<NavAgent2D>();
-
         m_Initialized = true;
     }
 

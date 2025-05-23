@@ -13,7 +13,7 @@ namespace TheGame
         [HideInInspector] public MeleeWeapon WeaponReference;
         [HideInInspector] public MeleeCombat MeleeCombat;
 
-        public override bool IsAlive => !IsInvincible || CurrentState != DeadState;
+        public override bool IsAlive => IsInvincible || CurrentState != DeadState;
 
         public bool IsInvincible = false;
 

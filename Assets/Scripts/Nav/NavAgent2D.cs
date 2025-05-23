@@ -168,6 +168,11 @@ public class NavAgent2D : MonoBehaviour
             StartCoroutine(WaitForSlopeAndSetDestination(target));
             return;
         }
+        else if (IsJumping)
+        {
+            StartCoroutine(WaitForJumpAndSetDestination(target));
+            return;
+        }
 
         InvalidPath = false;
 
@@ -179,6 +184,17 @@ public class NavAgent2D : MonoBehaviour
         {
             SetDestinationInternal(target);
         }
+    }
+
+    private System.Collections.IEnumerator WaitForJumpAndSetDestination(Vector2 target)
+    {
+        m_NewPathPending = true;
+        while (IsJumping)
+        {
+            yield return null;
+        }
+        m_NewPathPending = false;
+        SetDestination(target);
     }
 
     private System.Collections.IEnumerator WaitForSlopeAndSetDestination(Vector2 target)

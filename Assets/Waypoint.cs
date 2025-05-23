@@ -13,6 +13,5 @@ public class Waypoint : MonoBehaviour
     protected void Start()
     {
         WaypointCounter++;
-        Debug.Log("Waypoint " + WaypointCounter + " created at position: " + transform.position);
     }
 }
