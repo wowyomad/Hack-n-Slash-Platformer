@@ -22,7 +22,6 @@ namespace TheGame
 
         [Header("Animation Triggers")]
         [SerializeField] private string m_AttackAnimationTrigger = "StartAttack";
-        [SerializeField] private string m_CancelAttackAnimationTrigger = "CancelAttack";
 
         private Entity m_OwnerEntity;
 
@@ -57,15 +56,15 @@ namespace TheGame
             }
         }
 
-        public void CancellAttack()
+        public void CancellAttack(string animationTrigger = null)
         {
             if (!m_Attacking) return;
 
             m_Attacking = false;
 
-            if (m_UseAnimationEvents)
+            if (m_UseAnimationEvents && animationTrigger != null)
             {
-                m_Animator.SetTrigger("CancelAttack");
+                m_Animator.SetTrigger(animationTrigger);
             }
 
             m_Weapon.DisableCollider();
@@ -95,42 +94,17 @@ namespace TheGame
         {
             MonoBehaviour targetMonoBehaviour = target as MonoBehaviour ?? null;
 
-            if (!targetMonoBehaviour) return;
             if (!m_Attacking) return;
+            if (!targetMonoBehaviour) return;
             if (targetMonoBehaviour.gameObject == m_OwnerEntity.gameObject) return;
             if (m_HitTargetsThisAttack.Contains(target)) return;
 
             m_HitTargetsThisAttack.Add(target);
 
             HitResult result = target.TakeHit(m_CurrentHitData);
-
-            ProcessHitResult(targetMonoBehaviour.gameObject, result);
-
             OnTargetHit?.Invoke(result, targetMonoBehaviour.gameObject);
         }
 
-        public void ProcessHitResult(GameObject target, HitResult result)
-        {
-            //just log the resutl for now
-            switch (result)
-            {
-                case HitResult.Hit:
-                    Debug.Log($"{gameObject.name} hit {target.name} successfully.");
-                    break;
-                case HitResult.Block:
-                    Debug.Log($"{gameObject.name}'s attack was Blocked by {target.name}.");
-                    break;
-                case HitResult.Parry:
-                    Debug.Log($"{gameObject.name}'s attack was Parried by {target.name}.");
-                    break;
-                case HitResult.Stun:
-                    Debug.Log($"{gameObject.name}'s attack Stunned {target.name}.");
-                    break;
-                case HitResult.Nothing:
-                    Debug.Log($"{gameObject.name}'s attack did nothing to {target.name}.");
-                    break;
-            }
-        }
 
         private void Awake()
         {

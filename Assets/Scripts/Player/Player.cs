@@ -7,7 +7,7 @@ using System.Linq;
 namespace TheGame
 {
     [RequireComponent(typeof(CharacterController2D))]
-    public class Player : Entity, IStateTrackable, IWeaponWielder
+    public class Player : Entity, IStateTrackable
     {
         [Header("Children Components")]
         [HideInInspector] public MeleeWeapon WeaponReference;
@@ -193,13 +193,13 @@ namespace TheGame
 
             StateMachine.Configure(IdleState)
                 .SubstateOf(AnyState)
-                .Permit(Trigger.Jump, JumpState)
                 .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
                 .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
+                .Permit(Trigger.Jump, JumpState)
                 .Permit(Trigger.Throw, ThrowState)
                 .Permit(Trigger.Air, AirState)
-                .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
                 .Permit(Trigger.Walk, WalkState)
+                .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
                 .TriggerIf(Trigger.Walk, () => Input.Horizontal != 0.0f && !WouldMoveIntoWall(Input.Horizontal));
 
             StateMachine.Configure(WalkState)
@@ -320,10 +320,10 @@ namespace TheGame
             if (IsDead) return HitResult.Nothing;
 
             HitResult hitResult = HitResult.Nothing;
+            
             if (CurrentState is PlayerAttackState && hitData.IsParryable)
             {
                 hitResult = HitResult.Parry;
-                //parry
             }
             else if (Can(Trigger.Die))
             {
@@ -332,7 +332,7 @@ namespace TheGame
 
                 OnHit?.Invoke();
 
-                EventBus<PlayerHitEvent>.Raise(new PlayerHitEvent() { PlayerPosition = transform.position });
+                EventBus<PlayerGotHitEvent>.Raise(new PlayerGotHitEvent() { PlayerPosition = transform.position });
                 EventBus<PlayerDeadEvent>.Raise(new PlayerDeadEvent());
             }
 
@@ -378,22 +378,6 @@ namespace TheGame
                 Debug.Log($"Changing state from {previous} to {next}");
             else
                 Debug.Log($"Assigning state to {next}");
-        }
-
-        public void TryHitTarget(IHittable target)
-        {
-            var status = target.TakeHit(new HitData(gameObject));
-
-            if (target is Enemy enemy)
-            {
-                Debug.Log($"Hit {enemy.name} with status {status}");
-            }
-        }
-
-        private void OnValidate()
-        {
-            if (!m_StatesInitialized) return;
-
         }
 
         private bool Can(Trigger trigger) => StateMachine.CanFire(trigger);

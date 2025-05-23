@@ -6,7 +6,10 @@ public class CameraShakeSettings : ScriptableObject
 
     [Range(0.0f, 5.0f)]
     public float ShakeStrength = 0.5f;
-
+    public float PlayerHitShakeStrength = 1.0f;
+    public float EnemyHitShakeStrength = 0.3f;
+    public float EnemyParriedShakeStrength = 0.75f;
+    
     [Range(0.0f, 1.0f)]
     public float ShakeBias = 0.1f;
 

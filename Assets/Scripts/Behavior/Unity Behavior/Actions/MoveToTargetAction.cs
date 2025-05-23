@@ -21,6 +21,8 @@ public partial class MoveToTargetAction : Action
     [SerializeReference] public BlackboardVariable<bool> UpdatePath = new BlackboardVariable<bool>(false);
     [SerializeReference] public BlackboardVariable<float> UpdatePathInterval = new BlackboardVariable<float>(0.25f);
     [SerializeReference] public BlackboardVariable<bool> PredictTargetMovement = new BlackboardVariable<bool>(false);
+    [SerializeReference] public BlackboardVariable<float> PredictionMultiplier = new BlackboardVariable<float>(2.0f); // New variable
+
     [SerializeReference] public BlackboardVariable<Vector2> TargetVelocity;
     [SerializeReference] public BlackboardVariable<bool> CantReachTarget;
 
@@ -81,21 +83,39 @@ public partial class MoveToTargetAction : Action
         {
             if (m_PathUpdateTimer >= UpdatePathInterval.Value)
             {
-                var position = Target.Value.transform.position;
+                Vector3 currentActualTargetPosition = Target.Value.transform.position;
+                Vector3 newPrimaryDestination = currentActualTargetPosition;
+                bool pathNeedsRecalculation = false;
+
                 if (PredictTargetMovement.Value)
                 {
-                    Vector3 targetVelocity = TargetVelocity.Value;
-                    targetVelocity.y = 0.0f;
-                    if (targetVelocity != null)
+                    Vector3 predictionVelocity = TargetVelocity.Value;
+                    predictionVelocity.y = 0.0f; 
+                    
+                    Vector3 predictedTargetPosition = currentActualTargetPosition + 
+                                                      predictionVelocity * UpdatePathInterval.Value * PredictionMultiplier.Value;
+                    newPrimaryDestination = predictedTargetPosition;
+
+                    if (Mathf.Abs(m_LastTargetPosition.x - predictedTargetPosition.x) > 0.01f ||
+                        Mathf.Abs(m_LastTargetPosition.y - predictedTargetPosition.y) > 0.01f)
                     {
-                        position += targetVelocity * UpdatePathInterval.Value * 2.0f;
+                        m_NavAgent.SetDestination(predictedTargetPosition, currentActualTargetPosition);
+                        pathNeedsRecalculation = true;
+                    }
+                }
+                else
+                {
+                    if (Mathf.Abs(m_LastTargetPosition.x - currentActualTargetPosition.x) > 0.01f ||
+                        Mathf.Abs(m_LastTargetPosition.y - currentActualTargetPosition.y) > 0.01f)
+                    {
+                        m_NavAgent.SetDestination(currentActualTargetPosition);
+                        pathNeedsRecalculation = true;
                     }
                 }
 
-                if (Mathf.Abs(m_LastTargetPosition.x - position.x) > 0.01f || Mathf.Abs(m_LastTargetPosition.y - position.y) > 0.01f)
+                if (pathNeedsRecalculation)
                 {
-                    m_LastTargetPosition = position;
-                    m_NavAgent.SetDestination(position);
+                    m_LastTargetPosition = newPrimaryDestination;
                     m_PathUpdateTimer = 0.0f;
                 }
             }

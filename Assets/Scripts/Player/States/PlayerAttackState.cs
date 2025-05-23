@@ -71,6 +71,7 @@ namespace TheGame
             HitData hitData = new HitData(Player.gameObject);
             hitData.Direction = direction;
 
+            m_Melee.OnTargetHit += HandleTargetHitResult;
             m_Melee.StartAttack(hitData);
         }
 
@@ -78,6 +79,8 @@ namespace TheGame
         {
             m_Melee.CancellAttack();
             m_LastAttackTime = Time.time;
+
+            m_Melee.OnTargetHit -= HandleTargetHitResult;
 
             AttackFinished = false;
         }
@@ -113,6 +116,11 @@ namespace TheGame
             float snappedX = Mathf.Cos(angle * Mathf.Deg2Rad);
             float snappedY = Mathf.Sin(angle * Mathf.Deg2Rad);
             return new Vector2(snappedX, snappedY).normalized;
+        }
+
+        private void HandleTargetHitResult(HitResult hitResult, GameObject target)
+        {
+            
         }
     }
 

@@ -15,8 +15,8 @@ namespace TheGame
         {
             Direction = Vector2.zero;
             StaggerForce = 0.0f;
-            IsBlockable = false;
-            IsParryable = false;
+            IsBlockable = true;
+            IsParryable = true;
             Attacker = attacker;
         }
         public Vector2 Direction;

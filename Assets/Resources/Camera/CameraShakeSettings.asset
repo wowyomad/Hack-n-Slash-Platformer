@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: CameraShakeSettings
   m_EditorClassIdentifier: 
   ShakeStrength: 1
+  PlayerHitShakeStrength: 1
+  EnemyHitShakeStrength: 0.5
+  EnemyParriedShakeStrength: 3
   ShakeBias: 0.01
   RandomnessMultiplier: 1
   SmoothTime: 0.15

@@ -57,6 +57,9 @@ TagManager:
   - name: Decorative_Foreground
     uniqueID: 2292405371
     locked: 0
+  - name: UI
+    uniqueID: 279206209
+    locked: 0
   m_RenderingLayers:
   - Default
   - Particle

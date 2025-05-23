@@ -17,9 +17,18 @@ public class Enemy : Entity
     [BlackboardEnum]
     public enum State
     {
-        NotAttack,
+        Idle,
+        Locomotion,
         Attack,
         Dead,
+    }
+
+    [BlackboardEnum]
+    public enum Affliction
+    {
+        None,
+        Stun,
+        Slow
     }
 
     public override bool IsAlive => m_CurrentState != null && m_CurrentState.Value != State.Dead;
@@ -32,7 +41,7 @@ public class Enemy : Entity
 
 
     [Header("Blackboard variable names")]
-    [SerializeField] private string m_CurrentStateVariableName = "CurrentState";
+    [SerializeField] private string m_CurrentStateVariableName = "State";
     [SerializeField] private string m_TookHitVariableName = "TookHit";
     [SerializeField] private string m_LastHitResultVariableName = "LastHitResult";
     [SerializeField] private string m_LastHitAttackerVariableName = "LastHitAttacker";
@@ -77,14 +86,16 @@ public class Enemy : Entity
 
         HitResult result = HitResult.Hit;
 
-
         switch (m_CurrentState.Value)
         {
-            case State.NotAttack:
+            case State.Locomotion:
+            case State.Idle:
                 result = HitResult.Hit;
+                EventBus<EnemyGotHitEvent>.Raise(new EnemyGotHitEvent { EnemyPosition = transform.position });
                 break;
             case State.Attack:
-                result = HitResult.Stun;
+                result = HitResult.Parry;
+                EventBus<EnemyGotParriedEvent>.Raise(new EnemyGotParriedEvent { EnemyPosition = attackData.Attacker.transform.position });
                 break;
             case State.Dead:
                 result = HitResult.Nothing;
@@ -97,7 +108,6 @@ public class Enemy : Entity
         if (result != HitResult.Nothing)
         {
             OnHit?.Invoke();
-            EventBus<EnemyHitEvent>.Raise(new EnemyHitEvent { EnemyPosition = transform.position });
 
             BTAgent.SetVariableValue(m_TookHitVariableName, true);
             BTAgent.SetVariableValue(m_LastHitResultVariableName, result);

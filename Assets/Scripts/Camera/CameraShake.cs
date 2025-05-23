@@ -1,3 +1,4 @@
+using TheGame;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
@@ -20,14 +21,16 @@ public class CameraShake : MonoBehaviour
 
     private void OnEnable()
     {
-        EventBus<EnemyHitEvent>.OnEvent += OnEnemyHitEvent;
-        EventBus<PlayerHitEvent>.OnEvent += OnPlayerHitEvent;
+        EventBus<EnemyGotHitEvent>.OnEvent += OnEnemyHitEvent;
+        EventBus<PlayerGotHitEvent>.OnEvent += OnPlayerHitEvent;
+        EventBus<EnemyGotParriedEvent>.OnEvent += OnEnemyParriedEvent;;
     }
 
     private void OnDisable()
     {
-        EventBus<EnemyHitEvent>.OnEvent -= OnEnemyHitEvent;
-        EventBus<PlayerHitEvent>.OnEvent -= OnPlayerHitEvent;
+        EventBus<EnemyGotHitEvent>.OnEvent -= OnEnemyHitEvent;
+        EventBus<PlayerGotHitEvent>.OnEvent -= OnPlayerHitEvent;
+        EventBus<EnemyGotParriedEvent>.OnEvent -= OnEnemyParriedEvent;
     }
 
     private void Update()
@@ -69,14 +72,19 @@ public class CameraShake : MonoBehaviour
         m_StrengthVelocity = 0f;
     }
 
-    private void OnEnemyHitEvent(EnemyHitEvent e)
+    private void OnEnemyHitEvent(EnemyGotHitEvent e)
     {
-        TriggerShake(e.EnemyPosition);
+        TriggerShake(e.EnemyPosition, Settings.EnemyHitShakeStrength);
     }
 
-    private void OnPlayerHitEvent(PlayerHitEvent e)
+    private void OnEnemyParriedEvent(EnemyGotParriedEvent e)
     {
-        TriggerShake(e.PlayerPosition);
+        TriggerShake(e.EnemyPosition, Settings.EnemyParriedShakeStrength);
+    }
+
+    private void OnPlayerHitEvent(PlayerGotHitEvent e)
+    {
+        TriggerShake(e.PlayerPosition, Settings.PlayerHitShakeStrength);
     }
 
     public void TriggerShake()
@@ -89,9 +97,12 @@ public class CameraShake : MonoBehaviour
         ApplyShakeStrength(Settings.ShakeStrength);
     }
 
-    private void TriggerShake(Vector3 sourcePosition)
+    private void TriggerShake(Vector3 sourcePosition, float strength = 0.0f)
     {
-        float strength = Settings.ShakeStrength;
+        if (strength <= 0.0f)
+        {
+            strength = Settings.ShakeStrength;
+        }
 
         if (Settings.IsScaledOnDistance)
         {

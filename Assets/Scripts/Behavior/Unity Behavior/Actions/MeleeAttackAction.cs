@@ -4,7 +4,6 @@ using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
 using TheGame;
-using NUnit.Framework.Interfaces;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "MeleeAttack", story: "[Agent] attacks target at [Position]", category: "Action", id: "a9a52b5e84147b09b5e3cfe9ccfec74a")]
@@ -13,16 +12,19 @@ public partial class MeleeAttackAction : Action
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<Transform> Position;
     [SerializeReference] public BlackboardVariable<HitResult> LastAttackOutcome;
-    [SerializeReference] public BlackboardVariable<float> Delay;
-    [SerializeReference] public BlackboardVariable<float> AttackDuration = new BlackboardVariable<float>(0.3f);
 
-    public Enemy Self;
-    public MeleeCombat Melee;
+    protected Enemy Self;
+    protected MeleeCombat MeleeController;
 
-    private float m_AttackDelayTimer;
     private bool m_AttackInterrupted = false;
+
+    private bool m_Initialized = false;
     protected override Status OnStart()
     {
+        if (!m_Initialized && !Initialize())
+        {
+            return Status.Failure;
+        }
 
         if (LastAttackOutcome == null)
         {
@@ -30,17 +32,15 @@ public partial class MeleeAttackAction : Action
             return Status.Failure;
         }
 
-        Self = Agent.Value.GetComponent<Enemy>();
-        Melee = Self.GetComponent<MeleeCombat>();
-        m_AttackDelayTimer = 0f;
         m_AttackInterrupted = false;
+        LastAttackOutcome.Value = HitResult.None;
 
-        if (Melee.IsAttacking)
+        if (MeleeController.IsAttacking)
         {
-            Melee.CancellAttack();
+            MeleeController.CancellAttack();
         }
 
-        Melee.OnTargetHit += HandleTargetHitResult;
+        MeleeController.OnTargetHit += HandleTargetHitResult;
 
         Attack();
 
@@ -49,17 +49,17 @@ public partial class MeleeAttackAction : Action
 
     protected override void OnEnd()
     {
-        Melee.OnTargetHit -= HandleTargetHitResult;
+        MeleeController.OnTargetHit -= HandleTargetHitResult;
     }
 
     protected override Status OnUpdate()
     {
-        if (m_AttackInterrupted)
+        if (m_AttackInterrupted || !MeleeController.IsAttacking)
         {
-            return Status.Failure;
-        }
-        if (!Melee.IsAttacking)
-        {
+            if (m_AttackInterrupted)
+            {
+                MeleeController.CancellAttack();
+            }
             return Status.Success;
         }
 
@@ -71,17 +71,15 @@ public partial class MeleeAttackAction : Action
         switch (hitResult)
         {
             case HitResult.Block:
-                m_AttackInterrupted = true;
-                break;
             case HitResult.Parry:
                 m_AttackInterrupted = true;
                 break;
-            case HitResult.Stun:
-                m_AttackInterrupted = true;
+            case HitResult.Hit:
                 break;
             default:
                 break;
         }
+
         LastAttackOutcome.Value = hitResult;
     }
 
@@ -93,7 +91,26 @@ public partial class MeleeAttackAction : Action
 
         Self.Flip(direction.x);
 
-        Melee.StartAttack(hitData);
+        MeleeController.StartAttack(hitData);
+    }
+
+    private bool Initialize()
+    {
+        if (m_Initialized) return true;
+
+        if (Agent.Value.TryGetComponent<Enemy>(out Self) == false)
+        {
+            LogFailure("Agent must have an Enemy component!", true);
+            return false;
+        }
+        if (Agent.Value.TryGetComponent<MeleeCombat>(out MeleeController) == false)
+        {
+            LogFailure("Agent must have a MeleeCombat component!", true);
+            return false;
+        }
+
+        m_Initialized = true;
+        return true;
     }
 }
 

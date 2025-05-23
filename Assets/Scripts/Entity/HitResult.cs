@@ -4,10 +4,11 @@ namespace TheGame
 	[BlackboardEnum]
 	public enum HitResult
 	{
+		None,
 		Nothing,
 		Hit,
-		Stun,
 		Block,
+		Bounce,
 		Parry
 	}
 }
