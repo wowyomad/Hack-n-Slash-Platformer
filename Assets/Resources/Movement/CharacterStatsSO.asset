@@ -16,6 +16,7 @@ MonoBehaviour:
   m_JumpHeight: 3.2
   m_JumpTime: 0.25
   m_FallTime: 0.3
+  m_MaxGravityVelocityScale: 2
   AccelerationTimeAirborne: 0.1
   AccelerationTimeGrounded: 0.1
   DecelerationTimeAirborne: 0

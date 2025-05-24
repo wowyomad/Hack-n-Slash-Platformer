@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FillBar: {fileID: 2367861583768333104}
-  m_CurrentAfflictionVariableName: Affliction
+  m_CurrentStateVariableName: State
   m_StunDurationVariableName: StunDuration
   m_StunTimeLeftVariableName: StunTimeLeft
 --- !u!1 &2998907435804087995
@@ -212,6 +212,7 @@ GameObject:
   - component: {fileID: 4184343030370630755}
   - component: {fileID: 6194706960912272999}
   - component: {fileID: 4673507576835187325}
+  - component: {fileID: 368693770265121530}
   m_Layer: 29
   m_Name: Animation
   m_TagString: Untagged
@@ -311,6 +312,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &368693770265121530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7049941513874741288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fa5d0a03d2027e49a63399d8be69853, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7752680626209088889
 GameObject:
   m_ObjectHideFlags: 0
@@ -405,7 +418,7 @@ GameObject:
   - component: {fileID: 6271697378530476676}
   - component: {fileID: 2918032492702791021}
   m_Layer: 29
-  m_Name: Knight_1
+  m_Name: White Knight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -513,6 +526,7 @@ MonoBehaviour:
   m_TookHitVariableName: TookHit
   m_LastHitResultVariableName: LastHitOutcome
   m_LastHitAttackerVariableName: LastHitAttacker
+  m_LastHitDirectionVariableName: LastHitDirection
   m_AlertedVariableName: State_Alerted
 --- !u!114 &6968550137562080000
 MonoBehaviour:
@@ -700,6 +714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b130e00e6a546b41a3ee9692278dec7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MaxHitCount: 1
   m_Animator: {fileID: 0}
   m_Weapon: {fileID: 0}
   m_UseAnimationEvents: 1

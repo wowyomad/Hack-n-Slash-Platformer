@@ -16,43 +16,24 @@ public partial class EntityAliveCondition : Condition
     [SerializeReference] public BlackboardVariable<Entity> Entity;
 
     [SerializeReference] public BlackboardVariable<EntityState> State;
-    private Entity m_Entity;
 
-    private bool m_Initialized = false;
-    private void Initialize()
-    {
-        m_Entity = Entity.Value.GetComponent<Entity>();
-        if (m_Entity == null)
-        {
-            Debug.LogError("No Entity Component in EntityAliveCondition");
-            return;
-        }
 
-        m_Initialized = true;
-    }
     public override bool IsTrue()
     {
+        if (Entity == null || Entity.Value == null || State == null)
+        {
+            Debug.LogError("Entity or State is not set in EntityAliveCondition");
+            return false;
+        }
         switch (State.Value)
         {
             case EntityState.Alive:
-                return m_Entity.IsAlive;
+                return Entity.Value.IsAlive;
             case EntityState.Dead:
-                return !m_Entity.IsAlive;
+                return !Entity.Value.IsAlive;
             default:
                 Debug.LogError("Invalid operator in EntityAliveCondition");
                 return false;
         }
-    }
-
-    public override void OnStart()
-    {
-        if (!m_Initialized)
-        {
-            Initialize();
-        }
-    }
-
-    public override void OnEnd()
-    {
     }
 }

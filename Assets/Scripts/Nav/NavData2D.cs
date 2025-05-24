@@ -714,11 +714,6 @@ namespace Nav2D
 
         private void ConnectSlopes(NavPoint navPoint)
         {
-
-            if (navPoint.CellPos.x == 5 && navPoint.CellPos.y == 7)
-            {
-                Debug.Log("Debugging here");
-            }
             int yOffsetForLeftNeighbor;
             int yOffsetForRightNeighbor;
 
