@@ -10,6 +10,7 @@ public class CharacterStatsSO : ScriptableObject
     [SerializeField] private float m_JumpHeight = 4.0f;
     [SerializeField] private float m_JumpTime = 0.4f;
     [SerializeField] private float m_FallTime = 0.4f;
+    [SerializeField] private float m_MaxGravityVelocityScale = 1.0f;
     public float AccelerationTimeAirborne = 0.25f;
     public float AccelerationTimeGrounded = 0.1f;
     public float DecelerationTimeAirborne = 0.1f;
@@ -55,17 +56,7 @@ public class CharacterStatsSO : ScriptableObject
     {
         Gravity = -(2 * m_JumpHeight) / Mathf.Pow(m_JumpTime, 2);
         JumpVelocity = -Gravity * m_JumpTime;
-        MaxGravityVelocity = -m_JumpHeight / m_FallTime;
+        MaxGravityVelocity = m_MaxGravityVelocityScale * -m_JumpHeight / m_FallTime;
     }
-
-    private void RecalculateGravity2()
-    {
-        Gravity = 2 * m_JumpHeight / (m_FallTime * m_FallTime);
-
-        JumpVelocity = (2 * m_JumpHeight) / m_JumpTime;
-
-        float calculatedTimeToFall = Mathf.Sqrt(2 * m_JumpHeight / Gravity);
-    }
-
 }
 

@@ -120,7 +120,7 @@ namespace TheGame
 
         private void HandleTargetHitResult(HitResult hitResult, GameObject target)
         {
-            
+             
         }
     }
 

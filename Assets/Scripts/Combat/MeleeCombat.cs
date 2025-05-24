@@ -7,6 +7,9 @@ namespace TheGame
     [RequireComponent(typeof(Entity))]
     public class MeleeCombat : MonoBehaviour
     {
+        public int MaxHitCount = 1;
+        private int m_HitCount = 0;
+
         public bool IsAttacking => m_Attacking;
 
         public event System.Action OnAttackAnimationComplete;
@@ -31,7 +34,7 @@ namespace TheGame
         private List<IHittable> m_HitTargetsThisAttack = new List<IHittable>();
 
 
-        public void StartAttack(HitData hitData)
+        public void StartAttack(HitData hitData, string animationTrigger = null)
         {
             if (m_Attacking)
             {
@@ -47,7 +50,7 @@ namespace TheGame
 
             if (m_UseAnimationEvents)
             {
-                m_Animator.SetTrigger(m_AttackAnimationTrigger);
+                m_Animator.SetTrigger(animationTrigger ?? m_AttackAnimationTrigger);
             }
             else
             {
@@ -66,6 +69,8 @@ namespace TheGame
             {
                 m_Animator.SetTrigger(animationTrigger);
             }
+
+            m_HitCount = 0;
 
             m_Weapon.DisableCollider();
         }
@@ -88,10 +93,14 @@ namespace TheGame
 
             m_Attacking = false;
             OnAttackAnimationComplete?.Invoke();
+
+            m_HitCount = 0;
         }
 
         public void HandleWeaponTrigger(IHittable target)
         {
+            if (++m_HitCount > MaxHitCount) return; 
+            
             MonoBehaviour targetMonoBehaviour = target as MonoBehaviour ?? null;
 
             if (!m_Attacking) return;

@@ -4,6 +4,7 @@ using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
 using TheGame;
+using System.Collections.Generic;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "MeleeAttack", story: "[Agent] attacks target at [Position]", category: "Action", id: "a9a52b5e84147b09b5e3cfe9ccfec74a")]
@@ -12,6 +13,9 @@ public partial class MeleeAttackAction : Action
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<Transform> Position;
     [SerializeReference] public BlackboardVariable<HitResult> LastAttackOutcome;
+    [SerializeReference] public BlackboardVariable<bool> TookHit;
+    [SerializeReference] public BlackboardVariable<List<string>> AttackAnimationTriggers = new BlackboardVariable<List<string>>(new List<string> { "Attack_1" });
+    [SerializeReference] public BlackboardVariable<string> StunAnimationTrigger = new BlackboardVariable<string>("Stun");
 
     protected Enemy Self;
     protected MeleeCombat MeleeController;
@@ -54,14 +58,22 @@ public partial class MeleeAttackAction : Action
 
     protected override Status OnUpdate()
     {
-        if (m_AttackInterrupted || !MeleeController.IsAttacking)
+        if (TookHit.Value)
         {
-            if (m_AttackInterrupted)
-            {
-                MeleeController.CancellAttack();
-            }
-            return Status.Success;
+            LastAttackOutcome.Value = HitResult.Parry;
+            m_AttackInterrupted = true;
         }
+        if (m_AttackInterrupted || !MeleeController.IsAttacking)
+            {
+                if (m_AttackInterrupted)
+                {
+                    if (LastAttackOutcome.Value == HitResult.Parry)
+                    {
+                        MeleeController.CancellAttack("Stun");
+                    }
+                }
+                return Status.Success;
+            }
 
         return Status.Running;
     }
@@ -91,7 +103,10 @@ public partial class MeleeAttackAction : Action
 
         Self.Flip(direction.x);
 
-        MeleeController.StartAttack(hitData);
+        //chose random trigger from attack triggers
+        string attackTrigger = AttackAnimationTriggers.Value.Count > 0 ? AttackAnimationTriggers.Value[UnityEngine.Random.Range(0, AttackAnimationTriggers.Value.Count)] : null;
+
+        MeleeController.StartAttack(hitData, attackTrigger);
     }
 
     private bool Initialize()
