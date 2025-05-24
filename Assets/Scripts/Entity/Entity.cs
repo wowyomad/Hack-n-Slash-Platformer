@@ -1,4 +1,4 @@
-using System;
+using Unity.Behavior;
 using UnityEngine;
 
 namespace TheGame
@@ -11,7 +11,7 @@ namespace TheGame
 
         public int FacingDirection { get; protected set; } = 1;
 
-        public virtual event Action OnHit;
+        public virtual event System.Action OnHit;
 
         virtual public HitResult TakeHit(HitData hitData)
         {
@@ -41,5 +41,14 @@ namespace TheGame
             }
             Flip(direction > 0.0f ? 1 : -1);
         }
+    }
+
+    
+    [BlackboardEnum]
+    public enum Affliction
+    {
+        None,
+        Stun,
+        Slow
     }
 }

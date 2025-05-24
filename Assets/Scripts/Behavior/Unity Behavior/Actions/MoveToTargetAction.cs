@@ -127,7 +127,6 @@ public partial class MoveToTargetAction : Action
 
         if (m_NavAgent.DistanceToTarget() < DistanceThreshold.Value)
         {
-            m_NavAgent.Stop();
             return Status.Success;
         }
 
@@ -140,7 +139,6 @@ public partial class MoveToTargetAction : Action
                 if (m_NavAgent.InvalidPath)
                 {
                     CantReachTarget.Value = true;
-                    m_NavAgent.Stop();
                     LogFailure("Can't reach target", true);
                 }
                 LogFailure("Path calculation timed out");
@@ -163,6 +161,7 @@ public partial class MoveToTargetAction : Action
 
     protected override void OnEnd()
     {
+        m_NavAgent.Stop();
         m_PathWaitTimer = 0.0f;
     }
 }

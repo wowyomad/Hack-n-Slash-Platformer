@@ -19,17 +19,11 @@ public class Enemy : Entity
     {
         Idle,
         Locomotion,
+        Stunned,
         Attack,
         Dead,
     }
 
-    [BlackboardEnum]
-    public enum Affliction
-    {
-        None,
-        Stun,
-        Slow
-    }
 
     public override bool IsAlive => m_CurrentState != null && m_CurrentState.Value != State.Dead;
     public bool IsAlerted => m_AlertedState != null && m_AlertedState.Value == AlertedState.Alerted;
@@ -99,6 +93,7 @@ public class Enemy : Entity
         {
             case State.Locomotion:
             case State.Idle:
+            case State.Stunned:
                 result = HitResult.Hit;
                 EventBus<EnemyGotHitEvent>.Raise(new EnemyGotHitEvent { EnemyPosition = transform.position });
                 break;
