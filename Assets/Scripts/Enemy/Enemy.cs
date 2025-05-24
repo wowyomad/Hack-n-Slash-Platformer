@@ -45,6 +45,7 @@ public class Enemy : Entity
     [SerializeField] private string m_TookHitVariableName = "TookHit";
     [SerializeField] private string m_LastHitResultVariableName = "LastHitResult";
     [SerializeField] private string m_LastHitAttackerVariableName = "LastHitAttacker";
+    [SerializeField] private string m_LastHitDirectionVariableName = "LastHitDirection";
     [SerializeField] private string m_AlertedVariableName = "State_Alerted";
 
     private BlackboardVariable<State> m_CurrentState;
@@ -73,6 +74,14 @@ public class Enemy : Entity
 
         ValidateBlackboardVairiables();
         InitializeVariablesFromBlackboard();
+
+        BTAgent.GetVariable<bool>(m_TookHitVariableName, out var tookHit);
+        tookHit.OnValueChanged += OnChanged;
+    }
+    private void OnChanged()
+    {
+        BTAgent.GetVariable<bool>(m_TookHitVariableName, out var tookHit);
+        Debug.Log($"Took hit: {tookHit.Value}");
     }
 
     private void Update()
@@ -112,6 +121,7 @@ public class Enemy : Entity
             BTAgent.SetVariableValue(m_TookHitVariableName, true);
             BTAgent.SetVariableValue(m_LastHitResultVariableName, result);
             BTAgent.SetVariableValue(m_LastHitAttackerVariableName, attackData.Attacker);
+            BTAgent.SetVariableValue(m_LastHitDirectionVariableName, attackData.Direction);
         }
 
         return result;
@@ -132,6 +142,10 @@ public class Enemy : Entity
         if (!BTAgent.GetVariable(m_LastHitAttackerVariableName, out BlackboardVariable<GameObject> lastHitAttacker))
         {
             Debug.LogError($"Blackboard variable '{m_LastHitAttackerVariableName}' not found");
+        }
+        if (!BTAgent.GetVariable(m_LastHitDirectionVariableName, out BlackboardVariable<Vector2> lastHitDirection))
+        {
+            Debug.LogError($"Blackboard variable '{m_LastHitDirectionVariableName}' not found");
         }
     }
 
