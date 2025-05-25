@@ -8291,6 +8291,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1839754978637896180, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 2.472
+      objectReference: {fileID: 0}
     - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
       propertyPath: m_BlackboardVariableOverridesList.Array.size
       value: 4
@@ -8315,6 +8319,18 @@ PrefabInstance:
       propertyPath: 'managedReferences[197659578872627749].m_Value.Array.data[1]'
       value: 
       objectReference: {fileID: 1293783830}
+    - target: {fileID: 6947063592946587331, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6947063592946587331, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6947063592946587331, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0.845
+      objectReference: {fileID: 0}
     - target: {fileID: 8188237940391912730, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
       propertyPath: m_Name
       value: White Knight (4)
