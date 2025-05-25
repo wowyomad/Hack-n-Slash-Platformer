@@ -49,6 +49,7 @@ namespace TheGame
     {
         None,
         Stun,
+        Knock,
         Slow
     }
 }

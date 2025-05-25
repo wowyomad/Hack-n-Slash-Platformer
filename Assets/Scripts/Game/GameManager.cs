@@ -10,8 +10,8 @@ public class GameManager : PersistentSingleton<GameManager>
 
     [SerializeField] private InputReader m_Input;
 
-    private float m_OriginalTimeScale = 1.0f;
-    private float m_OriginalFixedDeltaTime = 0.02f;
+    private float m_OriginalTimeScale;
+    private float m_OriginalFixedDeltaTime;
     private bool m_Paused;
 
     public event Action LoadStarted;

@@ -20,6 +20,7 @@ public class Enemy : Entity
         Idle,
         Locomotion,
         Stunned,
+        Knocked,
         Attack,
         Dead,
     }
@@ -59,7 +60,6 @@ public class Enemy : Entity
         MeleeCombatController = GetComponent<MeleeCombat>();
         BTAgent = GetComponent<BehaviorGraphAgent>();
 
-
     }
 
     private void Start()
@@ -94,6 +94,7 @@ public class Enemy : Entity
             case State.Locomotion:
             case State.Idle:
             case State.Stunned:
+            case State.Knocked:
                 result = HitResult.Hit;
                 EventBus<EnemyGotHitEvent>.Raise(new EnemyGotHitEvent { EnemyPosition = transform.position });
                 break;

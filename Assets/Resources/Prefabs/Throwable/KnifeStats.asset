@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 360d0a2c06abf47479953388cbb63e97, type: 3}
   m_Name: KnifeStats
   m_EditorClassIdentifier: 
-  Velocity: 40
+  Velocity: 9.5
   MaximumHits: 1
   CanHitPlayer: 0
   CanHitEnemy: 1

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -24,7 +23,7 @@ namespace TheGame
         {
             if (string.IsNullOrEmpty(m_ID))
             {
-                m_ID = Guid.NewGuid().ToString();
+                m_ID = System.Guid.NewGuid().ToString();
             }
         }
     }
