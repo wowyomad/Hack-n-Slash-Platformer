@@ -321,9 +321,13 @@ public class NavAgent2D : MonoBehaviour
             }
         }
 
-        if (m_NavData == null)
+        if (!m_NavData)
         {
-            throw new NullReferenceException("NavData2D is not assigned");
+            m_NavData = FindFirstObjectByType<NavData2D>(FindObjectsInactive.Include);
+            if (!m_NavData)
+            {
+                throw new NullReferenceException("NavData2D is missing");
+            }
         }
         if (m_NavActor == null)
         {

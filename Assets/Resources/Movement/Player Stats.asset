@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42a77b2a81b087a499ae80c64182444d, type: 3}
-  m_Name: CharacterStatsSO
+  m_Name: Player Stats
   m_EditorClassIdentifier: 
   HorizontalSpeed: 9.5
-  m_JumpHeight: 2.2
-  m_JumpTime: 0.22
+  m_JumpHeight: 2.4
+  m_JumpTime: 0.2
   m_FallTime: 0.175
   m_MaxGravityVelocityScale: 2
   AccelerationTimeAirborne: 0.1
