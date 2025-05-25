@@ -24,7 +24,7 @@ public partial class CheckIfAnyoneAlertedInAreaAction : Action
     private LayerMask m_Mask;
 
     private bool m_Initialized = false;
-
+    
     protected override Status OnStart()
     {
         if (!Initialize())
@@ -34,19 +34,19 @@ public partial class CheckIfAnyoneAlertedInAreaAction : Action
         }
 
         if (Time.time - m_LastUpdateTime < UpdateInterval.Value)
-            {
-                return AnyoneAlertedInArea.Value ? Status.Success : Status.Failure;
-            }
+        {
+            return AnyoneAlertedInArea.Value ? Status.Success : Status.Failure;
+        }
         m_LastUpdateTime = Time.time;
         AnyoneAlertedInArea.Value = false;
 
-        var friends = Physics2D.OverlapBoxAll(Agent.Value.transform.position, Size.Value, 0.0f, m_Mask).ToList();
+        List<Collider2D> witnesses = Physics2D.OverlapBoxAll(Agent.Value.transform.position, Size.Value, 0.0f, m_Mask).ToList();
 
-        foreach (var friend in friends)
+        foreach (Collider2D witness in witnesses)
         {
-            if (friend == Agent.Value) continue;
+            if (witness.gameObject == Agent.Value) continue;
 
-            if (friend.TryGetComponent<Enemy>(out var f) && f.IsAlive && f.IsAlerted)
+            if (witness.TryGetComponent<Enemy>(out var friend) && friend.IsAlive && friend.IsAlerted)
             {
                 AnyoneAlertedInArea.Value = true;
                 return Status.Success;
