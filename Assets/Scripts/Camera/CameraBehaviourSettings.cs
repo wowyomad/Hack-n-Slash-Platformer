@@ -7,6 +7,7 @@ public class CameraBehaviourSettings : ScriptableObject
     [Range(0f, 10f)]
     public float FollowSmoothTime = 0.3f;
     public Vector2 DefaultOffset = new Vector3(0.0f, 2.5f);
+    public Vector2 SoftZone = new Vector2(1.5f, 0.5f);
 
     [Header("Target Leading")]
     public Vector2 LeadFactor = new Vector2(0.0f, 0.0f);

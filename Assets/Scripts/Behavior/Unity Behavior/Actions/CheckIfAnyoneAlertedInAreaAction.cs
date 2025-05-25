@@ -29,7 +29,7 @@ public partial class CheckIfAnyoneAlertedInAreaAction : Action
         m_LastUpdateTime = Time.time;
         AnyoneAlertedInArea.Value = false;
 
-        var friends = Physics2D.OverlapBoxAll(Agent.Value.transform.position, Size.Value, 0.0f, Agent.Value.layer).ToList();
+        var friends = Physics2D.OverlapBoxAll(Agent.Value.transform.position, Size.Value, 0.0f, LayerMask.GetMask("Enemy")).ToList();
 
         foreach (var friend in friends)
         {
