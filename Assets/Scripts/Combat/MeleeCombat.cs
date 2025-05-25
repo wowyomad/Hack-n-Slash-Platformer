@@ -7,8 +7,10 @@ namespace TheGame
     [RequireComponent(typeof(Entity))]
     public class MeleeCombat : MonoBehaviour
     {
+        public bool ReachedMaxHitCount => m_HitCount >= MaxHitCount;
         public int MaxHitCount = 1;
         private int m_HitCount = 0;
+
 
         public bool IsAttacking => m_Attacking;
 

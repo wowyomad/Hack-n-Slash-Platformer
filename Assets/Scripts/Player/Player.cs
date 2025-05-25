@@ -321,7 +321,7 @@ namespace TheGame
 
             HitResult hitResult = HitResult.Nothing;
             
-            if (CurrentState is PlayerAttackState && hitData.IsParryable)
+            if (CurrentState is PlayerAttackState attack && attack.LastHitTarget == hitData.Attacker && hitData.IsParryable)
             {
                 hitResult = HitResult.Parry;
             }

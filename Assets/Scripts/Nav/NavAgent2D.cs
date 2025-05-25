@@ -500,18 +500,26 @@ public class NavAgent2D : MonoBehaviour
             Vector3 currentTargetPos = currentNavPoint.Position;
             Vector3 nextTargetPos = nextNavPoint.Position;
 
-            if (Vector3.Distance(agentPos, currentTargetPos) < REACH_THRESHOLD)
-            {
-                m_CurrentPointIndex++;
-                continue;
-            }
+            float distanceToCurrent = Vector3.Distance(agentPos, currentTargetPos);
 
             NavData2D.ConnectionType connectionToNext = GetConnectionType(currentNavPoint, nextNavPoint);
             bool isNextSegmentAJump = connectionToNext >= NavData2D.ConnectionType.Jump && connectionToNext <= NavData2D.ConnectionType.TransparentFall;
 
             if (isNextSegmentAJump)
             {
+                // Only advance if we're truly at the jump point
+                if (distanceToCurrent < REACH_THRESHOLD)
+                {
+                    m_CurrentPointIndex++;
+                }
+                // Otherwise, stop here and let the jump logic handle it
                 break;
+            }
+
+            if (distanceToCurrent < REACH_THRESHOLD)
+            {
+                m_CurrentPointIndex++;
+                continue;
             }
 
             Vector3 segmentDirection = nextTargetPos - currentTargetPos;
@@ -567,6 +575,7 @@ public class NavAgent2D : MonoBehaviour
 
         float distance = Vector2.Distance(transform.position, targetPos);
         float horizontalDistance = Mathf.Abs(targetPos.x - transform.position.x);
+        float verticalDistance = targetPos.y - transform.position.y;
 
         if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
         {
@@ -577,13 +586,24 @@ public class NavAgent2D : MonoBehaviour
         }
         else if (m_JumpDirection != 0)
         {
-            if (!m_ShortJump || (m_ShortJump && m_Controller.Velocity.y <= 0))
+            // Only apply horizontal movement if we've reached or exceeded the target Y (for upward jumps)
+            bool canMoveHorizontally = true;
+            if (verticalDistance > 0) // Jumping up
             {
-                if (horizontalDistance > REACH_THRESHOLD)
+                canMoveHorizontally = (transform.position.y >= targetPos.y) && (m_Controller.Velocity.y <= 0);
+            }
+            // For downward or flat jumps, allow horizontal movement as before
+
+            if (canMoveHorizontally)
+            {
+                if (!m_ShortJump || (m_ShortJump && m_Controller.Velocity.y <= 0))
                 {
-                    Vector2 direction = m_JumpDirection > 0 ? Vector2.right : Vector2.left;
-                    float displacement = Mathf.Min(m_JumpSpeedScale * (OverrideSpeed ? Speed : m_NavActor.BaseSpeed) * Time.deltaTime, horizontalDistance);
-                    m_Controller.Move(direction * displacement);
+                    if (horizontalDistance > REACH_THRESHOLD)
+                    {
+                        Vector2 direction = m_JumpDirection > 0 ? Vector2.right : Vector2.left;
+                        float displacement = Mathf.Min(m_JumpSpeedScale * (OverrideSpeed ? Speed : m_NavActor.BaseSpeed) * Time.deltaTime, horizontalDistance);
+                        m_Controller.Move(direction * displacement);
+                    }
                 }
             }
         }

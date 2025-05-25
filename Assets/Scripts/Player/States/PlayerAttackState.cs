@@ -120,8 +120,10 @@ namespace TheGame
 
         private void HandleTargetHitResult(HitResult hitResult, GameObject target)
         {
-             
+            LastHitTarget = target;
         }
+
+        public GameObject LastHitTarget { get; private set; } = null;
     }
 
 }

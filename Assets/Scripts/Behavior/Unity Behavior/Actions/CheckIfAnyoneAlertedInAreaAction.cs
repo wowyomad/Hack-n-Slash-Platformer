@@ -24,6 +24,7 @@ public partial class CheckIfAnyoneAlertedInAreaAction : Action
     private LayerMask m_Mask;
 
     private bool m_Initialized = false;
+
     
     protected override Status OnStart()
     {
