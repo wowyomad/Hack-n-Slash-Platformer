@@ -13,20 +13,20 @@ MonoBehaviour:
   m_Name: Player Stats
   m_EditorClassIdentifier: 
   HorizontalSpeed: 9.5
-  m_JumpHeight: 2.4
-  m_JumpTime: 0.2
-  m_FallTime: 0.175
+  m_JumpHeight: 2.5
+  m_JumpTime: 0.225
+  m_FallTime: 0.225
   m_MaxGravityVelocityScale: 2
   AccelerationTimeAirborne: 0.1
   AccelerationTimeGrounded: 0.05
   DecelerationTimeAirborne: 0
   DecelerationTimeGrounded: 0
   AttackCooldown: 0.5
-  AttackDuration: 0.2
+  AttackDuration: 0.175
   AttackSlowdownFactor: 0.5
   AttackImpulseCooldown: 0.4
   AttackHorizontalImpulseReductionFactor: 0.25
-  AttackImpulse: 24
+  AttackImpulse: 27
   DashCooldown: 0.7
   DashSpeed: 22
   DashDuration: 0.15

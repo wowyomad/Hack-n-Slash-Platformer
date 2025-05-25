@@ -631,7 +631,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_EyesightDistance: 12
-  m_EyesightAngle: 60
+  m_EyesightAngle: 90
   m_BacksightDistance: 5
   m_BacksightAngle: 45
   m_CloseSightRadius: 3

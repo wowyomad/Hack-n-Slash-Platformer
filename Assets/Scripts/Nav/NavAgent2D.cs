@@ -87,6 +87,8 @@ public class NavAgent2D : MonoBehaviour
     public Vector3? CurrentPathTarget => (IsPathReady && m_Path != null && m_CurrentPointIndex < m_Path.Count) ? m_Path[m_CurrentPointIndex].Position : (Vector3?)null;
     public Vector2 Velocity { get; private set; }
 
+    private Vector3? m_OverrideCurrentTarget = null;
+
 
     [Header("Debug")]
     [SerializeField]
@@ -101,26 +103,6 @@ public class NavAgent2D : MonoBehaviour
         m_State = newState;
 
         return;
-
-        if (m_Animator != null)
-        {
-            switch (m_State)
-            {
-                case AgentState.Stopped:
-                    m_Animator.SetTrigger(m_AnimationTriggerIdle);
-                    Debug.Log("Triggering Idle");
-                    break;
-                case AgentState.Moving:
-                    m_Animator.SetTrigger(m_AnimationTriggerWalk);
-                    Debug.Log("Triggering Walk");
-                    break;
-                case AgentState.Jumping:
-                    m_Animator.SetTrigger(m_AnimationTriggerJump);
-                    Debug.Log("Triggering Jump");
-                    break;
-                    // AgentState.None does not have a specific trigger here
-            }
-        }
     }
 
     private void ResetTemps()
@@ -566,9 +548,9 @@ public class NavAgent2D : MonoBehaviour
     private void HandleJumping()
     {
         if (m_Path == null || m_CurrentPointIndex >= m_Path.Count)
-        {
             return;
-        }
+
+        Vector2 targetPos = m_OverrideCurrentTarget ?? m_Path[m_CurrentPointIndex].Position;
 
         if (m_HasJumped)
         {
@@ -583,13 +565,14 @@ public class NavAgent2D : MonoBehaviour
             m_HasJumped = true;
         }
 
-        float distance = Vector2.Distance(transform.position, m_Path[m_CurrentPointIndex].Position);
-        float horizontalDistance = Mathf.Abs(m_Path[m_CurrentPointIndex].Position.x - transform.position.x);
+        float distance = Vector2.Distance(transform.position, targetPos);
+        float horizontalDistance = Mathf.Abs(targetPos.x - transform.position.x);
 
         if (distance * distance < REACH_THRESHOLD && horizontalDistance < REACH_THRESHOLD)
         {
             m_JumpDirection = 0;
             m_ShortJump = false;
+            m_OverrideCurrentTarget = null; // Clear after reaching
             GoNext();
         }
         else if (m_JumpDirection != 0)
@@ -681,41 +664,49 @@ public class NavAgent2D : MonoBehaviour
         if (connection < NavData2D.ConnectionType.Jump || connection > NavData2D.ConnectionType.TransparentFall)
             return;
 
-        if (NavData2D.ConnectionType.TransparentFall == connection)
+        m_OverrideCurrentTarget = null; // Reset by default
+
+        if (connection == NavData2D.ConnectionType.Fall || connection == NavData2D.ConnectionType.TransparentFall)
         {
-            m_Controller.ClimbDown();
+            Vector2 direction = (to.Position - from.Position).normalized;
+            m_JumpDirection = direction.x > 0 ? 1 : -1;
+            m_JumpSpeedScale = 1.0f;
+
+            float overshoot = 0.3f;
+            Vector2 overshootTarget = to.Position + new Vector2(m_JumpDirection * overshoot, 0f);
+
+            m_OverrideCurrentTarget = overshootTarget; // Use this for movement, do not modify NavPoint
+
             return;
         }
 
-        float jumpVelocity = m_NavActor.JumpVelocity;
-        Vector2 direction = (to.Position - from.Position).normalized;
-
-        m_JumpDirection = direction.x > 0 ? 1 : -1;
+        // For upward/normal jumps, start the jump a bit before the actual jump point
+        Vector2 jumpDir = (to.Position - from.Position).normalized;
+        m_JumpDirection = jumpDir.x > 0 ? 1 : -1;
         m_JumpSpeedScale = 1.0f;
 
+        float preJumpOffset = 0.5f;
+        Vector2 preJumpTarget = from.Position - new Vector2(m_JumpDirection * preJumpOffset, 0f);
+
+        m_OverrideCurrentTarget = preJumpTarget; // Use this for movement, do not modify NavPoint
+
+        float jumpVelocity = m_NavActor.JumpVelocity;
         float jumpHorizontalDistance = Mathf.Abs(from.Position.x - to.Position.x);
         m_ShortJump = jumpHorizontalDistance <= 1.0f + float.Epsilon;
         bool flatJump = from.CellPos.y == to.CellPos.y;
 
-
-        if (NavData2D.ConnectionType.Fall == connection)
+        if (flatJump)
         {
-            jumpVelocity /= 4.0f;
+            jumpVelocity *= 0.75f * jumpHorizontalDistance / m_NavActor.MaxJumpDistance;
         }
         else
         {
-            if (flatJump)
-            {
-                jumpVelocity *= 0.75f * jumpHorizontalDistance / m_NavActor.MaxJumpDistance;
-            }
-            else
-            {
-                float jumpHeight = Mathf.Abs(to.Position.y - from.Position.y);
-                jumpVelocity *= Mathf.Sqrt((jumpHeight + 1.0f) / m_NavActor.MaxJumpHeight);
-            }
-            if (!m_ShortJump)
-                m_JumpSpeedScale = m_NavActor.MaxJumpDistance / jumpHorizontalDistance;
+            float jumpHeight = Mathf.Abs(to.Position.y - from.Position.y);
+            jumpVelocity *= Mathf.Sqrt((jumpHeight + 1.0f) / m_NavActor.MaxJumpHeight);
         }
+        if (!m_ShortJump)
+            m_JumpSpeedScale = m_NavActor.MaxJumpDistance / jumpHorizontalDistance;
+
         m_Controller.Velocity = new Vector2(m_Controller.Velocity.x, jumpVelocity);
     }
 

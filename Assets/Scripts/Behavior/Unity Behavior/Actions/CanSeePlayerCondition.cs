@@ -7,8 +7,8 @@ namespace TheGame
 {
 
     [Serializable, Unity.Properties.GeneratePropertyBag]
-    [Condition(name: "CanSeePlayer", story: "[Agent] can see [Target]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
-    public partial class CanSeePlayerCondition : Condition
+    [Condition(name: "Can see Entity", story: "[Agent] can see [Target]", category: "Conditions", id: "ef6240ba72dbd5124ca03cc8a410f7ca")]
+    public partial class CanSeeEntityCondition : Condition
     {
 
         [SerializeReference] public BlackboardVariable<GameObject> Agent;
