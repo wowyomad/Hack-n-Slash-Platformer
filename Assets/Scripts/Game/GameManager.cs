@@ -2,121 +2,130 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
-public class GameManager : PersistentSingleton<GameManager>
+namespace TheGame
 {
-
-    public bool IsGamePaused => m_Paused;
-
-    [SerializeField] private InputReader m_Input;
-
-    private float m_OriginalTimeScale;
-    private float m_OriginalFixedDeltaTime;
-    private bool m_Paused;
-
-    public event Action LoadStarted;
-    public event Action LoadCompleted;
-
-    protected override void Awake()
+    public class GameManager : PersistentSingleton<GameManager>
     {
-        if (!HasInstance)
+        public event Action LoadStarted;
+        public event Action LoadCompleted;
+        public bool IsGamePaused => m_Paused;
+
+        private InputReader m_Input;
+        private LevelManager m_LevelManager;
+
+        private float m_OriginalTimeScale;
+        private float m_OriginalFixedDeltaTime;
+        private bool m_Paused;
+
+
+
+        protected override void Awake()
         {
-            Initialize();
+            if (!HasInstance)
+            {
+                Initialize();
+            }
+
+            base.Awake();
         }
 
-        base.Awake();
-    }
-
-    public void PauseGame()
-    {
-        if (m_Paused) return;
-
-        m_Paused = true;    
-
-        m_Input.SetUI();
-
-        Time.timeScale = 0f;
-        Time.fixedDeltaTime = 0f;
-    }
-
-    public void ResumeGame()
-    {
-        if (!m_Paused) return;
-
-        m_Paused = false;
-
-        m_Input.SetGameplay();
-
-        Time.timeScale = m_OriginalTimeScale;
-        Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
-    }
-
-
-    public void RestartGame()
-    {
-        LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    public void ResetTimeScale()
-    {
-        Time.timeScale = m_OriginalTimeScale;
-        Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
-    }
-
-    public void LoadScene(string name)
-    {
-        StartCoroutine(LoadSceneCoroutine(name));
-    }
-
-    private System.Collections.IEnumerator LoadSceneCoroutine(string name)
-    {
-        m_Input.SetGameplay();
-
-        LoadStarted?.Invoke();
-
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(name);
-        while (!asyncLoad.isDone)
+        public void PauseGame()
         {
-            yield return null;
+            if (m_Paused) return;
+
+            m_Paused = true;
+
+            m_Input.SetUI();
+
+            Time.timeScale = 0f;
+            Time.fixedDeltaTime = 0f;
         }
 
-        LoadCompleted?.Invoke();
-    }
-
-    public void UnloadScene(string name)
-    {
-        StartCoroutine(UnloadSceneCoroutine(name));
-    }
-
-    private System.Collections.IEnumerator UnloadSceneCoroutine(string name)
-    {
-        m_Input.SetGameplay();
-
-        LoadStarted?.Invoke();
-
-        AsyncOperation asyncUnload = SceneManager.UnloadSceneAsync(name);
-        while (!asyncUnload.isDone)
+        public void ResumeGame()
         {
-            yield return null;
+            if (!m_Paused) return;
+
+            m_Paused = false;
+
+            m_Input.SetGameplay();
+
+            Time.timeScale = m_OriginalTimeScale;
+            Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
         }
 
-        LoadCompleted?.Invoke();
-    }
 
-    public void Initialize()
-    {
-        if (m_Input == null)
+        public void RestartGame()
         {
-            m_Input = InputReader.Load();
+            LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        m_OriginalTimeScale = Time.timeScale;
-        m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
-    }
+        public void ResetTimeScale()
+        {
+            Time.timeScale = m_OriginalTimeScale;
+            Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
+        }
 
-    public void Quit()
-    {
-        Debug.Log("Quitting game...");
-        Application.Quit();
+        public void LoadScene(string name)
+        {
+            StartCoroutine(LoadSceneCoroutine(name));
+        }
+
+        private System.Collections.IEnumerator LoadSceneCoroutine(string name)
+        {
+            m_Input.SetGameplay();
+
+            LoadStarted?.Invoke();
+
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(name);
+            while (!asyncLoad.isDone)
+            {
+                yield return null;
+            }
+
+            LoadCompleted?.Invoke();
+        }
+
+        public void UnloadScene(string name)
+        {
+            StartCoroutine(UnloadSceneCoroutine(name));
+        }
+
+        private System.Collections.IEnumerator UnloadSceneCoroutine(string name)
+        {
+            m_Input.SetGameplay();
+
+            LoadStarted?.Invoke();
+
+            AsyncOperation asyncUnload = SceneManager.UnloadSceneAsync(name);
+            while (!asyncUnload.isDone)
+            {
+                yield return null;
+            }
+
+            LoadCompleted?.Invoke();
+        }
+
+        public void Initialize()
+        {
+            if (m_Input == null)
+            {
+                m_Input = InputReader.Load();
+            }
+
+            if (m_LevelManager == null)
+            {
+                m_LevelManager = LevelManager.Instance;
+            }
+
+            m_OriginalTimeScale = Time.timeScale;
+            m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
+        }
+
+        public void Quit()
+        {
+            Debug.Log("Quitting game...");
+            m_LevelManager.Save();
+            Application.Quit();
+        }
     }
 }
