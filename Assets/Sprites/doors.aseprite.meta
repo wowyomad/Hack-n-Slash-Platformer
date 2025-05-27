@@ -151,16 +151,16 @@ ScriptedImporter:
   spriteSheetImportData:
   - name: doors_0
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
       x: 4
-      y: 2
+      y: 68
       width: 32
-      height: 71
+      height: 48
     spriteID: 873650e8572ad0a419f84fa7c237e4c2
     spriteBone: []
     spriteOutline: []
@@ -172,16 +172,16 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: doors_1
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
       x: 36
-      y: 2
+      y: 68
       width: 32
-      height: 71
+      height: 48
     spriteID: 483090ecde1ea89488182650e2d86ef9
     spriteBone: []
     spriteOutline: []
@@ -193,16 +193,16 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: doors_2
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
       x: 68
-      y: 2
+      y: 68
       width: 32
-      height: 71
+      height: 48
     spriteID: 44da5ca2cee1ff24faee7df7ad707861
     spriteBone: []
     spriteOutline: []
@@ -214,16 +214,16 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: doors_3
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
       x: 100
-      y: 2
+      y: 68
       width: 32
-      height: 71
+      height: 48
     spriteID: 3e3ea3c2912b20549addbf231ef45dbf
     spriteBone: []
     spriteOutline: []
@@ -235,6 +235,111 @@ ScriptedImporter:
     uvTransform: {x: 0, y: 0}
   - name: doors_4
     originalName: 
+    pivot: {x: 0, y: 0}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 132
+      y: 68
+      width: 32
+      height: 48
+    spriteID: bafd8243bced21a488a68f3e30e79b82
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: doors_5
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 4
+      width: 32
+      height: 48
+    spriteID: 6518e8b2623daee4e921b81bd34cd736
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: doors_6
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 36
+      y: 4
+      width: 32
+      height: 48
+    spriteID: 5c6aaafc59d6d33429f68a22ebf8f511
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: doors_7
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 68
+      y: 4
+      width: 32
+      height: 48
+    spriteID: 08b4956bebebf4940bb68e6173974c4d
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: doors_8
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 100
+      y: 4
+      width: 32
+      height: 48
+    spriteID: edf9de51d12a24d40bfac3f00a8dcdd3
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: doors_9
+    originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
@@ -242,10 +347,10 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 132
-      y: 2
+      y: 4
       width: 32
-      height: 71
-    spriteID: bafd8243bced21a488a68f3e30e79b82
+      height: 48
+    spriteID: fe8409ffff962094a81c6fdeba7fe271
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -273,9 +378,9 @@ ScriptedImporter:
       additiveSortOrder: 0
       cellRect:
         x: 0
-        y: 0
-        width: 384
-        height: 544
+        y: 416
+        width: 134
+        height: 112
       spriteId: 167ad34451ae3fa48992ce551299a42c
     linkedCells: []
     tileCells: []

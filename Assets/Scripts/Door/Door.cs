@@ -1,14 +1,58 @@
-using System;
 using UnityEngine;
 
 namespace TheGame
 {
-    public class Door : MonoBehaviour, IHittable
+
+    [SelectionBase]
+    [RequireComponent(typeof(Collider2D))]
+    [RequireComponent(typeof(Rigidbody2D))]
+    public abstract class Door : MonoBehaviour
     {
-        public event Action OnHit;
+        public bool IsOpened => StateMachine.State is DoorState.Opened;
+        protected StateMachine<DoorState, Trigger> StateMachine;
+        protected DoorState.Opened OpenedState;
+        protected DoorState.Closed ClosedState;
+        [SerializeField] protected string AnimationTriggerOpen = "Open";
+        [SerializeField] protected string AnimationTriggerClose = "Close";
 
         private Animator m_Animator;
         private Collider2D m_Collider;
+
+        protected bool Close()
+        {
+            if (StateMachine.CanFire(Trigger.Close))
+            {
+                StateMachine.Fire(Trigger.Close);
+                return true;
+            }
+            return false;
+        }
+
+        protected bool Open()
+        {
+            if (StateMachine.CanFire(Trigger.Open))
+            {
+                StateMachine.Fire(Trigger.Open);
+                return true;
+            }
+            return false;
+        }
+
+        protected virtual void Awake()
+        {
+            m_Animator = GetComponentInChildren<Animator>();
+            m_Collider = GetComponent<Collider2D>();
+
+            OpenedState = new DoorState.Opened(this);
+            ClosedState = new DoorState.Closed(this);
+            StateMachine = new StateMachine<DoorState, Trigger>(ClosedState);
+
+            StateMachine.Configure(ClosedState)
+                .Permit(Trigger.Open, OpenedState);
+
+            StateMachine.Configure(OpenedState)
+                .Permit(Trigger.Close, ClosedState);
+        }
 
         public abstract class DoorState : State, IState
         {
@@ -24,7 +68,7 @@ namespace TheGame
                 public Opened(Door door) : base(door) { }
                 public override void OnEnter()
                 {
-                    Animator.SetTrigger("Open");
+                    Animator.SetTrigger(Door.AnimationTriggerOpen);
                     Collider.enabled = false;
                 }
             }
@@ -33,67 +77,16 @@ namespace TheGame
                 public Closed(Door door) : base(door) { }
                 public override void OnEnter()
                 {
-                    Animator.SetTrigger("Close");
+                    Animator.SetTrigger(Door.AnimationTriggerClose);
                     Collider.enabled = true;
                 }
             }
         }
 
-
-        public enum Trigger
+        protected enum Trigger
         {
             Open,
             Close
-        }
-
-        [SerializeField] private LayerMask m_WhoAllowedToHit;
-
-        private StateMachine<DoorState, Trigger> m_StateMachine;
-        private DoorState.Opened m_OpenedState;
-        private DoorState.Closed m_ClosedState;
-
-        private void Awake()
-        {
-            m_Animator = GetComponentInChildren<Animator>();
-            m_Collider = GetComponent<Collider2D>();
-
-            m_OpenedState = new DoorState.Opened(this);
-            m_ClosedState = new DoorState.Closed(this);
-            m_StateMachine = new StateMachine<DoorState, Trigger>(m_ClosedState);
-
-            m_StateMachine.Configure(m_ClosedState)
-                .Permit(Trigger.Open, m_OpenedState);
-
-            m_StateMachine.Configure(m_OpenedState)
-                .Permit(Trigger.Close, m_ClosedState);
-        }
-
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
-        public HitResult TakeHit(HitData hitData)
-        {
-            if (((1 << hitData.Attacker.layer) & m_WhoAllowedToHit) != 0)
-            {
-                if (m_StateMachine.CanFire(Trigger.Open))
-                {
-                    m_StateMachine.Fire(Trigger.Open);
-                    OnHit?.Invoke();
-                    EventBus<DoorOpenedWithHitEvent>.Raise(new DoorOpenedWithHitEvent
-                    {
-                        DoorPosition = transform.position
-                    });
-                }
-            }
-            return HitResult.Nothing;
         }
     }
 

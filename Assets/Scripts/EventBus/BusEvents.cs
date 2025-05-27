@@ -26,4 +26,9 @@ namespace TheGame
     {
         public Vector3 DoorPosition;
     }
+
+    public struct LeverHitEvent : IEvent
+    {
+        public Vector3 LeverPosition;
+    }
 }

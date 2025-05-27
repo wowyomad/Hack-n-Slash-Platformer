@@ -10,6 +10,7 @@ public class CameraShakeSettings : ScriptableObject
     public float EnemyHitShakeStrength = 0.5f;
     public float EnemyParriedShakeStrength = 0.75f;
     public float DoorOpenedShakeStrength = 0.5f;
+    public float LeverHitShakeStrength = 0.3f;
     
     [Range(0.0f, 1.0f)]
     public float ShakeBias = 0.1f;
