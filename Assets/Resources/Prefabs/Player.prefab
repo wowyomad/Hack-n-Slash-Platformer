@@ -97,6 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WeaponReference: {fileID: 0}
   MeleeCombat: {fileID: 0}
+  IsInvincible: 0
   m_EnemyLayerMask:
     serializedVersion: 2
     m_Bits: 536870912
@@ -117,7 +118,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GroundMask:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 2147549184
   TransparentGroundMask:
     serializedVersion: 2
     m_Bits: 134217728
@@ -128,7 +129,7 @@ MonoBehaviour:
     Above: 0
     Below: 0
     Left: 0
-    Right: 0
+    Right: 1
     ClimbingSlope: 0
     DescendingSlope: 0
     SlopeAngle: 0
@@ -157,11 +158,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b130e00e6a546b41a3ee9692278dec7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MaxHitCount: 1
   m_Animator: {fileID: 0}
   m_Weapon: {fileID: 0}
   m_UseAnimationEvents: 0
   m_AttackAnimationTrigger: StartAttack
-  m_CancelAttackAnimationTrigger: CancelAttack
 --- !u!1 &3035308244963648459
 GameObject:
   m_ObjectHideFlags: 0

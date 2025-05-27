@@ -56,5 +56,13 @@ namespace TheGame
                 m_CombatController.HandleWeaponTrigger(target);
             }
         }
+
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+             if (collision.gameObject.TryGetComponent<IHittable>(out var target) && (target as MonoBehaviour).gameObject != transform.parent.gameObject)
+            {
+                m_CombatController.HandleWeaponTrigger(target);
+            }
+        }
     }
 }

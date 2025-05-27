@@ -23,7 +23,8 @@ public class CameraShake : MonoBehaviour
     {
         EventBus<EnemyGotHitEvent>.OnEvent += OnEnemyHitEvent;
         EventBus<PlayerGotHitEvent>.OnEvent += OnPlayerHitEvent;
-        EventBus<EnemyGotParriedEvent>.OnEvent += OnEnemyParriedEvent;;
+        EventBus<EnemyGotParriedEvent>.OnEvent += OnEnemyParriedEvent;
+        EventBus<DoorOpenedWithHitEvent>.OnEvent += OnOpenedByHitEvent;
     }
 
     private void OnDisable()
@@ -31,6 +32,7 @@ public class CameraShake : MonoBehaviour
         EventBus<EnemyGotHitEvent>.OnEvent -= OnEnemyHitEvent;
         EventBus<PlayerGotHitEvent>.OnEvent -= OnPlayerHitEvent;
         EventBus<EnemyGotParriedEvent>.OnEvent -= OnEnemyParriedEvent;
+        EventBus<DoorOpenedWithHitEvent>.OnEvent -= OnOpenedByHitEvent;
     }
 
     private void Update()
@@ -70,6 +72,11 @@ public class CameraShake : MonoBehaviour
         transform.localPosition = m_OriginalPosition;
         m_CurrentShakeStrength = 0f;
         m_StrengthVelocity = 0f;
+    }
+
+    private void OnOpenedByHitEvent(DoorOpenedWithHitEvent e)
+    {
+        TriggerShake(e.DoorPosition, Settings.DoorOpenedShakeStrength);
     }
 
     private void OnEnemyHitEvent(EnemyGotHitEvent e)

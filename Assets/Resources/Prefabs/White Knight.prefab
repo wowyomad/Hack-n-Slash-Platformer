@@ -639,10 +639,10 @@ MonoBehaviour:
   m_AlertedDistanceMultiplier: 2
   m_StandardOcclusionMask:
     serializedVersion: 2
-    m_Bits: 2281701376
+    m_Bits: 2281766912
   m_AlertedOcclusionMask:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 2147549184
   m_DrawGizmos: 1
   m_DrawGizmosOnlyWhenSelected: 1
 --- !u!114 &6886308112935815565
@@ -659,7 +659,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GroundMask:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 2147549184
   TransparentGroundMask:
     serializedVersion: 2
     m_Bits: 134217728

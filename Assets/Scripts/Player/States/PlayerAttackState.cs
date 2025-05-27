@@ -33,6 +33,7 @@ namespace TheGame
             Player.TurnToCursor();
 
             float impulseScale = 1.0f;
+            LastHitTarget = null;
 
             //resets the cd
             if (Controller.IsGrounded && Vector2.Dot(m_LastAttackDirection.normalized, Vector2.up) > 0.9f)
@@ -121,6 +122,10 @@ namespace TheGame
         private void HandleTargetHitResult(HitResult hitResult, GameObject target)
         {
             LastHitTarget = target;
+            if (hitResult == HitResult.Bounce)
+            {
+                m_InitialAttackVelocityX = -m_InitialAttackVelocityX;
+            }
         }
 
         public GameObject LastHitTarget { get; private set; } = null;
