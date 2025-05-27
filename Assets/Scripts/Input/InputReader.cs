@@ -21,6 +21,8 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Resume;
     public event Action ClimbDown;
     public event Action Restart;
+    public event Action DebugGood;
+    public event Action DebugBad;
 
     public event Action<Vector2> CursorMove;
 
@@ -210,6 +212,22 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         if (Horizontal != 0.0f)
         {
             Move?.Invoke(Horizontal);
+        }
+    }
+
+    public void OnDebugGood(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            DebugGood?.Invoke();
+        }
+    }
+
+    public void OnDebugBad(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            DebugBad?.Invoke();
         }
     }
 

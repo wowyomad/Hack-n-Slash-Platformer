@@ -6,5 +6,6 @@ namespace TheGame
     public class GameSaveData
     {
         public List<LevelSaveData> Levels;
+        public string LastUnfinishedLevelID;
     }
 }

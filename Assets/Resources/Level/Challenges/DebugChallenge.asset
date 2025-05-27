@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bbec65358651a449bd1b42e57a37fa, type: 3}
+  m_Name: DebugChallenge
+  m_EditorClassIdentifier: 
+  ID: f2fac630-293a-486d-b453-0b6141294936
+  Name: A debug challenge
+  Description: Press C to Complete or F to Fail.
+  Status: 0

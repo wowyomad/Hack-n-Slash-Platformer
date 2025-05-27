@@ -16,8 +16,8 @@ namespace TheGame
         [Header("Template")]
         public string ID = System.Guid.NewGuid().ToString();
         public string Name = "New Challenge";
-        public string Descriptoin = "Challenge Description";
-         public ChallengeStatus Status = ChallengeStatus.Incomplete;
+        public string Description = "Challenge Description";
+        public ChallengeStatus Status;
 
         public virtual void Initialize(ChallengeSaveData data)
         {
@@ -30,7 +30,7 @@ namespace TheGame
                 throw new System.ArgumentNullException(nameof(data), "ChallengeSaveData cannot be null");
             }
         }
-
+        public virtual void OnLevelLoaded() { }
         public virtual void OnLevelStarted() { }
         public virtual void OnUpdate(float deltaTime) { }
         public virtual void OnLevelCompleted() { }

@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
-  m_Name: SampleLevel1
+  m_Script: {fileID: 11500000, guid: 4a6a4569f14b96c4e922609eb912c2ea, type: 3}
+  m_Name: DebugLevel
   m_EditorClassIdentifier: 
-  ID: 7d61e656-4e89-465d-a423-96dea86d4b91
-  Name: Level Random Name
-  Description: This is a test level
+  ID: ceafd3f2-2bdd-4525-b1b6-da119f3496bf
+  Name: A Debug Level
+  Description: This is a debug level for internal testing
   Opened: 1
   Completed: 0
   SceneName: SampleScene
@@ -22,6 +22,7 @@ MonoBehaviour:
     _asset: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
     _path: Assets/Scenes/SampleScene.unity
   Challenges:
-  - {fileID: 11400000, guid: 8c3f3aa1ddc49f2428b9c59be0735899, type: 2}
+  - {fileID: 11400000, guid: 1f18fa1d717ac2b4bb615cd92cef29e3, type: 2}
   NextLevels:
   - {fileID: 11400000, guid: 2a54e3ebc9d246847a9bc8209b0e157c, type: 2}
+  LevelStatus: 0

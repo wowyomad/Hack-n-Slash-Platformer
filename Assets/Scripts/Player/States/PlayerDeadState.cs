@@ -13,9 +13,4 @@ namespace TheGame
             Controller.Velocity.x = 0.0f;
         }
     }
-
-    public struct PlayerDeadEvent : IEvent
-    {
-
-    }
 }

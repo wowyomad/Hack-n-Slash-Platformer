@@ -37,15 +37,10 @@ public class CameraBehaviour : MonoBehaviour
         {
             m_FollowTargetPreviousPosition = FollowTarget.position;
         }
-        else
-        {
-            Debug.LogError("CameraBehaviour: FollowTarget is not assigned in Awake!", this);
-        }
 
         if (Input == null) Debug.LogError("CameraBehaviour: InputReader is not assigned!", this);
         if (Settings == null) Debug.LogError("CameraBehaviour: Settings are not assigned!", this);
         if (m_MainCamera == null) Debug.LogError("CameraBehaviour: Camera component not found!", this);
-        if (LevelBounds == null) Debug.LogError("CameraBehaviour: LevelBounds is not assigned!", this);
     }
 
     private void Start()
@@ -55,17 +50,25 @@ public class CameraBehaviour : MonoBehaviour
 
     private void OnEnable()
     {
-        Input.ListenEvents(this);    
+        Input.ListenEvents(this);
     }
 
     private void OnDisable()
     {
         Input.StopListening(this);
     }
-
+    private void OnValidate()
+    {
+        if (FollowTarget != null)
+        {
+            m_FollowTargetPreviousPosition = FollowTarget.position;
+        }
+    }
 
     private void LateUpdate()
     {
+        if (FollowTarget == null || LevelBounds == null) return;
+
         if (FollowTarget == null || Settings == null || Input == null || m_MainCamera == null || !m_MainCamera.orthographic)
         {
             if (m_MainCamera != null && !m_MainCamera.orthographic) Debug.LogWarning("CameraBehaviour requires an Orthographic Camera.", this);
@@ -74,7 +77,7 @@ public class CameraBehaviour : MonoBehaviour
 
         UpdateMouseOffset();
         UpdateZoom();
-        
+
 
         Vector3 currentFollowTargetPosition = FollowTarget.position;
         Vector3 velocity = Time.deltaTime > Mathf.Epsilon
@@ -98,10 +101,10 @@ public class CameraBehaviour : MonoBehaviour
 
         m_Target.position = new Vector3(smoothedPosition.x, smoothedPosition.y, m_Target.position.z);
 
-        m_Target.position = ApplyLevelBoundsClamping(m_Target.position);    
+        m_Target.position = ApplyLevelBoundsClamping(m_Target.position);
     }
 
-     private Vector3 ApplyLevelBoundsClamping(Vector3 positionToClamp)
+    private Vector3 ApplyLevelBoundsClamping(Vector3 positionToClamp)
     {
         Bounds levelBounds = LevelBounds.bounds;
         float camHalfWidth = CameraWidth / 2f;
@@ -125,11 +128,11 @@ public class CameraBehaviour : MonoBehaviour
 
         if (minY > maxY)
         {
-             clampedPosition.y = (levelBounds.min.y + levelBounds.max.y) / 2f;
+            clampedPosition.y = (levelBounds.min.y + levelBounds.max.y) / 2f;
         }
         else
         {
-             clampedPosition.y = Mathf.Clamp(positionToClamp.y, minY, maxY);
+            clampedPosition.y = Mathf.Clamp(positionToClamp.y, minY, maxY);
         }
 
         clampedPosition.z = m_Target.position.z;

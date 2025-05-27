@@ -7,6 +7,16 @@ namespace TheGame
         public string message;
     }
 
+    public struct PlayerDiedEvent : IEvent
+    {
+
+    }
+
+    public struct LevelFinishReachedEvent : IEvent
+    {
+        
+    }
+
     public struct EnemyGotHitEvent : IEvent
     {
         public Vector3 EnemyPosition;

@@ -329,7 +329,7 @@ namespace TheGame
                 OnHit?.Invoke();
 
                 EventBus<PlayerGotHitEvent>.Raise(new PlayerGotHitEvent() { PlayerPosition = transform.position });
-                EventBus<PlayerDeadEvent>.Raise(new PlayerDeadEvent());
+                EventBus<PlayerDiedEvent>.Raise(new PlayerDiedEvent());
             }
 
             return hitResult;

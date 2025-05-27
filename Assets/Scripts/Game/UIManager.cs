@@ -49,7 +49,7 @@ namespace TheGame
             m_Input.Pause += OnPauseResume;
             m_Input.Resume += OnPauseResume;
             m_Input.Restart += OnRestart;
-            EventBus<PlayerDeadEvent>.OnEvent += ShowDeathScreen;
+            EventBus<PlayerDiedEvent>.OnEvent += ShowDeathScreen;
         }
 
         private void OnDisable()
@@ -57,7 +57,7 @@ namespace TheGame
             m_Input.Pause -= OnPauseResume;
             m_Input.Resume -= OnPauseResume;
             m_Input.Restart -= OnRestart;
-            EventBus<PlayerDeadEvent>.OnEvent -= ShowDeathScreen;
+            EventBus<PlayerDiedEvent>.OnEvent -= ShowDeathScreen;
         }
 
         public void OnPauseResume()
@@ -167,12 +167,12 @@ namespace TheGame
 
         public void OnRestart()
         {
-            m_GameManager.RestartGame();
+            m_GameManager.TriggerRestartCurrentLevel();
             m_GameManager.ResumeGame();
             ShowScreen(null);
         }
 
-        private void ShowDeathScreen(PlayerDeadEvent e)
+        private void ShowDeathScreen(PlayerDiedEvent e)
         {
             m_Input.SetDeath();
             ShowScreen(m_DeathScreen);
