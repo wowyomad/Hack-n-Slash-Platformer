@@ -75,7 +75,6 @@ public class Enemy : Entity
     private void OnChanged()
     {
         BTAgent.GetVariable<bool>(m_TookHitVariableName, out var tookHit);
-        Debug.Log($"Took hit: {tookHit.Value}");
     }
 
     private void Update()

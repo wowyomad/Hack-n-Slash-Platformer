@@ -1,24 +1,8 @@
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace TheGame
 {
-    [System.Serializable]
-    public class GameSaveData
-    {
-        public List<LevelSaveData> Levels;
-    }
-
-    [System.Serializable]
-    public class LevelSaveData
-    {
-        public string ID;
-        public bool Opened;
-        public bool Completed;
-        public List<ChallengeSaveData> Challenges = new List<ChallengeSaveData>();
-    }
-    [System.Serializable]
     public class Level : ScriptableObject
     {
         public string ID = System.Guid.NewGuid().ToString();
@@ -27,11 +11,20 @@ namespace TheGame
         public bool Opened;
         public bool Completed;
         public string SceneName;
-#if UNITY_EDITOR
-        public SceneAsset SceneReference;
-#endif
+        public SceneReference SceneReference;
         public List<Challenge> Challenges = new List<Challenge>();
         public List<Level> NextLevels = new List<Level>();
+
+#if UNITY_EDITOR
+        private void OnEnable()
+        {
+            SceneReference.OnValueChanged += OnValidate;
+        }
+        private void OnDisable()
+        {
+            SceneReference.OnValueChanged -= OnValidate;
+        }
+#endif
 
         private void OnValidate()
         {
@@ -41,8 +34,8 @@ namespace TheGame
             }
             if (SceneReference != null)
             {
-                SceneName = AssetDatabase.GetAssetPath(SceneReference);
-                SceneName = System.IO.Path.GetFileNameWithoutExtension(SceneName);
+                //get the name from the path
+                SceneName = System.IO.Path.GetFileNameWithoutExtension(SceneReference.Path);
             }
         }
     }

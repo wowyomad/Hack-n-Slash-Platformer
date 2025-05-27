@@ -785,7 +785,6 @@ public class NavAgent2D : MonoBehaviour
         return distance;
     }
 
-#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (!m_DrawPath) return;
@@ -807,5 +806,4 @@ public class NavAgent2D : MonoBehaviour
             }
         }
     }
-#endif
 }

@@ -2,18 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace TheGame
-{   
-    [CreateAssetMenu(fileName = "LevelPresetsData", menuName = "Game/Level Presets Data")]
-    public class LevelPresetsData : ScriptableObject
-    {
-        public List<Level> Levels = new List<Level>();
-    }
-
+{
     public class LevelManager : PersistentSingleton<LevelManager>
     {
         public string SaveName = "SaveData.json";
@@ -26,14 +16,26 @@ namespace TheGame
         {
             if (!HasInstance)
             {
-                LoadSaveData();
+                
             }
             base.Awake();
         }
 
-        private void LoadSaveData()
+        protected void Start()
+        {
+            LoadSaveData();
+        }
+
+        public void LoadSaveData()
         {
             m_SaveFilePath = System.IO.Path.Combine(Application.persistentDataPath, SaveName);
+
+            if (LevelPresets == null)
+            {
+                Debug.LogError("LevelPresets is not assigned in LevelManager. Please assign it in the inspector.");
+                return;
+            }
+
             var m_Saves = new List<LevelSaveData>();
             if (System.IO.File.Exists(m_SaveFilePath))
             {
@@ -100,6 +102,12 @@ namespace TheGame
 
         public void Save()
         {
+            if (RuntimeLevels == null || RuntimeLevels.Count == 0)
+            {
+                Debug.LogWarning("No data to save.)");
+                return;
+            }
+
             List<LevelSaveData> saveData = RuntimeLevels.Select(level => new LevelSaveData
             {
                 ID = level.ID,

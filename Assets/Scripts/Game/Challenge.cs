@@ -11,13 +11,6 @@ namespace TheGame
         Failed
     }
 
-    [System.Serializable]
-    public class ChallengeSaveData
-    {
-        public string ID;
-        public bool Completed;
-    }
-
     public abstract class Challenge : ScriptableObject
     {
         [Header("Template")]

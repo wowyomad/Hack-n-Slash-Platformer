@@ -129,10 +129,6 @@ namespace TheGame
 
             StateMachine.StateChangedEvent += OnStateChanged;
             StateMachine.StateChangedEvent += InvokeStateChangedEvent;
-
-#if UNITY_EDITOR
-            //StateMachine.StateChangedEvent += LogStateChange;
-#endif
         }
 
         private void OnDisable()

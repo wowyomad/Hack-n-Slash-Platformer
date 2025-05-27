@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class PersistentSingleton<T> : MonoBehaviour where T : Component
 {
-
     public bool HasInstance => m_Instance != null;
     private static T m_Instance;
     public static T Instance

@@ -12,14 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
   m_Name: SampleLevel1
   m_EditorClassIdentifier: 
-  ID: d65a3dfd-03cb-4553-92ed-fe5b084f2876
-  Name: The dungeon
-  Description: The starting level of the game. Must be open.
+  ID: 7d61e656-4e89-465d-a423-96dea86d4b91
+  Name: Level Random Name
+  Description: This is a test level
   Opened: 1
   Completed: 0
   SceneName: SampleScene
-  SceneReference: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
+  SceneReference:
+    _asset: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
+    _path: Assets/Scenes/SampleScene.unity
   Challenges:
   - {fileID: 11400000, guid: 8c3f3aa1ddc49f2428b9c59be0735899, type: 2}
   NextLevels:
-  - {fileID: 11400000, guid: a480d2235814b384cbdca738e56dc4d4, type: 2}
+  - {fileID: 11400000, guid: 2a54e3ebc9d246847a9bc8209b0e157c, type: 2}

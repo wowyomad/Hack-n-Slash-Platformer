@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
+  m_Name: SampleLevel1 2
+  m_EditorClassIdentifier: 
+  ID: 2d0f3df2-1983-4d7e-9788-403c571a9dd5
+  Name: A second levle
+  Description: The second level which is just a copy of first
+  Opened: 1
+  Completed: 0
+  SceneName: SampleScene
+  SceneReference:
+    _asset: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
+    _path: Assets/Scenes/SampleScene.unity
+  Challenges:
+  - {fileID: 11400000, guid: 8e444343fc7814344a1cb0b953a7492e, type: 2}
+  NextLevels: []

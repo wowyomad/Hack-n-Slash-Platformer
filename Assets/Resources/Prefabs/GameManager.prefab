@@ -826,6 +826,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c6de787cd71323458d7d90d4c6ab932, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Input: {fileID: 11400000, guid: 452f792e14b2f564da6e091333de0784, type: 2}
+  m_LevelManager: {fileID: 6920315324477059449}
 --- !u!114 &6920315324477059449
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -838,9 +840,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96e8c7cfb2372254fb15dfccb750fcf7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SaveName: TestSave.json
-  LevelPresets:
-  - {fileID: 0}
+  SaveName: GameSave.json
+  LevelPresets: {fileID: 11400000, guid: 5f019834abb84694e8b365e070ea710c, type: 2}
+  RuntimeLevels: []
 --- !u!1 &2026015620221439993
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,19 +4,19 @@ using UnityEngine.SceneManagement;
 
 namespace TheGame
 {
+    [RequireComponent(typeof(LevelManager))]
     public class GameManager : PersistentSingleton<GameManager>
     {
         public event Action LoadStarted;
         public event Action LoadCompleted;
         public bool IsGamePaused => m_Paused;
 
-        private InputReader m_Input;
-        private LevelManager m_LevelManager;
+        [SerializeField] private InputReader m_Input;
+        [SerializeField] private LevelManager m_LevelManager;
 
         private float m_OriginalTimeScale;
         private float m_OriginalFixedDeltaTime;
         private bool m_Paused;
-
 
 
         protected override void Awake()
@@ -27,6 +27,12 @@ namespace TheGame
             }
 
             base.Awake();
+        }
+
+        private void Start()
+        {
+            m_OriginalTimeScale = Time.timeScale;
+            m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
         }
 
         public void PauseGame()
@@ -114,11 +120,17 @@ namespace TheGame
 
             if (m_LevelManager == null)
             {
-                m_LevelManager = LevelManager.Instance;
+                m_LevelManager = GetComponent<LevelManager>();
+                if (m_LevelManager == null)
+                {
+                    Debug.LogError("LevelManager component is missing on GameManager.");
+                    return;
+                }
+                else
+                {
+                    Debug.Log("LevelManager found!");
+                }
             }
-
-            m_OriginalTimeScale = Time.timeScale;
-            m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
         }
 
         public void Quit()

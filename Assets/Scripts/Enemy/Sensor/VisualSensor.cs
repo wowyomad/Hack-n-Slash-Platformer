@@ -109,7 +109,6 @@ namespace TheGame
             }
 
 
-#if UNITY_EDITOR
             private void OnDrawGizmosSelected()
             {
                 if (m_DrawGizmos && m_DrawGizmosOnlyWhenSelected)
@@ -166,7 +165,6 @@ namespace TheGame
                 Vector2 dir = new Vector2(direction, 0.0f);
                 GizmosEx.DrawCone(transform.position, dir, distance, angle, color);
             }
-#endif
         }
     }
 }
