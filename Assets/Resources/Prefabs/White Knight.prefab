@@ -714,7 +714,7 @@ MonoBehaviour:
   IsAsync: 1
   DontChangePathWhileSloping: 1
   m_StuckCheckInterval: 0.5
-  m_StuckThreshold: 0.1
+  m_StuckThreshold: 0.01
   m_JumpDirection: 0
   m_CurrentPointIndex: 0
   m_JumpSpeedScale: 1

@@ -23,6 +23,7 @@ MonoBehaviour:
     _path: Assets/Scenes/SampleScene.unity
   Challenges:
   - {fileID: 11400000, guid: 1f18fa1d717ac2b4bb615cd92cef29e3, type: 2}
+  - {fileID: 11400000, guid: 8c3f3aa1ddc49f2428b9c59be0735899, type: 2}
   NextLevels:
   - {fileID: 11400000, guid: 2a54e3ebc9d246847a9bc8209b0e157c, type: 2}
   LevelStatus: 0

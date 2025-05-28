@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TheGame
 {
-    public class UIManager : PersistentSingleton<UIManager>
+    public class UIManager : MonoBehaviour
     {
         [SerializeField] private InputReader m_Input;
         private GameManager m_GameManager;
@@ -25,18 +25,14 @@ namespace TheGame
 
         private GameObject m_CurrentScreen;
         private GameObject m_CurrentSettingsTab;
+        private LevelManager m_LevelManager;
 
         private List<GameObject> m_Screens = new List<GameObject>();
         private List<GameObject> m_SettingsTabs = new List<GameObject>();
 
-        protected override void Awake()
+        private void Awake()
         {
-            if (!HasInstance)
-            {
-                Initialize();
-            }
-
-            base.Awake();
+            Initialize();
         }
 
         private void Start()
@@ -48,7 +44,7 @@ namespace TheGame
         {
             m_Input.Pause += OnPauseResume;
             m_Input.Resume += OnPauseResume;
-            m_Input.Restart += OnRestart;
+            m_Input.Restart += Restart;
             EventBus<PlayerDiedEvent>.OnEvent += ShowDeathScreen;
         }
 
@@ -56,7 +52,7 @@ namespace TheGame
         {
             m_Input.Pause -= OnPauseResume;
             m_Input.Resume -= OnPauseResume;
-            m_Input.Restart -= OnRestart;
+            m_Input.Restart -= Restart;
             EventBus<PlayerDiedEvent>.OnEvent -= ShowDeathScreen;
         }
 
@@ -124,7 +120,8 @@ namespace TheGame
             {
                 m_Input = InputReader.Load();
             }
-            m_GameManager = GameManager.Instance;
+            m_GameManager = GetComponent<GameManager>();
+            m_LevelManager = GetComponent<LevelManager>();
 
             if (m_MainScreen == null) Debug.LogError("Main Screen is not assigned!", this);
             if (m_PauseScreen == null) Debug.LogError("Pause Screen is not assigned!", this);
@@ -165,10 +162,9 @@ namespace TheGame
         }
 
 
-        public void OnRestart()
+        public void Restart()
         {
-            m_GameManager.TriggerRestartCurrentLevel();
-            m_GameManager.ResumeGame();
+            m_LevelManager.RestartCurrentLevel();
             ShowScreen(null);
         }
 

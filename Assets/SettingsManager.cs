@@ -1,31 +1,18 @@
 using UnityEngine;
 
-public class DefaultSettingsSO : ScriptableObject
-{
-    public float MusicVolume = 0.5f;
-    public float GeneralVolume = 0.75f;
-}
-
-public class SettingsManager : PersistentSingleton<SettingsManager>
+public class SettingsManager : MonoBehaviour
 {
     [SerializeField] private AudioSource m_MusicSource;
     [SerializeField] private string MusicVolumeKey = "MusicVolume";
     [SerializeField] private string GeneralVolumeKey = "GeneralVolume";
 
 
-    [SerializeField] private DefaultSettingsSO m_DefaultSettings;
+    [SerializeField] private DefaultSettings m_DefaultSettings;
 
     private InputReader Input;
 
-    protected override void Awake()
+    private void Awake()
     {
-        base.Awake();
-        
-        if (Instance != this)
-        {
-            return;
-        }
-    
         Input = Resources.Load<InputReader>("Input/InputReader");
 
         if (m_DefaultSettings == null)

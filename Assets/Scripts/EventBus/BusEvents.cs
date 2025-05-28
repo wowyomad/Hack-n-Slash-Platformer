@@ -17,6 +17,11 @@ namespace TheGame
         
     }
 
+    public struct TriggerRestartEvent : IEvent
+    {
+        public GameObject Source;
+    }
+
     public struct EnemyGotHitEvent : IEvent
     {
         public Vector3 EnemyPosition;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TheGame
 {
@@ -17,6 +18,7 @@ namespace TheGame
         public string ID = System.Guid.NewGuid().ToString();
         public string Name = "New Challenge";
         public string Description = "Challenge Description";
+        public Image RewardIcon;
         public ChallengeStatus Status;
 
         public virtual void Initialize(ChallengeSaveData data)

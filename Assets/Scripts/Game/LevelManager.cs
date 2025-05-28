@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace TheGame
 {
-    public class LevelManager : PersistentSingleton<LevelManager>
+    public class LevelManager : MonoBehaviour
     {
         public bool IsLevelActive => CurrentLevel != null;
         public string SaveName = "SaveData.json";
@@ -18,14 +18,11 @@ namespace TheGame
 
         private bool m_Running = false;
 
-        protected override void Awake()
+        private void Awake()
         {
-            if (!HasInstance)
-            {
-                m_GameManager = GetComponent<GameManager>();
-                m_SaveFilePath = System.IO.Path.Combine(Application.persistentDataPath, SaveName);
-            }
-            base.Awake();
+
+            m_GameManager = GetComponent<GameManager>();
+            m_SaveFilePath = System.IO.Path.Combine(Application.persistentDataPath, SaveName);
         }
 
         protected void Start()
@@ -43,7 +40,7 @@ namespace TheGame
             if (m_Running)
             {
                 CurrentLevel.OnUpdate(Time.deltaTime);
-                
+
                 if (CurrentLevel.LevelStatus == Level.Status.Complete)
                 {
                     m_Running = false;
@@ -189,6 +186,21 @@ namespace TheGame
             CurrentLevel?.OnLevelExited();
             CurrentLevel = level;
             m_GameManager.LoadGameLevel(level.SceneName);
+        }
+
+        public void UnloadCurrentLevel()
+        {
+            if (CurrentLevel == null)
+            {
+                Debug.LogWarning("No current level to unload.");
+                return;
+            }
+
+            CurrentLevel.OnLevelExited();
+            m_GameManager.UnloadGameLevel(CurrentLevel.SceneName);
+            m_GameManager.ResetTimeScale();
+            CurrentLevel = null;
+            m_Running = false;
         }
 
         public void LoadLastUnfinishedLevel()

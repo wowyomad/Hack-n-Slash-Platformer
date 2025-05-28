@@ -6,10 +6,11 @@ using UnityEngine.SceneManagement;
 namespace TheGame
 {
     [RequireComponent(typeof(LevelManager))]
-    public class GameManager : PersistentSingleton<GameManager>
+    public class GameManager : MonoBehaviour
     {
         public event Action LoadStarted;
         public event Action LoadCompleted;
+        public event Action UnloadCompleted;
         public bool IsGamePaused => m_Paused;
 
         [SerializeField] private InputReader m_Input;
@@ -22,18 +23,14 @@ namespace TheGame
 
         private string m_CurrentAdditiveGameplaySceneName; // Tracks the current game level scene
 
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake(); // Handle singleton instance logic
-            if (Instance == this) // Ensure this is the true singleton instance
-            {
-                Initialize();
-            }
+            Initialize();
         }
 
         private void Start()
         {
-            if (Instance == this && !m_TimeScalesCaptured)
+            if (!m_TimeScalesCaptured)
             {
                 CaptureOriginalTimeScales();
             }
@@ -89,19 +86,6 @@ namespace TheGame
             Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
         }
 
-        public void TriggerRestartCurrentLevel()
-        {
-            if (true || m_LevelManager != null /*&& m_LevelManager.IsLevelActive*/ && !string.IsNullOrEmpty(m_CurrentAdditiveGameplaySceneName))
-            {
-                //m_LevelManager.RestartCurrentLevel(); // Logic to reset level state (e.g. player pos, challenge status on runtime SO copies)
-                LoadGameLevel(m_CurrentAdditiveGameplaySceneName); // Reload the same scene
-            }
-            else
-            {
-                Debug.LogWarning("GameManager: No active game level to restart or LevelManager not found. Consider going to main menu.");
-                //m_LevelManager?.GoToMainMenu(); // Example: LevelManager handles loading main menu
-            }
-        }
 
         public void ResetTimeScale()
         {
@@ -152,10 +136,10 @@ namespace TheGame
             LoadCompleted?.Invoke();
         }
 
-        public void UnloadSpecificScene(string sceneName) // Renamed for clarity
+        public void UnloadGameLevel(string levelSceneName) // Renamed for clarity
         {
-            if (string.IsNullOrEmpty(sceneName) || !SceneManager.GetSceneByName(sceneName).isLoaded) return;
-            StartCoroutine(UnloadSceneCoroutine(sceneName));
+            if (string.IsNullOrEmpty(levelSceneName) || !SceneManager.GetSceneByName(levelSceneName).isLoaded) return;
+            StartCoroutine(UnloadSceneCoroutine(levelSceneName));
         }
 
         private IEnumerator UnloadSceneCoroutine(string sceneName)
@@ -167,7 +151,7 @@ namespace TheGame
             {
                 m_CurrentAdditiveGameplaySceneName = null;
             }
-            LoadCompleted?.Invoke(); // Or specific "UnloadCompleted" event
+            UnloadCompleted?.Invoke();
         }
 
         private void SetupCamera()
@@ -177,7 +161,6 @@ namespace TheGame
         }
         public void Quit()
         {
-            if (m_LevelManager == null && LevelManager.Instance != null) m_LevelManager = LevelManager.Instance;
             m_LevelManager?.Save();
             Application.Quit();
 #if UNITY_EDITOR

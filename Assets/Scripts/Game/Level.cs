@@ -44,6 +44,7 @@ namespace TheGame
             Challenges.ForEach(challenge => challenge.OnLevelLoaded());
             EventBus<PlayerDiedEvent>.OnEvent += FailBecausePlayedDied;
             EventBus<LevelFinishReachedEvent>.OnEvent += CompleteBecauseLevelFinishReached;
+            EventBus<TriggerRestartEvent>.OnEvent += RestartLevel;
         }
 
         public virtual void OnLevelExited()
@@ -57,9 +58,14 @@ namespace TheGame
             {
                 Debug.Log($"Level {Name} exited with status: {LevelStatus}");
             }
+            if (LevelStatus == Status.Complete)
+            {
+
+            }
             Challenges.ForEach(challenge => challenge.OnLevelExited());
             EventBus<PlayerDiedEvent>.OnEvent -= FailBecausePlayedDied;
             EventBus<LevelFinishReachedEvent>.OnEvent -= CompleteBecauseLevelFinishReached;
+            EventBus<TriggerRestartEvent>.OnEvent -= RestartLevel;
         }
 
         public virtual void OnLevelStarted()
@@ -128,6 +134,11 @@ namespace TheGame
                     challenge.OnLevelFailed();
                 }
             });
+        }
+
+        protected void RestartLevel(TriggerRestartEvent e)
+        {
+            OnLevelRestarted();
         }
 
         protected void FailBecausePlayedDied(PlayerDiedEvent e)
