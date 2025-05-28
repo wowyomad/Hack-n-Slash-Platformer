@@ -15,4 +15,5 @@ MonoBehaviour:
   ID: f2fac630-293a-486d-b453-0b6141294936
   Name: A debug challenge
   Description: Press C to Complete or F to Fail.
+  RewardAbility: {fileID: 11400000, guid: 571749da5def5ec469a9d6f9599f2558, type: 2}
   Status: 0

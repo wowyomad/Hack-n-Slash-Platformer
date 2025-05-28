@@ -24,6 +24,8 @@ namespace TheGame
             {
                 Debug.LogError("CharacterController2D component not found on Player.", player);
             }
+
+            Player.Internal_OnDashPerofmred(true);
         }
 
         public override void OnEnter()
@@ -48,6 +50,8 @@ namespace TheGame
         {
             DashFinished = false;
             m_Controller.ApplyGravity = true;
+
+            Player.Internal_OnDashPerofmred(false);
         }
 
         public override void OnUpdate()

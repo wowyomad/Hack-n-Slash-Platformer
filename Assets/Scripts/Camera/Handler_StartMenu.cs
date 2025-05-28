@@ -162,8 +162,19 @@ namespace TheGame
                 challengeDescriptionText.text = challenge.Description;
                 challengeDescriptionText.color = challenge.Status == ChallengeStatus.Complete ? CompleteChallengeColor : DefaultChallengeColor;
 
-                Image challengeImage = challengeGameObject.transform.GetChild(2).GetComponent<Image>();
-                challengeImage.sprite = challenge.RewardIcon?.sprite;
+
+                if (challenge.RewardAbility != null)
+                {
+                    Image rewardImage = challengeGameObject.transform.GetChild(2).GetComponent<Image>();
+
+                    //if there's background?
+                    if (rewardImage.transform.childCount > 0)
+                    {
+                        rewardImage = rewardImage.transform.GetChild(0).GetComponent<Image>();
+                    }
+
+                    rewardImage.sprite = challenge.RewardAbility.ItemIcon; ;
+                }
             });
         }
     }

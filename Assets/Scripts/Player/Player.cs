@@ -13,6 +13,13 @@ namespace TheGame
         [HideInInspector] public MeleeWeapon WeaponReference;
         [HideInInspector] public MeleeCombat MeleeCombat;
 
+
+        public event Action<bool> WhenDash;
+        public event Action<bool> WhenAttack;
+
+        public void Internal_OnDashPerofmred(bool performed) => WhenDash?.Invoke(performed);
+        public void Internal_OnAttackPerofmred(bool performed) => WhenAttack?.Invoke(performed);
+
         public override bool IsAlive => IsInvincible || CurrentState != DeadState;
 
         public bool IsInvincible = false;
@@ -77,7 +84,7 @@ namespace TheGame
 
         public Vector3 Velocity => Controller.Velocity;
         public CharacterStatsSO Stats;
-        private bool IsVulnerable = true;
+        public bool IsVulnerable = true;
 
         public event Action<IState, IState> StateChanged;
         public override event Action OnHit;
@@ -236,6 +243,7 @@ namespace TheGame
                 .TriggerIf(Trigger.Air, () => PreviousState == AirState || PreviousState == JumpState);
 
             StateMachine.Configure(DashState)
+                .SubstateOf(AnyState)
                 .PermitIf(Trigger.Air, AirState, () => DashState.DashFinished)
                 .PermitIf(Trigger.Idle, IdleState, () => DashState.DashFinished)
                 .TriggerIf(Trigger.Idle, () => Controller.IsGrounded)

@@ -74,6 +74,8 @@ namespace TheGame
 
             m_Melee.OnTargetHit += HandleTargetHitResult;
             m_Melee.StartAttack(hitData);
+
+            Player.Internal_OnAttackPerofmred(true);
         }
 
         public override void OnExit()
@@ -82,6 +84,8 @@ namespace TheGame
             m_LastAttackTime = Time.time;
 
             m_Melee.OnTargetHit -= HandleTargetHitResult;
+
+            Player.Internal_OnAttackPerofmred(false);
 
             AttackFinished = false;
         }

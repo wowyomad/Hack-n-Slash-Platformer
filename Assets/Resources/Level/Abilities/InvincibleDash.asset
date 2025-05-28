@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b775e08bf0c7a8548907ecbdb860c13c, type: 3}
+  m_Name: InvincibleDash
+  m_EditorClassIdentifier: 
+  ID: 6f499826-4cad-44ba-ab7c-629a4d7aa956
+  Name: Invincible Dash
+  Description: When player dashes, enemies attack don't hit!
+  ItemIcon: {fileID: 2616948992016369625, guid: c47257202d581454cbe9ff83b6dc24ee, type: 3}
+  Unlocked: 0
