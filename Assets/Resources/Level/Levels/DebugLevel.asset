@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a6a4569f14b96c4e922609eb912c2ea, type: 3}
   m_Name: DebugLevel
   m_EditorClassIdentifier: 
-  ID: ceafd3f2-2bdd-4525-b1b6-da119f3496bf
+  ID: b9926f3f-faa2-4d18-82d9-c491199e3535
   Name: A Debug Level
   Description: This is a debug level for internal testing
   Opened: 1

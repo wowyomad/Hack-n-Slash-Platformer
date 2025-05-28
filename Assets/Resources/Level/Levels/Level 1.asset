@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
   m_Name: Level 1
   m_EditorClassIdentifier: 
-  ID: 2d0f3df2-1983-4d7e-9788-403c571a9dd5
+  ID: a138d080-78ba-44d6-a195-d2aca1c1433c
   Name: Dungeon of fears
   Description: The very first level of the game
   Opened: 1
