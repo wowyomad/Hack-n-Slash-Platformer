@@ -18,8 +18,8 @@ namespace TheGame
         public event System.Action<HitResult, GameObject> OnTargetHit; //Target, Result
 
         [Header("References")]
-        [SerializeField] private Animator m_Animator;
-        [SerializeField] private MeleeWeapon m_Weapon;
+        [HideInInspector][SerializeField] private Animator m_Animator;
+        [HideInInspector][SerializeField] private MeleeWeapon m_Weapon;
 
         [Header("Animation Settings")]
         [SerializeField] private bool m_UseAnimationEvents = true;

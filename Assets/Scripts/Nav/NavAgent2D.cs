@@ -343,7 +343,7 @@ public class NavAgent2D : MonoBehaviour
             Velocity = new Vector2(0, m_Controller.Velocity.y);
         }
 
-        if (m_State == AgentState.Stopped)
+        if (m_State == AgentState.Stopped || m_Controller.IsFacingWallLeft && Velocity.x < 0 || m_Controller.IsFacingWallRight && Velocity.x > 0)
         {
             m_Animator.SetInteger("Speed", 0);
         }

@@ -14,7 +14,7 @@ namespace TheGame
 
     public struct LevelFinishReachedEvent : IEvent
     {
-        
+
     }
 
     public struct TriggerRestartEvent : IEvent
@@ -45,5 +45,32 @@ namespace TheGame
     public struct LeverHitEvent : IEvent
     {
         public Vector3 LeverPosition;
+    }
+
+    public struct LevelStartedEvent : IEvent
+    {
+        public Level Level;
+    }
+
+    public struct LevelCompletedEvent : IEvent
+    {
+        public Level Level;
+    }
+    public struct LevelFailedEvent : IEvent
+    {
+        public Level Level;
+    }
+    public struct LevelRestartedEvent : IEvent
+    {
+        public Level Level;
+    }
+    public struct LevelExitedEvent : IEvent
+    {
+        public Level Level;
+    }
+
+    public struct LevelTimeExpiredEvent : IEvent
+    {
+        public Level Level;
     }
 }

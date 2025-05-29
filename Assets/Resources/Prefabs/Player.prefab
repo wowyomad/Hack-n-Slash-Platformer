@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4524528210805276420}
   - component: {fileID: 7567376747001676808}
   - component: {fileID: 1753380829603043273}
+  - component: {fileID: 2502726774211159338}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -104,6 +105,7 @@ MonoBehaviour:
   Controller: {fileID: 0}
   Input: {fileID: 0}
   Stats: {fileID: 11400000, guid: 279ca9e03e3d89e4abd4cd8c89cf115a, type: 2}
+  IsVulnerable: 1
 --- !u!114 &7567376747001676808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,6 +165,22 @@ MonoBehaviour:
   m_Weapon: {fileID: 0}
   m_UseAnimationEvents: 0
   m_AttackAnimationTrigger: StartAttack
+--- !u!114 &2502726774211159338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1716449755615276368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a445640cf99069e4a94e287082eb056b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MaxValue: 1
+  m_ScorePerEnemyHit: 0.6
+  m_ScoreDecreaseRate: 0.2
+  m_ScoreDecreaseDelay: 2
 --- !u!1 &3035308244963648459
 GameObject:
   m_ObjectHideFlags: 0

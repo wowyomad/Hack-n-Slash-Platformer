@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -18,6 +20,14 @@ namespace TheGame
         public List<Challenge> Challenges = new List<Challenge>();
         public List<Level> NextLevels = new List<Level>();
         public Status LevelStatus = Status.None;
+        public float TimeToComplete = 60.0f;
+        public float TimeElsaped => Time.time - m_TimeStarted;
+        public float TimeRemaining => Mathf.Max(0.0f, TimeToComplete - TimeElsaped);
+
+
+        [NonSerialized]
+        private float m_TimeStarted;
+
 
         public enum Status
         {
@@ -66,6 +76,11 @@ namespace TheGame
             EventBus<PlayerDiedEvent>.OnEvent -= FailBecausePlayedDied;
             EventBus<LevelFinishReachedEvent>.OnEvent -= CompleteBecauseLevelFinishReached;
             EventBus<TriggerRestartEvent>.OnEvent -= RestartLevel;
+
+            EventBus<LevelExitedEvent>.Raise(new LevelExitedEvent
+            {
+                Level = this,
+            });
         }
 
         public virtual void OnLevelStarted()
@@ -73,6 +88,7 @@ namespace TheGame
             Debug.Log($"Level {Name} started.");
 
             LevelStatus = Status.InProgress;
+            m_TimeStarted = Time.time;
             Challenges.ForEach(challenge =>
             {
                 if (challenge.Status != ChallengeStatus.Complete)
@@ -80,12 +96,22 @@ namespace TheGame
                     challenge.OnLevelStarted();
                 }
             });
+
+            EventBus<LevelStartedEvent>.Raise(new LevelStartedEvent
+            {
+                Level = this,
+            });
         }
 
         public virtual void OnUpdate(float deltaTime)
         {
             if (LevelStatus == Status.InProgress)
             {
+                if (TimeRemaining <= 0.0f)
+                {
+                    FailBecauseTimeExpired();
+                }
+
                 Challenges.ForEach(challenge =>
                 {
                     if (challenge.Status != ChallengeStatus.Complete)
@@ -100,6 +126,7 @@ namespace TheGame
         {
             Debug.Log($"Level {Name} restarted.");
             LevelStatus = Status.InProgress;
+            m_TimeStarted = Time.time;
             Challenges.ForEach(challenge =>
                 {
                     if (challenge.Status != ChallengeStatus.Complete)
@@ -107,6 +134,11 @@ namespace TheGame
                         challenge.OnLevelRestarted();
                     }
                 });
+
+            EventBus<LevelRestartedEvent>.Raise(new LevelRestartedEvent
+            {
+                Level = this,
+            });
         }
 
         public virtual void OnLevelCompleted()
@@ -119,6 +151,11 @@ namespace TheGame
                 {
                     challenge.OnLevelCompleted();
                 }
+            });
+
+            EventBus<LevelCompletedEvent>.Raise(new LevelCompletedEvent
+            {
+                Level = this,
             });
         }
 
@@ -133,6 +170,22 @@ namespace TheGame
                 {
                     challenge.OnLevelFailed();
                 }
+            });
+
+            EventBus<LevelFailedEvent>.Raise(new LevelFailedEvent
+            {
+                Level = this,
+            });
+        }
+
+        public void FailBecauseTimeExpired()
+        {
+            Debug.Log($"Level {Name} failed due to time expiration.");
+            OnLevelFailed();
+
+            EventBus<LevelTimeExpiredEvent>.Raise(new LevelTimeExpiredEvent
+            {
+                Level = this,
             });
         }
 

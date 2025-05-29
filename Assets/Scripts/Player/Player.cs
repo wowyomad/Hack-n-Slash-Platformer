@@ -6,12 +6,14 @@ using System.Linq;
 
 namespace TheGame
 {
+    [RequireComponent(typeof(RageMeter))]
     [RequireComponent(typeof(CharacterController2D))]
     public class Player : Entity, IStateTrackable
     {
         [Header("Children Components")]
         [HideInInspector] public MeleeWeapon WeaponReference;
         [HideInInspector] public MeleeCombat MeleeCombat;
+        [HideInInspector] public RageMeter RageMeter; 
 
 
         public event Action<bool> WhenDash;
@@ -104,6 +106,7 @@ namespace TheGame
             Controller = GetComponent<CharacterController2D>();
             WeaponReference = GetComponentInChildren<MeleeWeapon>();
             MeleeCombat = GetComponent<MeleeCombat>();
+            RageMeter = GetComponent<RageMeter>();
 
             InitializeFiels();
             SetupTimers();
