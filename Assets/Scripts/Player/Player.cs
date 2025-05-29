@@ -13,8 +13,12 @@ namespace TheGame
         [Header("Children Components")]
         [HideInInspector] public MeleeWeapon WeaponReference;
         [HideInInspector] public MeleeCombat MeleeCombat;
-        [HideInInspector] public RageMeter RageMeter; 
+        [HideInInspector] public RageMeter RageMeter;
 
+
+        private ThrowablePicker m_ThrowablePicker;
+
+        public IThrowable ThrowableInHand;
 
         public event Action<bool> WhenDash;
         public event Action<bool> WhenAttack;
@@ -107,6 +111,7 @@ namespace TheGame
             WeaponReference = GetComponentInChildren<MeleeWeapon>();
             MeleeCombat = GetComponent<MeleeCombat>();
             RageMeter = GetComponent<RageMeter>();
+            m_ThrowablePicker = GetComponent<ThrowablePicker>();
 
             InitializeFiels();
             SetupTimers();
@@ -202,7 +207,7 @@ namespace TheGame
                 .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
                 .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
                 .Permit(Trigger.Jump, JumpState)
-                .Permit(Trigger.Throw, ThrowState)
+                .PermitIf(Trigger.Throw, ThrowState, () => ThrowableInHand != null)
                 .Permit(Trigger.Air, AirState)
                 .Permit(Trigger.Walk, WalkState)
                 .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
@@ -213,7 +218,7 @@ namespace TheGame
                 .Permit(Trigger.Jump, JumpState)
                 .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
                 .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
-                .Permit(Trigger.Throw, ThrowState)
+                .PermitIf(Trigger.Throw, ThrowState, () => ThrowableInHand != null)
                 .Permit(Trigger.Air, AirState)
                 .TriggerIf(Trigger.Air, () => !Controller.IsGrounded)
                 .Permit(Trigger.Idle, IdleState)
@@ -221,7 +226,7 @@ namespace TheGame
 
             StateMachine.Configure(JumpState)
                 .SubstateOf(AnyState)
-                .Permit(Trigger.Throw, ThrowState)
+                .PermitIf(Trigger.Throw, ThrowState, () => ThrowableInHand != null)
                 .Permit(Trigger.Air, AirState)
                 .PermitIf(Trigger.Dash, DashState, () => m_DashCooldonwTimer.IsFinished)
                 .PermitIf(Trigger.Attack, AttackState, () => m_AttackCoodownTimer.IsFinished)
@@ -264,17 +269,40 @@ namespace TheGame
             StateMachine.Configure(DeadState);
         }
 
-        public void ThrowKnife()
+        public void Throw()
         {
-            var knifePrefab = Instantiate(Resources.Load<GameObject>("Prefabs/Throwable/Knife"));
-            IThrowable knife;
-            if (knifePrefab.TryGetComponent<IThrowable>(out knife))
+            if (ThrowableInHand != null)
             {
-                Throw(knife);
+                Throw(ThrowableInHand);
+                ThrowableInHand = null;
+            }
+            else
+            {
+                Debug.LogWarning("No throwable item in hand to throw.");
             }
         }
 
-        public void Throw(IThrowable throwable)
+        public bool TryPickUpItem()
+        {
+            if (m_ThrowablePicker.PickablesInArea.Count > 0)
+            {
+                var item = m_ThrowablePicker.PickablesInArea[0];
+                IThrowable pickedItem = item.Pickup(m_ThrowablePicker) as IThrowable;
+                if (pickedItem != null)
+                {
+                    ThrowableInHand = pickedItem;
+                    return true;
+                }
+            }
+            else
+            {
+                Debug.LogWarning("No throwable item found to throw.");
+            }
+            return false;
+
+        }
+
+        private void Throw(IThrowable throwable)
         {
             Vector3 targetPosition = WorldCursorPosition - Velocity;
             Vector3 directionToTarget = (targetPosition - transform.position).normalized;
@@ -327,7 +355,7 @@ namespace TheGame
             if (IsDead) return HitResult.Nothing;
 
             HitResult hitResult = HitResult.Nothing;
-            
+
             if (CurrentState is PlayerAttackState attack && attack.LastHitTarget == hitData.Attacker && hitData.IsParryable)
             {
                 hitResult = HitResult.Parry;
@@ -364,6 +392,10 @@ namespace TheGame
         {
             if (StateMachine.CanFire(Trigger.Throw))
                 StateMachine.Fire(Trigger.Throw);
+            else if (m_ThrowablePicker.PickablesInArea.Count > 0)
+            {
+                TryPickUpItem();
+            }
         }
 
         [GameAction(ActionType.Dash)]
@@ -379,13 +411,6 @@ namespace TheGame
             ClimbDown();
         }
 
-        private void LogStateChange(IState previous, IState next)
-        {
-            if (previous != null)
-                Debug.Log($"Changing state from {previous} to {next}");
-            else
-                Debug.Log($"Assigning state to {next}");
-        }
 
         private bool Can(Trigger trigger) => StateMachine.CanFire(trigger);
         private void Do(Trigger trigger) => StateMachine.Fire(trigger);

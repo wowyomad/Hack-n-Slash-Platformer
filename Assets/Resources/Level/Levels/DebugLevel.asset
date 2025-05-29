@@ -27,3 +27,4 @@ MonoBehaviour:
   NextLevels:
   - {fileID: 11400000, guid: 2a54e3ebc9d246847a9bc8209b0e157c, type: 2}
   LevelStatus: 0
+  TimeToComplete: 40

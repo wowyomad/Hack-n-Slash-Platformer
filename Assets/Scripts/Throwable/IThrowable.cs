@@ -1,11 +1,26 @@
-using System;
 using UnityEngine;
 
-public interface IThrowable
+namespace TheGame
 {
-    delegate void ThrownEvent (Vector2 direction);
-    delegate void ImpactEVent(GameObject victim, Vector2 point, Vector2 normal);
-    void Throw(Vector2 origin, Vector2 target);
-    event ImpactEVent Impact;
-    event ThrownEvent Thrown;
+    public interface IThrowable
+    {
+        delegate void ThrownEvent(Vector2 direction);
+        delegate void ImpactEvent(GameObject victim, Vector2 point, Vector2 normal);
+
+        sealed void Throw(Vector2 origin, Vector2 target)
+        {
+            var direction = (target - origin).normalized;
+            ThrowInDirection(origin, direction);
+        }
+
+        void ThrowInDirection(Vector2 origin, Vector2 direction);
+        event ImpactEvent Impact;
+        event ThrownEvent Thrown;
+        Sprite Icon { get; }
+    }
+
+    public interface IThrowableWithThrower : IThrowable
+    {
+        void SetThrower(GameObject thrower);
+    }
 }

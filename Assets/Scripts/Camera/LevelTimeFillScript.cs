@@ -5,8 +5,7 @@ using UnityEngine.UI;
 public class LevelTimeFillScript : MonoBehaviour
 {
     [SerializeField] private Image m_FillImage;
-
-    private float m_Step = 0.05f;
+    [SerializeField] private float m_Step = 0.05f;
     private float m_CurrentFill = 1.0f;
     private Level m_Level;
 

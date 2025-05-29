@@ -53,7 +53,7 @@ namespace TheGame
             Debug.Log($"Level {Name} loaded.");
             Challenges.ForEach(challenge => challenge.OnLevelLoaded());
             EventBus<PlayerDiedEvent>.OnEvent += FailBecausePlayedDied;
-            EventBus<LevelFinishReachedEvent>.OnEvent += CompleteBecauseLevelFinishReached;
+            EventBus<LevelFinishTriggeredEvent>.OnEvent += CompleteBecauseLevelFinished;
             EventBus<TriggerRestartEvent>.OnEvent += RestartLevel;
         }
 
@@ -74,7 +74,7 @@ namespace TheGame
             }
             Challenges.ForEach(challenge => challenge.OnLevelExited());
             EventBus<PlayerDiedEvent>.OnEvent -= FailBecausePlayedDied;
-            EventBus<LevelFinishReachedEvent>.OnEvent -= CompleteBecauseLevelFinishReached;
+            EventBus<LevelFinishTriggeredEvent>.OnEvent -= CompleteBecauseLevelFinished;
             EventBus<TriggerRestartEvent>.OnEvent -= RestartLevel;
 
             EventBus<LevelExitedEvent>.Raise(new LevelExitedEvent
@@ -199,7 +199,7 @@ namespace TheGame
             OnLevelFailed();
         }
 
-        protected void CompleteBecauseLevelFinishReached(LevelFinishReachedEvent e)
+        protected void CompleteBecauseLevelFinished(LevelFinishTriggeredEvent e)
         {
             OnLevelCompleted();
         }

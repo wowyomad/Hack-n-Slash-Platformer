@@ -6,7 +6,7 @@ namespace TheGame
 
         public override void OnEnter()
         {
-            Player.ThrowKnife();
+            Player.Throw();
         }
     }
 }

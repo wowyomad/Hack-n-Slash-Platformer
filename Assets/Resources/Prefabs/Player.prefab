@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7567376747001676808}
   - component: {fileID: 1753380829603043273}
   - component: {fileID: 2502726774211159338}
+  - component: {fileID: 2339280117688240788}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -98,6 +99,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WeaponReference: {fileID: 0}
   MeleeCombat: {fileID: 0}
+  RageMeter: {fileID: 0}
   IsInvincible: 0
   m_EnemyLayerMask:
     serializedVersion: 2
@@ -177,10 +179,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a445640cf99069e4a94e287082eb056b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  InUse: 1
   m_MaxValue: 1
   m_ScorePerEnemyHit: 0.6
   m_ScoreDecreaseRate: 0.2
   m_ScoreDecreaseDelay: 2
+  m_Value: 0
+--- !u!114 &2339280117688240788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1716449755615276368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f46aed07f8ba7c469f0889218c1c71d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3035308244963648459
 GameObject:
   m_ObjectHideFlags: 0

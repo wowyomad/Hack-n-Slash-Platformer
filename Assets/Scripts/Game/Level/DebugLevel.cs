@@ -20,7 +20,7 @@ namespace TheGame
             if (LevelStatus == Status.InProgress)
             {
                 Debug.Log("Completing Debug level");
-                EventBus<LevelFinishReachedEvent>.Raise(new LevelFinishReachedEvent());
+                EventBus<LevelFinishTriggeredEvent>.Raise(new LevelFinishTriggeredEvent());
             }
         }
     }

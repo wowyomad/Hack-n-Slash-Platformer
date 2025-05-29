@@ -12,7 +12,7 @@ namespace TheGame
 
     }
 
-    public struct LevelFinishReachedEvent : IEvent
+    public struct LevelFinishTriggeredEvent : IEvent
     {
 
     }
