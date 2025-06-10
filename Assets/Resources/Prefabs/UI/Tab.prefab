@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6745994926868239182}
   - component: {fileID: 7989416821495925275}
   - component: {fileID: 6830001239412374148}
+  - component: {fileID: 6109764816534474541}
   m_Layer: 0
   m_Name: Tab
   m_TagString: Untagged
@@ -98,7 +99,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 2
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_NormalColor: {r: 0.59556013, g: 0.45977217, b: 0.7924528, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -121,6 +122,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6109764816534474541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4329223461153655933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 156332593e02f6b499db62849eb0a753, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 0
 --- !u!1 &6073899770256691304
 GameObject:
   m_ObjectHideFlags: 0
@@ -251,7 +265,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 42.090622, y: 27.302063, z: 5.11911, w: 3.4127197}
+  m_margin: {x: 46.693436, y: 27.302063, z: 15.859039, w: 3.4127197}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

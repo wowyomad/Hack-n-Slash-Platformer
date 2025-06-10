@@ -14,6 +14,11 @@ namespace TheGame
         public GameObject ChallengeListContentRef;
         public GameObject LevelNameRef;
         public GameObject LevelDescriptionRef;
+        public GameObject SelectedItemIconRef;
+        public GameObject SelectedItemLockRef;
+        public GameObject NextItemButtonRef;
+        public GameObject PrevItemButtonRef;
+
 
         [Header("UI Prefabs")]
         public GameObject LevelTogglePrefab;
@@ -143,6 +148,13 @@ namespace TheGame
         private void RefreshChallenges()
         {
             Level selectedLevel = m_Levels[m_SelectedLevelIndex];
+
+            if (m_SelectedLevelIndex == 0)
+            {
+
+                SelectedItemIconRef.GetComponent<Image>().sprite = selectedLevel.Challenges[0].RewardAbility?.ItemIcon;
+                SelectedItemLockRef.GetComponent<Image>().enabled = selectedLevel.Challenges[0].Status != ChallengeStatus.Complete;
+            }
 
             // Clear existing challenge list
             foreach (Transform child in ChallengeListContentRef.transform)

@@ -170,7 +170,7 @@ namespace TheGame
         public void Restart()
         {
             m_LevelManager.RestartCurrentLevel();
-            ShowScreen(null);
+            ShowScreen(HUD);
         }
 
         private void ShowDeathScreen(PlayerDiedEvent e)

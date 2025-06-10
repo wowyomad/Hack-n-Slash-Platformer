@@ -235,6 +235,7 @@ GameObject:
   - component: {fileID: 5454020545886123046}
   - component: {fileID: 8451595682614828719}
   - component: {fileID: 2045608875545779160}
+  - component: {fileID: 3285268670062980297}
   m_Layer: 0
   m_Name: Gameplay_Tab
   m_TagString: Untagged
@@ -390,6 +391,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3285268670062980297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4792922978361649646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f509088aec66149be0fb8e864558a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 4
 --- !u!1 &5494937662969922061
 GameObject:
   m_ObjectHideFlags: 0

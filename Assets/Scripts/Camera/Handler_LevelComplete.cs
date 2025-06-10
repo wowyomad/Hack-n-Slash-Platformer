@@ -1,13 +1,19 @@
 using TheGame;
+using TMPro;
 using UnityEngine;
+
+
 
 public class Handler_LevelComplete : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     private GameManager m_GameManager;
     private LevelManager m_LevelManager;
     private UIManager m_UIManager;
     private Handler_StartMenu m_StartHandler;
+
+    public TextMeshProUGUI DescriptionText;
+
+    public InputReader m_InputReader;
 
     private Level m_CurrentLevel;
 
@@ -22,26 +28,27 @@ public class Handler_LevelComplete : MonoBehaviour
             Debug.LogError("UIManager component is not found on the Handler_LevelComplete GameObject.", this);
         }
     }
-
+    private bool m_Green = false;
     private void OnEnable()
     {
         EventBus<LevelCompletedEvent>.OnEvent += ShowLevelCompleteScreen;
+    }
+
+    private void OnDisable()
+    {
+        EventBus<LevelCompletedEvent>.OnEvent -= ShowLevelCompleteScreen;
     }
     void Start()
     {
 
     }
 
-
-
     private void ShowLevelCompleteScreen(LevelCompletedEvent e)
     {
-        Level level = e.Level;
+        m_CurrentLevel = e.Level;
 
         m_GameManager.PauseGame();
         m_UIManager.ShowScreen(m_UIManager.LevelCompleteScreen);
-
-        m_CurrentLevel = level;
     }
 
     public void GoToMenu()

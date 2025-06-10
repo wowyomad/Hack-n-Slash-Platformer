@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.IO; // Keep this for Path.Combine
+using System.IO;
 
 namespace TheGame
 {
@@ -52,7 +52,6 @@ namespace TheGame
                     if (!CurrentLevel.Completed)
                     {
                         CurrentLevel.Completed = true;
-                        // Unlock next levels directly tied to this specific completion
                         CurrentLevel.NextLevels.ForEach(nextLevel =>
                         {
                             if (nextLevel != null && !nextLevel.Opened)
@@ -61,13 +60,12 @@ namespace TheGame
                             }
                         });
                     }
-                    // Save will also refresh ability unlocks from all challenges
-                    Save(); // Save progress on level completion
+                    Save();
                 }
                 else if (CurrentLevel.LevelStatus == Level.Status.Failed)
                 {
                     m_Running = false;
-                    Save(); // Save progress on level failure
+                    Save();
                 }
             }
         }
@@ -120,14 +118,13 @@ namespace TheGame
                 return;
             }
 
-            InstantiateRuntimeObjectsFromPresets(); // Instantiates and links runtime challenges to runtime abilities
+            InstantiateRuntimeObjectsFromPresets();
             LoadSaveFile();
             ValidateSaveDataAgainstPresets();
             ApplySaveDataToRuntimeLevels();
-            ApplySaveDataToRuntimeAbilities(); // Applies saved unlock status to abilities
+            ApplySaveDataToRuntimeAbilities();
             ResolveLevelDependencies();
             
-            // Synchronize all derived progress after loading and applying save data
             SynchronizeProgressionState(); 
         }
 
@@ -138,21 +135,19 @@ namespace TheGame
 
             RuntimeLevels.ForEach(level =>
             {
-                // Instantiate challenges for the current runtime level
                 var instantiatedChallenges = level.Challenges?.Select(Instantiate).ToList() ?? new List<Challenge>();
-                level.Challenges = instantiatedChallenges; // Assign the new list of instantiated challenges
+                level.Challenges = instantiatedChallenges;
 
-                // Link RewardAbility in runtime challenges to runtime ability instances
                 level.Challenges.ForEach(challenge =>
                 {
-                    if (challenge.RewardAbility != null) // This RewardAbility is initially a preset reference
+                    if (challenge.RewardAbility != null)
                     {
                         Ability presetRewardAbility = challenge.RewardAbility;
                         Ability runtimeRewardAbilityInstance = RuntimeAbilities.FirstOrDefault(a => a.ID == presetRewardAbility.ID);
 
                         if (runtimeRewardAbilityInstance != null)
                         {
-                            challenge.RewardAbility = runtimeRewardAbilityInstance; // Replace preset ref with runtime ref
+                            challenge.RewardAbility = runtimeRewardAbilityInstance;
                         }
                         else
                         {
@@ -302,8 +297,6 @@ namespace TheGame
                         }
                         else
                         {
-                            // This case should ideally not be hit if linking in InstantiateRuntimeObjectsFromPresets is successful
-                            // and the challenge preset actually had a reward ability.
                             Debug.LogWarning($"Challenge '{ch.Name}' in level '{level.Name}' has a null RewardAbility reference during refresh, despite being complete. Linking might have failed or preset was misconfigured.");
                         }
                     })
@@ -312,7 +305,6 @@ namespace TheGame
 
         public void SynchronizeProgressionState()
         {
-            // Ensure next levels are opened for any level marked as completed
             RuntimeLevels.ForEach(level =>
             {
                 if (level.Completed)
@@ -327,7 +319,6 @@ namespace TheGame
                 }
             });
 
-            // Ensure abilities are unlocked for any challenge marked as complete
             RefreshAbilityUnlocksFromChallenges(); 
 
             Debug.Log("Game progression state synchronized.");
@@ -407,11 +398,10 @@ namespace TheGame
 
         public void Save()
         {
-            // First, ensure all derived progress is up-to-date before collecting save data
             SynchronizeProgressionState(); 
 
-            if (RuntimeLevels == null) RuntimeLevels = new List<Level>(); // Defensive: Should be initialized
-            if (RuntimeAbilities == null) RuntimeAbilities = new List<Ability>(); // Defensive: Should be initialized
+            if (RuntimeLevels == null) RuntimeLevels = new List<Level>();
+            if (RuntimeAbilities == null) RuntimeAbilities = new List<Ability>();
 
             SaveData.Levels = RuntimeLevels.Select(level => new LevelSaveData
             {
@@ -431,7 +421,7 @@ namespace TheGame
 
             try
             {
-                string json = JsonUtility.ToJson(SaveData, true); // prettyPrint for readability
+                string json = JsonUtility.ToJson(SaveData, true);
                 File.WriteAllText(m_SaveFilePath, json);
             }
             catch (System.Exception e)
@@ -446,7 +436,6 @@ namespace TheGame
             {
                 CurrentLevel.OnLevelLoaded();
                 CurrentLevel.OnLevelStarted();
-                // Save state when a level officially starts, this also synchronizes progression
                 Save(); 
                 m_GameManager.ResumeGame();
                 m_Running = true;

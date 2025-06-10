@@ -14,14 +14,14 @@ namespace TheGame
         public bool IsGamePaused => m_Paused;
 
         [SerializeField] private InputReader m_Input;
-        private LevelManager m_LevelManager; // Assigned via GetComponent in Initialize
+        private LevelManager m_LevelManager;
 
         private float m_OriginalTimeScale = 1.0f;
-        private float m_OriginalFixedDeltaTime = 0.02f; // Default Unity value
+        private float m_OriginalFixedDeltaTime = 0.02f;
         private bool m_Paused;
         private bool m_TimeScalesCaptured = false;
 
-        private string m_CurrentAdditiveGameplaySceneName; // Tracks the current game level scene
+        private string m_CurrentAdditiveGameplaySceneName;
 
         private void Awake()
         {
@@ -73,13 +73,12 @@ namespace TheGame
             m_Paused = true;
             m_Input?.SetUI();
             Time.timeScale = 0f;
-            // Time.fixedDeltaTime = 0f; // Generally not needed
         }
 
         public void ResumeGame()
         {
             if (!m_Paused) return;
-            if (!m_TimeScalesCaptured) CaptureOriginalTimeScales(); // Should have been captured by Pause or Start
+            if (!m_TimeScalesCaptured) CaptureOriginalTimeScales();
             m_Paused = false;
             m_Input?.SetGameplay();
             Time.timeScale = m_OriginalTimeScale;
@@ -136,7 +135,7 @@ namespace TheGame
             LoadCompleted?.Invoke();
         }
 
-        public void UnloadGameLevel(string levelSceneName) // Renamed for clarity
+        public void UnloadGameLevel(string levelSceneName)
         {
             if (string.IsNullOrEmpty(levelSceneName) || !SceneManager.GetSceneByName(levelSceneName).isLoaded) return;
             StartCoroutine(UnloadSceneCoroutine(levelSceneName));
@@ -144,8 +143,7 @@ namespace TheGame
 
         private IEnumerator UnloadSceneCoroutine(string sceneName)
         {
-            // Consider input state changes if needed before/after unload
-            LoadStarted?.Invoke(); // Or specific "UnloadStarted" event
+            LoadStarted?.Invoke();
             yield return SceneManager.UnloadSceneAsync(sceneName);
             if (m_CurrentAdditiveGameplaySceneName == sceneName)
             {

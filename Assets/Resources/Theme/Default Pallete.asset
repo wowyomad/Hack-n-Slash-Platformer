@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2ac6ca2882daee498b674e821bc475f, type: 3}
+  m_Name: Default Pallete
+  m_EditorClassIdentifier: 
+  Background: {r: 0.11372549, g: 0, b: 0.2, a: 1}
+  Primary: {r: 0.56050926, g: 0.4773941, b: 0.6792453, a: 1}
+  Secondary: {r: 0.25490198, g: 0.15686275, b: 0.39215687, a: 1}
+  Tertiary: {r: 0.5549511, g: 0.3485226, b: 0.8301887, a: 1}
+  Surface: {r: 0.41931564, g: 0.3379762, b: 0.46226418, a: 1}
+  Highlight: {r: 0.31759524, g: 0.5754717, b: 0.5110026, a: 1}
+  Text: {r: 1, g: 1, b: 1, a: 1}
+  Hover: {r: 0.78431374, g: 0.78431374, b: 1, a: 1}
+  Pressed: {r: 1, g: 1, b: 1, a: 1}

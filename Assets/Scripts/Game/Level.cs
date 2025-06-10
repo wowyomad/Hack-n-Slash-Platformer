@@ -204,8 +204,6 @@ namespace TheGame
             OnLevelCompleted();
         }
 
-
-
         private void OnValidate()
         {
             if (string.IsNullOrEmpty(ID))
