@@ -14,8 +14,6 @@ public class ThemeManager : MonoBehaviour
 
     public void SetTheme(ThemeColorPalette newTheme)
     {
-        if (CurrentTheme == newTheme && Application.isPlaying) return;
-
         CurrentTheme = newTheme;
         m_RegisteredAppliers.ForEach(applier => applier?.ApplyTheme());
     }

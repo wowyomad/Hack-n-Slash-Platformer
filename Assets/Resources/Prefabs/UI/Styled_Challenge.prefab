@@ -76,6 +76,7 @@ GameObject:
   - component: {fileID: 2252625165189003399}
   - component: {fileID: 7531410034725272106}
   - component: {fileID: 694499272059235547}
+  - component: {fileID: 1302741034460711398}
   m_Layer: 0
   m_Name: Challenge_Number
   m_TagString: Untagged
@@ -201,6 +202,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1302741034460711398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 332822083862884235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf6772c331e33941b179fe735656765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 0
+  targetText: {fileID: 694499272059235547}
 --- !u!1 &5232185953081478068
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,6 +227,7 @@ GameObject:
   - component: {fileID: 4566277568591389445}
   - component: {fileID: 5666959452122587027}
   - component: {fileID: 482333755113897318}
+  - component: {fileID: 7579723841866164625}
   m_Layer: 0
   m_Name: Challenge_Description
   m_TagString: Untagged
@@ -337,6 +353,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7579723841866164625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5232185953081478068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf6772c331e33941b179fe735656765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 0
+  targetText: {fileID: 482333755113897318}
 --- !u!1 &5679518776942828018
 GameObject:
   m_ObjectHideFlags: 0

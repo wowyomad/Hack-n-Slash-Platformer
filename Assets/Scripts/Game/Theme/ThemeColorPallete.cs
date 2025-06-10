@@ -4,15 +4,35 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Theme Color Palette", menuName = "Theme/Color Palette")]
 public class ThemeColorPalette : ScriptableObject
 {
-    public Color Background = new Color32(29, 0, 51, 0255);
-    public Color Primary = new Color32(46, 26, 75, 255);
-    public Color Secondary = new Color32(65, 40, 100, 255);
-    public Color Tertiary = new Color32(85, 55, 125, 255);
-    public Color Surface = new Color32(80, 80, 150, 255);
-    public Color Highlight = new Color32(60, 140, 120, 255);
-    public Color Text = new Color32(255, 255, 255, 255);
-    public Color Hover = new Color32(200, 200, 255, 255);
-    public Color Pressed = new Color32(150, 150, 200, 255);
+    // Core background for the scene/main UI elements.
+    public Color Void = new Color32(0x1D, 0x00, 0x33, 0xFF); // HEX: #1D0033
+
+    // The main accent color for interactive elements like primary buttons, important icons, or main character highlights.
+    public Color CoreAccent = new Color32(0x41, 0x28, 0x64, 0xFF); // HEX: #412864
+
+    // A secondary accent color, perhaps for less critical interactive elements, secondary UI elements, or subtle distinctions.
+    public Color SubAccent = new Color32(0x55, 0x37, 0x7D, 0xFF); // HEX: #55377D
+    public Color AltAccent = new Color32(0x6A, 0x4B, 0x96, 0xFF); // HEX: #6A4B96
+
+    // Darker surface for base panels, backgrounds of UI elements, or deep structural components.
+    public Color PanelDark = new Color32(0x2E, 0x1A, 0x4B, 0xFF); // HEX: #2E1A4B
+
+    // Lighter surface for interactive areas within panels, selected states, or foreground UI elements.
+    public Color PanelLight = new Color32(0x50, 0x50, 0x96, 0xFF); // HEX: #505096
+
+    // A vibrant color for interactive elements when the user hovers over them.
+    public Color InteractiveHover = new Color32(0xC8, 0xC8, 0xFF, 0xFF); // HEX: #C8C8FF
+
+    // A distinct color for interactive elements when they are actively pressed or clicked.
+    public Color InteractivePressed = new Color32(0x96, 0x96, 0xC8, 0xFF); // HEX: #9696C8 
+
+    // Used for progress bars, alerts, or elements that need to stand out. Can also be a player's health bar or power-up indicator.
+    public Color Energized = new Color32(0x3C, 0x8C, 0x78, 0xFF); // HEX: #3C8C78
+
+    // Primary text color for readability.
+    public Color CoreGlyphs = new Color32(0xFF, 0xFF, 0xFF, 0xFF); // HEX: #FFFFFF
+    public Color SubGlyphs => new Color32(0xB0, 0xB0, 0xB0, 0xFF); // HEX: #B0B0B0
+    public Color AltGlyphs => new Color32(0x30, 0x30, 0x30, 0xFF); // HEX: #303030
 
     public static void Copy(in ThemeColorPalette source, ref ThemeColorPalette target)
     {
@@ -26,14 +46,15 @@ public class ThemeColorPalette : ScriptableObject
             return;
         }
 
-        target.Background = source.Background;
-        target.Primary = source.Primary;
-        target.Secondary = source.Secondary;
-        target.Surface = source.Surface;
-        target.Highlight = source.Highlight;
-        target.Text = source.Text;
-        target.Hover = source.Hover;
-        target.Pressed = source.Pressed;
+        target.Void = source.Void;
+        target.CoreAccent = source.CoreAccent;
+        target.SubAccent = source.SubAccent;
+        target.PanelDark = source.PanelDark;
+        target.PanelLight = source.PanelLight;
+        target.Energized = source.Energized;
+        target.CoreGlyphs = source.CoreGlyphs;
+        target.InteractiveHover = source.InteractiveHover;
+        target.InteractivePressed = source.InteractivePressed;
     }
 
     public bool Equals(ThemeColorPalette other)
@@ -42,13 +63,17 @@ public class ThemeColorPalette : ScriptableObject
 
         if (other == this) return true;
 
-        return Background == other.Background &&
-               Primary == other.Primary &&
-               Secondary == other.Secondary &&
-               Surface == other.Surface &&
-               Highlight == other.Highlight &&
-               Text == other.Text &&
-               Hover == other.Hover &&
-               Pressed == other.Pressed;
+        return Void == other.Void &&
+            CoreAccent == other.CoreAccent &&
+            SubAccent == other.SubAccent &&
+            AltAccent == other.AltAccent &&
+            PanelDark == other.PanelDark &&
+            PanelLight == other.PanelLight &&
+            Energized == other.Energized &&
+            CoreGlyphs == other.CoreGlyphs &&
+            SubGlyphs == other.SubGlyphs &&
+            AltGlyphs == other.AltGlyphs &&
+            InteractiveHover == other.InteractiveHover &&
+            InteractivePressed == other.InteractivePressed;
     }
 }

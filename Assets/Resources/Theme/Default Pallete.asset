@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2ac6ca2882daee498b674e821bc475f, type: 3}
   m_Name: Default Pallete
   m_EditorClassIdentifier: 
-  Background: {r: 0.11372549, g: 0, b: 0.2, a: 1}
-  Primary: {r: 0.56050926, g: 0.4773941, b: 0.6792453, a: 1}
-  Secondary: {r: 0.25490198, g: 0.15686275, b: 0.39215687, a: 1}
-  Tertiary: {r: 0.5549511, g: 0.3485226, b: 0.8301887, a: 1}
-  Surface: {r: 0.41931564, g: 0.3379762, b: 0.46226418, a: 1}
-  Highlight: {r: 0.31759524, g: 0.5754717, b: 0.5110026, a: 1}
-  Text: {r: 1, g: 1, b: 1, a: 1}
-  Hover: {r: 0.78431374, g: 0.78431374, b: 1, a: 1}
-  Pressed: {r: 1, g: 1, b: 1, a: 1}
+  Void: {r: 0.30272964, g: 0.14217694, b: 0.4245283, a: 1}
+  CoreAccent: {r: 0.4712843, g: 0.16803133, b: 0.6037736, a: 1}
+  SubAccent: {r: 0.33333334, g: 0.21568628, b: 0.49019608, a: 1}
+  AltAccent: {r: 0.64328945, g: 0.68538576, b: 0.9811321, a: 1}
+  PanelDark: {r: 0.29579028, g: 0.18098077, b: 0.46226418, a: 1}
+  PanelLight: {r: 0.38080284, g: 0.230949, b: 0.603, a: 1}
+  InteractiveHover: {r: 0.78431374, g: 0.78431374, b: 1, a: 1}
+  InteractivePressed: {r: 0.5882353, g: 0.5882353, b: 0.78431374, a: 1}
+  Energized: {r: 0.23529412, g: 0.54901963, b: 0.47058824, a: 1}
+  CoreGlyphs: {r: 1, g: 1, b: 1, a: 1}

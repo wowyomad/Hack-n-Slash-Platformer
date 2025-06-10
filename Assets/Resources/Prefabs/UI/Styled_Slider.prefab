@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2265773741531252737}
   - component: {fileID: 186283898193675399}
   - component: {fileID: 8754950131977300780}
+  - component: {fileID: 719399024779295349}
   m_Layer: 0
   m_Name: Fill
   m_TagString: Untagged
@@ -75,6 +76,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &719399024779295349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1594618945630041455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f509088aec66149be0fb8e864558a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 1
 --- !u!1 &2816402231342647403
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,6 +366,7 @@ GameObject:
   - component: {fileID: 763803464117740657}
   - component: {fileID: 7648278173438182161}
   - component: {fileID: 3597864775784666195}
+  - component: {fileID: 8969704742416799939}
   m_Layer: 0
   m_Name: Background
   m_TagString: Untagged
@@ -416,6 +431,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8969704742416799939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6391668088035410839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f509088aec66149be0fb8e864558a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 2
 --- !u!1 &6999468794878481572
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,6 +455,7 @@ GameObject:
   - component: {fileID: 1651602521078054314}
   - component: {fileID: 8357443296435829833}
   - component: {fileID: 5294845564064261908}
+  - component: {fileID: 6360111539571856912}
   m_Layer: 0
   m_Name: Handle
   m_TagString: Untagged
@@ -491,6 +520,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6360111539571856912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6999468794878481572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f509088aec66149be0fb8e864558a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 1
 --- !u!1 &7460009021740075555
 GameObject:
   m_ObjectHideFlags: 0

@@ -96,7 +96,6 @@ GameObject:
   - component: {fileID: 802876057261978841}
   - component: {fileID: 8282603493963688713}
   - component: {fileID: 652191696701981664}
-  - component: {fileID: 8705628182740464517}
   m_Layer: 0
   m_Name: Styled_Toggle
   m_TagString: Untagged
@@ -159,36 +158,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1610430704503868740}
   m_CullTransparentMesh: 1
---- !u!114 &8705628182740464517
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1610430704503868740}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.92156863, g: 0.7137255, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 5133137466487136553, guid: 2e3b65c250cf9aa4594689087c1f0c89, type: 3}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &5821585751139695382
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,6 +169,7 @@ GameObject:
   - component: {fileID: 80952571598584165}
   - component: {fileID: 6515396379137549996}
   - component: {fileID: 6949340138663549939}
+  - component: {fileID: 5948268481881866745}
   m_Layer: 0
   m_Name: Checkmark
   m_TagString: Untagged
@@ -264,6 +234,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5948268481881866745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5821585751139695382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f509088aec66149be0fb8e864558a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 1
 --- !u!1 &6004621111749334047
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,8 +9,8 @@ public class ImageThemeApplier : ThemeApplier
         Background,
         Primary,
         Secondary,
-        Tertiary,
-        Surface,
+        PanelPrimary,
+        PanelSecondary,
     }
 
     public ImageColorType ColorType;
@@ -26,19 +26,19 @@ public class ImageThemeApplier : ThemeApplier
         switch (ColorType)
         {
             case ImageColorType.Background:
-                m_Image.color = palette.Background;
+                m_Image.color = palette.Void;
                 break;
             case ImageColorType.Primary:
-                m_Image.color = palette.Primary;
+                m_Image.color = palette.CoreAccent;
                 break;
             case ImageColorType.Secondary:
-                m_Image.color = palette.Secondary;
+                m_Image.color = palette.SubAccent;
                 break;
-            case ImageColorType.Tertiary:
-                m_Image.color = palette.Tertiary;
+            case ImageColorType.PanelPrimary:
+                m_Image.color = palette.PanelDark;
                 break;
-            case ImageColorType.Surface:
-                m_Image.color = palette.Surface;
+            case ImageColorType.PanelSecondary:
+                m_Image.color = palette.PanelLight;
                 break;
         }
     }

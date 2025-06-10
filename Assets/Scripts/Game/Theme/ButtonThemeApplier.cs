@@ -25,13 +25,13 @@ public class ButtonThemeApplier : ThemeApplier
         switch (ColorType)
         {
             case ButtonColorType.Primary:
-                m_Image.color = palette.Primary;
+                m_Image.color = palette.CoreAccent;
                 break;
             case ButtonColorType.Secondary:
-                m_Image.color = palette.Secondary;
+                m_Image.color = palette.SubAccent;
                 break;
             case ButtonColorType.Tertiary:
-                m_Image.color = palette.Tertiary;
+                m_Image.color = palette.AltAccent;
                 break;
         }
 

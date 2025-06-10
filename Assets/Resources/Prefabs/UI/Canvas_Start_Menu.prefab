@@ -137,6 +137,7 @@ GameObject:
   - component: {fileID: 8479141533381892124}
   - component: {fileID: 4540806592244163423}
   - component: {fileID: 6257436217046563310}
+  - component: {fileID: 1992754194675517047}
   m_Layer: 0
   m_Name: Level_Name
   m_TagString: Untagged
@@ -201,7 +202,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294901758
-  m_fontColor: {r: 0.995283, g: 1, b: 0.9960151, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -262,6 +263,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1992754194675517047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761282822611292649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf6772c331e33941b179fe735656765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 0
+  targetText: {fileID: 6257436217046563310}
 --- !u!1 &1196226892418847523
 GameObject:
   m_ObjectHideFlags: 0
@@ -1988,6 +2003,7 @@ GameObject:
   - component: {fileID: 8430325849509689480}
   - component: {fileID: 2565904142361087429}
   - component: {fileID: 2837821165359992602}
+  - component: {fileID: 7905717647079391435}
   m_Layer: 0
   m_Name: Challenges_Title
   m_TagString: Untagged
@@ -2113,6 +2129,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7905717647079391435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5279065278147971891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf6772c331e33941b179fe735656765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ColorType: 0
+  targetText: {fileID: 2837821165359992602}
 --- !u!1 &5611115916605316749
 GameObject:
   m_ObjectHideFlags: 0

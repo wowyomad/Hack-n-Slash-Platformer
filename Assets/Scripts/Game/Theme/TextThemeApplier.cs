@@ -3,19 +3,42 @@ using UnityEngine;
 
 public class TextThemeApplier : ThemeApplier
 {
-    private TextMeshProUGUI m_Text;
-    public override Color CurrentColor => m_Text != null ? m_Text.color : Color.clear;
+    public enum TextColorType
+    {
+        CoreGlyphs,
+        SubGlyphs,
+        AltGlyphs
+    }
+
+    public TextColorType ColorType;
+    public TextMeshProUGUI targetText;
+
+    public override Color CurrentColor => targetText != null ? targetText.color : Color.clear;
 
     protected override void OnApplyTheme(ThemeColorPalette palette)
     {
-        if (m_Text == null || palette == null) return;
+        if (targetText == null || palette == null) return;
 
-        m_Text.color = palette.Text;
+        switch (ColorType)
+        {
+            case TextColorType.CoreGlyphs:
+                targetText.color = palette.CoreGlyphs;
+                break;
+            case TextColorType.SubGlyphs:
+                targetText.color = palette.SubGlyphs;
+                break;
+            case TextColorType.AltGlyphs:
+                targetText.color = palette.AltGlyphs;
+                break;
+        }
     }
 
     protected override void OnEnable()
     {
-        m_Text = GetComponent<TextMeshProUGUI>();
+        if (targetText == null)
+        {
+            targetText = GetComponent<TextMeshProUGUI>();
+        }
         base.OnEnable();
     }
 }
