@@ -7,6 +7,8 @@ public class TextThemeApplier : ThemeApplier
     {
         CoreGlyphs,
         SubGlyphs,
+        GoodGlpyhs,
+        BadGlyphs,
         AltGlyphs
     }
 
@@ -26,6 +28,12 @@ public class TextThemeApplier : ThemeApplier
                 break;
             case TextColorType.SubGlyphs:
                 targetText.color = palette.SubGlyphs;
+                break;
+            case TextColorType.GoodGlpyhs:
+                targetText.color = palette.GoodGlpyhs;
+                break;
+            case TextColorType.BadGlyphs:
+                targetText.color = palette.BadGlyphs;
                 break;
             case TextColorType.AltGlyphs:
                 targetText.color = palette.AltGlyphs;

@@ -31,8 +31,10 @@ public class ThemeColorPalette : ScriptableObject
 
     // Primary text color for readability.
     public Color CoreGlyphs = new Color32(0xFF, 0xFF, 0xFF, 0xFF); // HEX: #FFFFFF
-    public Color SubGlyphs => new Color32(0xB0, 0xB0, 0xB0, 0xFF); // HEX: #B0B0B0
-    public Color AltGlyphs => new Color32(0x30, 0x30, 0x30, 0xFF); // HEX: #303030
+    public Color SubGlyphs = new Color32(0xB0, 0xB0, 0xB0, 0xFF); // HEX: #B0B0B0
+    public Color GoodGlpyhs = new Color32(0xA0, 0xFF, 0xA0, 0xFF); // HEX: #A0FFA0
+    public Color BadGlyphs = new Color32(0xFF, 0xA0, 0xA0, 0xFF); // HEX:rgb(241, 114, 114)
+    public Color AltGlyphs = new Color32(0x30, 0x30, 0x30, 0xFF); // HEX: #303030
 
     public static void Copy(in ThemeColorPalette source, ref ThemeColorPalette target)
     {
