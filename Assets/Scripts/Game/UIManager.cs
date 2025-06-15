@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +6,20 @@ namespace TheGame
 {
     public class UIManager : MonoBehaviour
     {
+        public event Action<ScreenType, ScreenType> OnScreenChanged;
+        public enum ScreenType
+        {
+            None,
+            MainScreen,
+            PauseScreen,
+            OptionsScreen,
+            StartScreen,
+            ContinueScreen,
+            LevelCompleteScreen,
+            ExitScreen,
+            DeathScreen,
+            HUD
+        }
         [SerializeField] private InputReader m_Input;
         private GameManager m_GameManager;
 
@@ -27,6 +42,7 @@ namespace TheGame
         private GameObject m_CurrentScreen;
         private GameObject m_CurrentSettingsTab;
         private LevelManager m_LevelManager;
+        private GameObject m_ScreenToReturnToFromOptions;
 
         private List<GameObject> m_Screens = new List<GameObject>();
         private List<GameObject> m_SettingsTabs = new List<GameObject>();
@@ -38,7 +54,18 @@ namespace TheGame
 
         private void Start()
         {
-
+            if (m_ShowMainScreenOnStart)
+            {
+                ShowScreen(m_MainScreen);
+                m_Input.SetUI();
+            }
+            else
+            {
+                ShowScreen(null);
+                m_Input.SetGameplay();
+            }
+            ShowSettingsTab(null);
+            m_ScreenToReturnToFromOptions = m_ShowMainScreenOnStart ? m_MainScreen : HUD;
         }
 
         private void OnEnable()
@@ -75,6 +102,10 @@ namespace TheGame
             {
                 m_GameManager.Quit();
             }
+            else if (m_CurrentScreen == m_OptionsScreen)
+            {
+                GoBackFromOptions();
+            }
             else
             {
                 if (m_GameManager.IsGamePaused)
@@ -90,15 +121,47 @@ namespace TheGame
 
         public void ShowScreen(GameObject screen)
         {
+            GameObject previousScreen = m_CurrentScreen;
+            ScreenType previousScreenType = GetScreenType(previousScreen);
+
+            if (screen == m_OptionsScreen && previousScreen != m_OptionsScreen)
+            {
+                m_ScreenToReturnToFromOptions = previousScreen;
+            }
+
             foreach (var s in m_Screens)
             {
                 if (s != null)
                 {
                     s.SetActive(s == screen);
-                    m_CurrentScreen = screen;
                 }
             }
             m_CurrentScreen = screen;
+
+            ScreenType currentScreenType = GetScreenType(screen);
+            if (previousScreenType != currentScreenType)
+            {
+                OnScreenChanged?.Invoke(previousScreenType, currentScreenType);
+            }
+        }
+
+        public void GoBackFromOptions()
+        {
+            if (m_ScreenToReturnToFromOptions != null)
+            {
+                ShowScreen(m_ScreenToReturnToFromOptions);
+            }
+            else
+            {
+                if (m_GameManager != null && m_GameManager.IsGamePaused)
+                {
+                    ShowScreen(m_PauseScreen);
+                }
+                else
+                {
+                    ShowScreen(m_MainScreen);
+                }
+            }
         }
 
         public void HideAllScreens()
@@ -152,18 +215,6 @@ namespace TheGame
             m_SettingsTabs.Add(m_Settings_AudioTab);
             m_SettingsTabs.Add(m_Settings_GameplayTab);
             m_SettingsTabs.Add(m_Settings_KeyBindingsTab);
-
-            if (m_ShowMainScreenOnStart)
-            {
-                ShowScreen(m_MainScreen);
-                m_Input.SetUI();
-            }
-            else
-            {
-                ShowScreen(null);
-                m_Input.SetGameplay();
-            }
-            ShowSettingsTab(null);
         }
 
 
@@ -179,12 +230,25 @@ namespace TheGame
             ShowScreen(m_DeathScreen);
         }
 
-        //Temporary (indefinitely)
         private void ShowDeathScreen(LevelTimeExpiredEvent e)
         {
             m_Input.SetDeath();
             ShowScreen(m_DeathScreen);
         }
 
+        private ScreenType GetScreenType(GameObject screen)
+        {
+            if (screen == m_MainScreen) return ScreenType.MainScreen;
+            if (screen == m_PauseScreen) return ScreenType.PauseScreen;
+            if (screen == m_OptionsScreen) return ScreenType.OptionsScreen;
+            if (screen == m_StartScreen) return ScreenType.StartScreen;
+            if (screen == m_ContinueScreen) return ScreenType.ContinueScreen;
+            if (screen == LevelCompleteScreen) return ScreenType.LevelCompleteScreen;
+            if (screen == m_ExitScreen) return ScreenType.ExitScreen;
+            if (screen == m_DeathScreen) return ScreenType.DeathScreen;
+            if (screen == HUD) return ScreenType.HUD;
+
+            return ScreenType.None;
+        }
     }
 }
