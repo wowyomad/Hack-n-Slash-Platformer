@@ -9,10 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16ce4bdbdf133e34da86fdf1c99c9c5d, type: 3}
-  m_Name: SampleChallenge2
+  m_Script: {fileID: 11500000, guid: 455829da277a4ff4ba6461f462dc14fb, type: 3}
+  m_Name: DefaultSettings
   m_EditorClassIdentifier: 
-  ID: 703037a3-c0fb-4a60-a256-8d17cac4a776
-  Name: Second challenge
-  Descriptoin: The description of the second challenge
-  Status: 1
+  MusicVolume: 0.5
+  GeneralVolume: 0.75

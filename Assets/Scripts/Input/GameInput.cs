@@ -435,6 +435,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Secret"",
+                    ""type"": ""Button"",
+                    ""id"": ""9a53fbfc-7efc-4f8c-9a4a-07d68eb6a2be"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -446,6 +455,17 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Resume"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1476b3c3-a588-48d6-9730-a8a67518c816"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Secret"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -499,6 +519,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Resume = m_UI.FindAction("Resume", throwIfNotFound: true);
+        m_UI_Secret = m_UI.FindAction("Secret", throwIfNotFound: true);
         // Death
         m_Death = asset.FindActionMap("Death", throwIfNotFound: true);
         m_Death_DeathRestart = m_Death.FindAction("DeathRestart", throwIfNotFound: true);
@@ -802,6 +823,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_UI;
     private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
     private readonly InputAction m_UI_Resume;
+    private readonly InputAction m_UI_Secret;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -817,6 +839,10 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "UI/Resume".
         /// </summary>
         public InputAction @Resume => m_Wrapper.m_UI_Resume;
+        /// <summary>
+        /// Provides access to the underlying input action "UI/Secret".
+        /// </summary>
+        public InputAction @Secret => m_Wrapper.m_UI_Secret;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -846,6 +872,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Resume.started += instance.OnResume;
             @Resume.performed += instance.OnResume;
             @Resume.canceled += instance.OnResume;
+            @Secret.started += instance.OnSecret;
+            @Secret.performed += instance.OnSecret;
+            @Secret.canceled += instance.OnSecret;
         }
 
         /// <summary>
@@ -860,6 +889,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @Resume.started -= instance.OnResume;
             @Resume.performed -= instance.OnResume;
             @Resume.canceled -= instance.OnResume;
+            @Secret.started -= instance.OnSecret;
+            @Secret.performed -= instance.OnSecret;
+            @Secret.canceled -= instance.OnSecret;
         }
 
         /// <summary>
@@ -1095,6 +1127,13 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnResume(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Secret" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSecret(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Death" which allows adding and removing callbacks.

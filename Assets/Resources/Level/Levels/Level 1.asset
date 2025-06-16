@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Level 1
   m_EditorClassIdentifier: 
   ID: a138d080-78ba-44d6-a195-d2aca1c1433c
-  Name: Dungeon of fears
+  Name: 2. The escape
   Description: The very first level of the game
-  Opened: 1
+  Opened: 0
   Completed: 0
   SceneName: SampleScene
   SceneReference:
@@ -24,3 +24,4 @@ MonoBehaviour:
   Challenges: []
   NextLevels: []
   LevelStatus: 0
+  TimeToComplete: 60

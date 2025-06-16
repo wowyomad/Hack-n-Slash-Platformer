@@ -73,4 +73,11 @@ namespace TheGame
     {
         public Level Level;
     }
+
+
+    public struct EnemyAlertedEvent : IEvent
+    {
+        public bool Alerted;
+        public GameObject EnemyGameObject;
+    }
 }

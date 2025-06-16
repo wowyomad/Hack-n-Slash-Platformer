@@ -8,6 +8,7 @@ namespace TheGame
 {
     public class LevelManager : MonoBehaviour
     {
+        [SerializeField] InputReader m_Input;
         public bool IsLevelActive => CurrentLevel != null;
         public string SaveName = "SaveData.json";
         public GameDataPreset LevelPresets;
@@ -102,12 +103,50 @@ namespace TheGame
         {
             m_GameManager.LoadCompleted += ApplyPlayerPassiveAbility;
             m_GameManager.LoadCompleted += StartLevel;
+
+            m_Input.Secret += ResetProgression;
         }
 
         private void OnDisable()
         {
             m_GameManager.LoadCompleted -= ApplyPlayerPassiveAbility;
             m_GameManager.LoadCompleted -= StartLevel;
+
+            m_Input.Secret -= ResetProgression;
+        }
+
+        public void ResetProgression()
+        {
+            if (IsLevelActive)
+            {
+                Debug.LogWarning("Cannot reset progression while a level is active.");
+                return;
+            }
+            CurrentLevel = null;
+            m_Running = false;
+            RemovePlayerPassiveAbility();
+            m_PLayerPassiveAbility = null;
+
+            try
+            {
+                if (File.Exists(m_SaveFilePath))
+                {
+                    File.Delete(m_SaveFilePath);
+                    Debug.Log($"Save file deleted: {m_SaveFilePath}");
+                }
+                else
+                {
+                    Debug.Log("No save file found to delete.");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error deleting save file {m_SaveFilePath}: {e.Message}");
+            }
+
+            InitializeLoadSaveData();
+            Save();
+            Debug.Log("Progression reset and new save data initialized.");
         }
 
         public void InitializeLoadSaveData()
@@ -124,8 +163,8 @@ namespace TheGame
             ApplySaveDataToRuntimeLevels();
             ApplySaveDataToRuntimeAbilities();
             ResolveLevelDependencies();
-            
-            SynchronizeProgressionState(); 
+
+            SynchronizeProgressionState();
         }
 
         private void InstantiateRuntimeObjectsFromPresets()
@@ -193,13 +232,13 @@ namespace TheGame
 
             if (SaveData.Abilities != null && LevelPresets.Abilities != null)
             {
-                 SaveData.Abilities.RemoveAll(abilitySave => abilitySave.ID == null || !LevelPresets.Abilities.Any(preset => preset.ID == abilitySave.ID));
+                SaveData.Abilities.RemoveAll(abilitySave => abilitySave.ID == null || !LevelPresets.Abilities.Any(preset => preset.ID == abilitySave.ID));
             }
             else
             {
                 SaveData.Abilities = new List<AbilitySaveData>();
             }
-            
+
             // Ensure LastUnfinishedLevelID is valid
             if (!string.IsNullOrEmpty(SaveData.LastUnfinishedLevelID) && !RuntimeLevels.Any(l => l.ID == SaveData.LastUnfinishedLevelID))
             {
@@ -207,10 +246,10 @@ namespace TheGame
             }
             if (string.IsNullOrEmpty(SaveData.LastUnfinishedLevelID) && RuntimeLevels.Any())
             {
-                 SaveData.LastUnfinishedLevelID = RuntimeLevels.First().ID;
+                SaveData.LastUnfinishedLevelID = RuntimeLevels.First().ID;
             }
         }
-        
+
         private void ApplySaveDataToRuntimeLevels()
         {
             RuntimeLevels.ForEach(level =>
@@ -226,11 +265,15 @@ namespace TheGame
                         level.Challenges.ForEach(challenge =>
                         {
                             ChallengeSaveData challengeSaveData = levelSaveData.Challenges.FirstOrDefault(c => c.ID == challenge.ID);
-                            challenge.Initialize(challengeSaveData); // Initialize will handle null saveData
-                            if (challengeSaveData == null)
+                            if (challengeSaveData != null)
                             {
-                                Debug.LogWarning($"Challenge \"{challenge.Name}\" in level \"{level.Name}\" has no save data.");
+                                challenge.Initialize(challengeSaveData);
                             }
+                            else
+                            {
+                                Debug.LogWarning($"Challenge with ID '{challenge.ID}' found in level '{level.Name}' but not in save data. Using default initialization.");
+                            }
+
                         });
                     }
                 }
@@ -252,7 +295,7 @@ namespace TheGame
                 }
                 else
                 {
-                     Debug.LogWarning($"Ability with ID '{ability.ID}' found in presets but not in save data. Using default unlocked status.");
+                    Debug.LogWarning($"Ability with ID '{ability.ID}' found in presets but not in save data. Using default unlocked status.");
                 }
             });
         }
@@ -269,11 +312,11 @@ namespace TheGame
 
                 if (originalNextLevelPresets != null && level.NextLevels.Count != originalNextLevelPresets.Count(nlp => nlp != null && RuntimeLevels.Any(rl => rl.ID == nlp.ID)))
                 {
-                     Debug.LogWarning(
-                        $"Some next levels in \"{level.Name}\" could not be fully resolved.\n" +
-                        $"Preset contains: [{string.Join(", ", originalNextLevelPresets.Where(l => l != null).Select(l => $"\"{l.Name}\""))}]\n" +
-                        $"Resolved contains: [{string.Join(", ", level.NextLevels.Select(l => $"\"{l.Name}\""))}]"
-                    );
+                    Debug.LogWarning(
+                       $"Some next levels in \"{level.Name}\" could not be fully resolved.\n" +
+                       $"Preset contains: [{string.Join(", ", originalNextLevelPresets.Where(l => l != null).Select(l => $"\"{l.Name}\""))}]\n" +
+                       $"Resolved contains: [{string.Join(", ", level.NextLevels.Select(l => $"\"{l.Name}\""))}]"
+                   );
                 }
             });
         }
@@ -283,11 +326,11 @@ namespace TheGame
             RuntimeLevels.ForEach(level =>
                 level.Challenges
                     .Where(ch => ch.Status == ChallengeStatus.Complete && ch.RewardAbility != null)
-                    .ToList() 
+                    .ToList()
                     .ForEach(ch =>
                     {
                         // ch.RewardAbility should now be the runtime instance
-                        Ability abilityToUnlock = ch.RewardAbility; 
+                        Ability abilityToUnlock = ch.RewardAbility;
                         if (abilityToUnlock != null)
                         {
                             if (!abilityToUnlock.Unlocked)
@@ -319,7 +362,7 @@ namespace TheGame
                 }
             });
 
-            RefreshAbilityUnlocksFromChallenges(); 
+            RefreshAbilityUnlocksFromChallenges();
 
             Debug.Log("Game progression state synchronized.");
         }
@@ -371,7 +414,7 @@ namespace TheGame
         {
             if (string.IsNullOrEmpty(SaveData.LastUnfinishedLevelID) && RuntimeLevels.Any())
             {
-                 SaveData.LastUnfinishedLevelID = RuntimeLevels.First().ID;
+                SaveData.LastUnfinishedLevelID = RuntimeLevels.First().ID;
             }
 
             if (!string.IsNullOrEmpty(SaveData.LastUnfinishedLevelID))
@@ -398,7 +441,7 @@ namespace TheGame
 
         public void Save()
         {
-            SynchronizeProgressionState(); 
+            SynchronizeProgressionState();
 
             if (RuntimeLevels == null) RuntimeLevels = new List<Level>();
             if (RuntimeAbilities == null) RuntimeAbilities = new List<Ability>();
@@ -416,7 +459,7 @@ namespace TheGame
                 ID = ability.ID,
                 Unlocked = ability.Unlocked
             }).ToList();
-            
+
             SaveData.LastUnfinishedLevelID = CurrentLevel?.ID ?? SaveData.LastUnfinishedLevelID ?? (RuntimeLevels.Any() ? RuntimeLevels.First().ID : string.Empty);
 
             try
@@ -436,7 +479,7 @@ namespace TheGame
             {
                 CurrentLevel.OnLevelLoaded();
                 CurrentLevel.OnLevelStarted();
-                Save(); 
+                Save();
                 m_GameManager.ResumeGame();
                 m_Running = true;
             }

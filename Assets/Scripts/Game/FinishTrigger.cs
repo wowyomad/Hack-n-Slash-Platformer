@@ -10,23 +10,21 @@ namespace TheGame
 
         private void Awake()
         {
-
+            m_LevelManager = FindAnyObjectByType<LevelManager>();
         }
         private void OnTriggerEnter2D(Collider2D other)
         {
             TryCompleteLevel(other.GetComponent<Player>());
         }
 
-        private void OnCollisionEnter2D(Collision2D collision)
-        {
-            TryCompleteLevel(collision.collider.GetComponent<Player>());
-        }
-
         private void TryCompleteLevel(Player player)
         {
             if (player == null) return;
 
-            EventBus<LevelFinishTriggeredEvent>.Raise(new LevelFinishTriggeredEvent { });
+            if (m_LevelManager.IsLevelActive && m_LevelManager.CurrentLevel.LevelStatus == Level.Status.InProgress)
+            {
+                EventBus<LevelFinishTriggeredEvent>.Raise(new LevelFinishTriggeredEvent { });
+            }
         }
 
         private void OnDrawGizmos()

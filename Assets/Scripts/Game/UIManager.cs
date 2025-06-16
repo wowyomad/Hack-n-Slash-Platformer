@@ -25,7 +25,7 @@ namespace TheGame
 
         [SerializeField] private bool m_ShowMainScreenOnStart = true;
 
-        [SerializeField] public GameObject m_MainScreen;
+        [SerializeField] public GameObject MainScreen;
         [SerializeField] public GameObject m_PauseScreen;
         [SerializeField] public GameObject m_OptionsScreen;
         [SerializeField] public GameObject m_StartScreen;
@@ -56,7 +56,7 @@ namespace TheGame
         {
             if (m_ShowMainScreenOnStart)
             {
-                ShowScreen(m_MainScreen);
+                ShowScreen(MainScreen);
                 m_Input.SetUI();
             }
             else
@@ -65,7 +65,7 @@ namespace TheGame
                 m_Input.SetGameplay();
             }
             ShowSettingsTab(null);
-            m_ScreenToReturnToFromOptions = m_ShowMainScreenOnStart ? m_MainScreen : HUD;
+            m_ScreenToReturnToFromOptions = m_ShowMainScreenOnStart ? MainScreen : HUD;
         }
 
         private void OnEnable()
@@ -98,7 +98,7 @@ namespace TheGame
                 ShowScreen(HUD);
                 m_GameManager.ResumeGame();
             }
-            else if (m_CurrentScreen == m_MainScreen)
+            else if (m_CurrentScreen == MainScreen)
             {
                 m_GameManager.Quit();
             }
@@ -114,7 +114,7 @@ namespace TheGame
                 }
                 else
                 {
-                    ShowScreen(m_MainScreen);
+                    ShowScreen(MainScreen);
                 }
             }
         }
@@ -159,7 +159,7 @@ namespace TheGame
                 }
                 else
                 {
-                    ShowScreen(m_MainScreen);
+                    ShowScreen(MainScreen);
                 }
             }
         }
@@ -189,7 +189,7 @@ namespace TheGame
             m_GameManager = GetComponent<GameManager>();
             m_LevelManager = GetComponent<LevelManager>();
 
-            if (m_MainScreen == null) Debug.LogError("Main Screen is not assigned!", this);
+            if (MainScreen == null) Debug.LogError("Main Screen is not assigned!", this);
             if (m_PauseScreen == null) Debug.LogError("Pause Screen is not assigned!", this);
             if (m_OptionsScreen == null) Debug.LogError("Options Screen is not assigned!", this);
             if (m_StartScreen == null) Debug.LogError("Start Screen is not assigned!", this);
@@ -203,7 +203,7 @@ namespace TheGame
             if (m_Settings_GameplayTab == null) Debug.LogError("Gameplay Tab is not assigned!", this);
             if (m_Settings_KeyBindingsTab == null) Debug.LogError("Key Bindings Tab is not assigned!", this);
 
-            m_Screens.Add(m_MainScreen);
+            m_Screens.Add(MainScreen);
             m_Screens.Add(m_PauseScreen);
             m_Screens.Add(m_OptionsScreen);
             m_Screens.Add(m_StartScreen);
@@ -238,7 +238,7 @@ namespace TheGame
 
         private ScreenType GetScreenType(GameObject screen)
         {
-            if (screen == m_MainScreen) return ScreenType.MainScreen;
+            if (screen == MainScreen) return ScreenType.MainScreen;
             if (screen == m_PauseScreen) return ScreenType.PauseScreen;
             if (screen == m_OptionsScreen) return ScreenType.OptionsScreen;
             if (screen == m_StartScreen) return ScreenType.StartScreen;

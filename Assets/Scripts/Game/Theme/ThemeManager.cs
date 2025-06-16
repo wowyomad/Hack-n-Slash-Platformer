@@ -74,11 +74,6 @@ public class ThemeManager : MonoBehaviour
             }
         }
         Instance = this;
-
-        if (Application.isPlaying)
-        {
-            DontDestroyOnLoad(gameObject);
-        }
     }
 
 

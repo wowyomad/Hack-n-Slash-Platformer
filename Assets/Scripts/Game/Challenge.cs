@@ -20,7 +20,7 @@ namespace TheGame
         public string Name = "New Challenge";
         public string Description = "Challenge Description";
         public Ability RewardAbility;
-        public ChallengeStatus Status;
+        public ChallengeStatus Status = ChallengeStatus.Incomplete;
 
         public virtual void Initialize(ChallengeSaveData data)
         {
@@ -30,7 +30,7 @@ namespace TheGame
             }
             else
             {
-                throw new System.ArgumentNullException(nameof(data), "ChallengeSaveData cannot be null");
+                Status = ChallengeStatus.Incomplete;
             }
         }
         public virtual void OnLevelLoaded() { }

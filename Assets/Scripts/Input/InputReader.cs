@@ -19,6 +19,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Throw;
     public event Action Pause;
     public event Action Resume;
+    public event Action Secret;
     public event Action ClimbDown;
     public event Action Restart;
     public event Action DebugGood;
@@ -212,6 +213,14 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
         if (Horizontal != 0.0f)
         {
             Move?.Invoke(Horizontal);
+        }
+    }
+
+    public void OnSecret(InputAction.CallbackContext context)
+    {
+        if (InputActionPhase.Performed == context.phase)
+        {
+            Secret?.Invoke();
         }
     }
 

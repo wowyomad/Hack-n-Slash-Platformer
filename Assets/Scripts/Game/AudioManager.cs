@@ -1,9 +1,11 @@
-using System.Collections.Generic;
 using TheGame;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+    public float MusicVolume => m_MusicSource != null ? m_MusicSource.volume : 0f;
+    public float GeneralVolume => AudioListener.volume;
+
     [Header("Audio Sources")]
     [SerializeField] private AudioSource m_MusicSource;
     [SerializeField] private AudioSource m_SFXSource;
@@ -33,14 +35,13 @@ public class AudioManager : MonoBehaviour
             Debug.LogError("UIManager component not found on AudioManager GameObject.", this);
         }
 
+
         m_LevelManager = GetComponent<LevelManager>();
     }
 
     private void Start()
     {
-
-
-
+        
     }
 
     private void OnDestroy()
@@ -49,6 +50,16 @@ public class AudioManager : MonoBehaviour
         {
             m_UIManager.OnScreenChanged -= HandleScreenChanged;
         }
+    }
+
+    public void SetGeneralVolume(float volume)
+    {
+        AudioListener.volume = Mathf.Clamp01(volume);
+    }
+
+    public void SetMusicVolume(float volume)
+    {
+        m_MusicSource.volume = Mathf.Clamp01(volume);
     }
 
     private void HandleScreenChanged(UIManager.ScreenType previousScreen, UIManager.ScreenType newScreen)
@@ -80,10 +91,6 @@ public class AudioManager : MonoBehaviour
                 break;
 
             case UIManager.ScreenType.PauseScreen:
-                if (m_MusicSource.isPlaying)
-                {
-                    m_MusicSource.Pause();
-                }
                 break;
 
             case UIManager.ScreenType.DeathScreen:

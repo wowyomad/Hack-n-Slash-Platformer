@@ -1,10 +1,18 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SettingsManager : MonoBehaviour
 {
-    [SerializeField] private AudioSource m_MusicSource;
+    [Header("Settings Keys")]
     [SerializeField] private string MusicVolumeKey = "MusicVolume";
     [SerializeField] private string GeneralVolumeKey = "GeneralVolume";
+
+    [Header("UI Controllers")]
+    [SerializeField] private Slider GeneralVolumeSlider;
+    [SerializeField] private Slider MusicVolumeSlider;
+
+
+    private AudioManager m_AudioManager;
 
 
     [SerializeField] private DefaultSettings m_DefaultSettings;
@@ -14,6 +22,7 @@ public class SettingsManager : MonoBehaviour
     private void Awake()
     {
         Input = Resources.Load<InputReader>("Input/InputReader");
+        m_AudioManager = GetComponent<AudioManager>();
 
         if (m_DefaultSettings == null)
         {
@@ -21,14 +30,33 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        LoadSettings();
+        GeneralVolumeSlider.value = m_AudioManager.GeneralVolume;
+        MusicVolumeSlider.value = m_AudioManager.MusicVolume;
+    }
+
+    private void OnEnable()
+    {
+        GeneralVolumeSlider.onValueChanged.AddListener(SetGeneralVolume);
+        MusicVolumeSlider.onValueChanged.AddListener(SetMusicVolume);
+    }
+
+    private void OnDisable()
+    {
+        GeneralVolumeSlider.onValueChanged.RemoveListener(SetGeneralVolume);
+        MusicVolumeSlider.onValueChanged.RemoveListener(SetMusicVolume);
+    }
+
     public void SetMusicVolume(float volume)
     {
-        m_MusicSource.volume = volume;
+        m_AudioManager.SetMusicVolume(volume);
     }
 
     public void SetGeneralVolume(float volume)
     {
-        AudioListener.volume = volume;
+        m_AudioManager.SetGeneralVolume(volume);
     }
 
     public void LoadSettings()
@@ -39,21 +67,21 @@ public class SettingsManager : MonoBehaviour
 
     public void RestoreSettings()
     {
-        m_MusicSource.volume = PlayerPrefs.GetFloat(MusicVolumeKey, m_DefaultSettings.MusicVolume);
-        AudioListener.volume = PlayerPrefs.GetFloat(GeneralVolumeKey, m_DefaultSettings.GeneralVolume);
+        m_AudioManager.SetGeneralVolume(PlayerPrefs.GetFloat(GeneralVolumeKey, m_DefaultSettings.GeneralVolume));
+        m_AudioManager.SetMusicVolume(PlayerPrefs.GetFloat(MusicVolumeKey, m_DefaultSettings.MusicVolume));
     }
 
 
     public void ApplySettings()
     {
-        PlayerPrefs.SetFloat(MusicVolumeKey, m_MusicSource.volume);
-        PlayerPrefs.SetFloat(GeneralVolumeKey, AudioListener.volume);
+        PlayerPrefs.SetFloat(MusicVolumeKey, m_AudioManager.MusicVolume);
+        PlayerPrefs.SetFloat(GeneralVolumeKey, m_AudioManager.GeneralVolume);
         PlayerPrefs.Save();
     }
 
     public void ResetSettings()
     {
-        AudioListener.volume = m_DefaultSettings.GeneralVolume;
-        m_MusicSource.volume = m_DefaultSettings.MusicVolume;
+        m_AudioManager.SetGeneralVolume(m_DefaultSettings.GeneralVolume);
+        m_AudioManager.SetMusicVolume(m_DefaultSettings.MusicVolume);
     }
 }

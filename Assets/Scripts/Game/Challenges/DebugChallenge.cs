@@ -1,7 +1,7 @@
 using TheGame;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "DebugChallenge", menuName = "Game/Challenges/Debug Challenge")]
+[CreateAssetMenu(fileName = "DebugChallenge", menuName = "Game/Challenges/Debug")]
 public class DebugChallenge : Challenge
 {
     public InputReader m_Input;

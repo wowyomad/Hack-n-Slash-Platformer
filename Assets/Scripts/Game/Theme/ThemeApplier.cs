@@ -24,7 +24,8 @@ public abstract class ThemeApplier : MonoBehaviour
 
     protected virtual void OnValidate()
     {
-        ApplyTheme();
+        if (ThemeManager.Instance != null && ThemeManager.Instance.CurrentTheme != null)
+            ApplyTheme();
     }
 
     public void ApplyTheme()
