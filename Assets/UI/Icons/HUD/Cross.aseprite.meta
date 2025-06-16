@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a65c7ec7dbc804249ad2f203116e8808
+guid: 3c2846fe79a17314d8978afb6576b7fa
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: MnK_Buttons
+  - name: Cross
     originalName: 
-    pivot: {x: 0.8438538, y: -63}
+    pivot: {x: 0.5, y: 0.5}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,9 +137,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 301
-      height: 16
-    spriteID: 109902115641f5742befa6ef99cf015e
+      width: 32
+      height: 32
+    spriteID: 3ae76a3cdcc1e7c409493abdd117910a
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 105539856
+      value0: 3060511982
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: MnK_Buttons
+    name: Cross
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: MnK_Buttons
+    - name: Cross
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 2
-        y: 1008
-        width: 301
-        height: 16
-      spriteId: 109902115641f5742befa6ef99cf015e
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      spriteId: 3ae76a3cdcc1e7c409493abdd117910a
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -181,5 +181,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 512, y: 1024}
-  previousTextureSize: {x: 512, y: 32}
+  canvasSize: {x: 32, y: 32}
+  previousTextureSize: {x: 64, y: 64}

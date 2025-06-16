@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Level 1
   m_EditorClassIdentifier: 
   ID: a138d080-78ba-44d6-a195-d2aca1c1433c
-  Name: 2. The escape
-  Description: The very first level of the game
-  Opened: 0
+  Name: 1. The escape
+  Description: Ivy has to escape the dungeon.
+  Opened: 1
   Completed: 0
   SceneName: SampleScene
   SceneReference:
     _asset: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
     _path: Assets/Scenes/SampleScene.unity
-  Challenges: []
-  NextLevels: []
+  Challenges:
+  - {fileID: 11400000, guid: 4e262f7abcee7694d9bce13920ac3900, type: 2}
+  - {fileID: 11400000, guid: 1f18fa1d717ac2b4bb615cd92cef29e3, type: 2}
+  NextLevels:
+  - {fileID: 11400000, guid: e14327a3117aced45bad7bf604287baf, type: 2}
   LevelStatus: 0
-  TimeToComplete: 60
+  TimeToComplete: 35

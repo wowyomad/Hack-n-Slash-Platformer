@@ -26,18 +26,19 @@ namespace TheGame
         [SerializeField] private bool m_ShowMainScreenOnStart = true;
 
         [SerializeField] public GameObject MainScreen;
-        [SerializeField] public GameObject m_PauseScreen;
-        [SerializeField] public GameObject m_OptionsScreen;
-        [SerializeField] public GameObject m_StartScreen;
-        [SerializeField] public GameObject m_ContinueScreen;
+        [SerializeField] public GameObject PauseScreen;
+        [SerializeField] public GameObject OptionsScreen;
+        [SerializeField] public GameObject StartScreen;
+        [SerializeField] public GameObject ContinueScreen;
         [SerializeField] public GameObject LevelCompleteScreen;
-        [SerializeField] public GameObject m_ExitScreen;
-        [SerializeField] public GameObject m_DeathScreen;
+        [SerializeField] public GameObject ExitScreen;
+        [SerializeField] public GameObject DeathScreen;
         [SerializeField] public GameObject HUD;
 
-        [SerializeField] private GameObject m_Settings_AudioTab;
-        [SerializeField] private GameObject m_Settings_GameplayTab;
-        [SerializeField] private GameObject m_Settings_KeyBindingsTab;
+        [SerializeField] public GameObject Settings_AudioTab;
+        [SerializeField] public GameObject Settings_GameplayTab;
+        [SerializeField] public GameObject Settings_KeyBindingsTab;
+        [SerializeField] public ChallengePopup ChallengePopup;
 
         private GameObject m_CurrentScreen;
         private GameObject m_CurrentSettingsTab;
@@ -88,35 +89,49 @@ namespace TheGame
 
         public void OnPauseResume()
         {
+            if (m_CurrentScreen == LevelCompleteScreen  )
+            {
+                return; //ignore
+            }
+         
             if (m_CurrentScreen == null || m_CurrentScreen == HUD)
-            {
-                ShowScreen(m_PauseScreen);
-                m_GameManager.PauseGame();
-            }
-            else if (m_CurrentScreen == m_PauseScreen)
-            {
-                ShowScreen(HUD);
-                m_GameManager.ResumeGame();
-            }
-            else if (m_CurrentScreen == MainScreen)
-            {
-                m_GameManager.Quit();
-            }
-            else if (m_CurrentScreen == m_OptionsScreen)
-            {
-                GoBackFromOptions();
-            }
-            else
-            {
-                if (m_GameManager.IsGamePaused)
                 {
-                    ShowScreen(m_PauseScreen);
+                    ShowScreen(PauseScreen);
+                    m_GameManager.PauseGame();
+                }
+                else if (m_CurrentScreen == PauseScreen)
+                {
+                    ShowScreen(HUD);
+                    m_GameManager.ResumeGame();
+                }
+                else if (m_CurrentScreen == MainScreen)
+                {
+                    m_GameManager.Quit();
+                }
+                else if (m_CurrentScreen == OptionsScreen)
+                {
+                    GoBackFromOptions();
                 }
                 else
                 {
-                    ShowScreen(MainScreen);
+                    if (m_GameManager.IsGamePaused)
+                    {
+                        ShowScreen(PauseScreen);
+                    }
+                    else
+                    {
+                        ShowScreen(MainScreen);
+                    }
                 }
-            }
+        }
+
+        public void DisplayChallengePopup(Challenge challenge, bool success)
+        {
+            ChallengePopup.ShowPopup(challenge, success);
+        }
+        public void HideChallengePopup()
+        {
+            ChallengePopup.HidePopup();
         }
 
         public void ShowScreen(GameObject screen)
@@ -124,7 +139,7 @@ namespace TheGame
             GameObject previousScreen = m_CurrentScreen;
             ScreenType previousScreenType = GetScreenType(previousScreen);
 
-            if (screen == m_OptionsScreen && previousScreen != m_OptionsScreen)
+            if (screen == OptionsScreen && previousScreen != OptionsScreen)
             {
                 m_ScreenToReturnToFromOptions = previousScreen;
             }
@@ -155,7 +170,7 @@ namespace TheGame
             {
                 if (m_GameManager != null && m_GameManager.IsGamePaused)
                 {
-                    ShowScreen(m_PauseScreen);
+                    ShowScreen(PauseScreen);
                 }
                 else
                 {
@@ -190,31 +205,31 @@ namespace TheGame
             m_LevelManager = GetComponent<LevelManager>();
 
             if (MainScreen == null) Debug.LogError("Main Screen is not assigned!", this);
-            if (m_PauseScreen == null) Debug.LogError("Pause Screen is not assigned!", this);
-            if (m_OptionsScreen == null) Debug.LogError("Options Screen is not assigned!", this);
-            if (m_StartScreen == null) Debug.LogError("Start Screen is not assigned!", this);
-            if (m_ContinueScreen == null) Debug.LogError("Continue Screen is not assigned!", this);
+            if (PauseScreen == null) Debug.LogError("Pause Screen is not assigned!", this);
+            if (OptionsScreen == null) Debug.LogError("Options Screen is not assigned!", this);
+            if (StartScreen == null) Debug.LogError("Start Screen is not assigned!", this);
+            if (ContinueScreen == null) Debug.LogError("Continue Screen is not assigned!", this);
             if (LevelCompleteScreen == null) Debug.LogError("Level Complete Screen is not assigned!", this);
-            if (m_ExitScreen == null) Debug.LogError("Exit Screen is not assigned!", this);
-            if (m_DeathScreen == null) Debug.LogError("Death Screen is not assigned!", this);
+            if (ExitScreen == null) Debug.LogError("Exit Screen is not assigned!", this);
+            if (DeathScreen == null) Debug.LogError("Death Screen is not assigned!", this);
             if (HUD == null) Debug.LogError("HUD is not assigned!", this);
 
-            if (m_Settings_AudioTab == null) Debug.LogError("Audio Tab is not assigned!", this);
-            if (m_Settings_GameplayTab == null) Debug.LogError("Gameplay Tab is not assigned!", this);
-            if (m_Settings_KeyBindingsTab == null) Debug.LogError("Key Bindings Tab is not assigned!", this);
+            if (Settings_AudioTab == null) Debug.LogError("Audio Tab is not assigned!", this);
+            if (Settings_GameplayTab == null) Debug.LogError("Gameplay Tab is not assigned!", this);
+            if (Settings_KeyBindingsTab == null) Debug.LogError("Key Bindings Tab is not assigned!", this);
 
             m_Screens.Add(MainScreen);
-            m_Screens.Add(m_PauseScreen);
-            m_Screens.Add(m_OptionsScreen);
-            m_Screens.Add(m_StartScreen);
-            m_Screens.Add(m_ContinueScreen);
+            m_Screens.Add(PauseScreen);
+            m_Screens.Add(OptionsScreen);
+            m_Screens.Add(StartScreen);
+            m_Screens.Add(ContinueScreen);
             m_Screens.Add(LevelCompleteScreen);
-            m_Screens.Add(m_ExitScreen);
-            m_Screens.Add(m_DeathScreen);
+            m_Screens.Add(ExitScreen);
+            m_Screens.Add(DeathScreen);
             m_Screens.Add(HUD);
-            m_SettingsTabs.Add(m_Settings_AudioTab);
-            m_SettingsTabs.Add(m_Settings_GameplayTab);
-            m_SettingsTabs.Add(m_Settings_KeyBindingsTab);
+            m_SettingsTabs.Add(Settings_AudioTab);
+            m_SettingsTabs.Add(Settings_GameplayTab);
+            m_SettingsTabs.Add(Settings_KeyBindingsTab);
         }
 
 
@@ -222,30 +237,31 @@ namespace TheGame
         {
             m_LevelManager.RestartCurrentLevel();
             ShowScreen(HUD);
+            ChallengePopup.HidePopup();
         }
 
         private void ShowDeathScreen(PlayerDiedEvent e)
         {
             m_Input.SetDeath();
-            ShowScreen(m_DeathScreen);
+            ShowScreen(DeathScreen);
         }
 
         private void ShowDeathScreen(LevelTimeExpiredEvent e)
         {
             m_Input.SetDeath();
-            ShowScreen(m_DeathScreen);
+            ShowScreen(DeathScreen);
         }
 
         private ScreenType GetScreenType(GameObject screen)
         {
             if (screen == MainScreen) return ScreenType.MainScreen;
-            if (screen == m_PauseScreen) return ScreenType.PauseScreen;
-            if (screen == m_OptionsScreen) return ScreenType.OptionsScreen;
-            if (screen == m_StartScreen) return ScreenType.StartScreen;
-            if (screen == m_ContinueScreen) return ScreenType.ContinueScreen;
+            if (screen == PauseScreen) return ScreenType.PauseScreen;
+            if (screen == OptionsScreen) return ScreenType.OptionsScreen;
+            if (screen == StartScreen) return ScreenType.StartScreen;
+            if (screen == ContinueScreen) return ScreenType.ContinueScreen;
             if (screen == LevelCompleteScreen) return ScreenType.LevelCompleteScreen;
-            if (screen == m_ExitScreen) return ScreenType.ExitScreen;
-            if (screen == m_DeathScreen) return ScreenType.DeathScreen;
+            if (screen == ExitScreen) return ScreenType.ExitScreen;
+            if (screen == DeathScreen) return ScreenType.DeathScreen;
             if (screen == HUD) return ScreenType.HUD;
 
             return ScreenType.None;

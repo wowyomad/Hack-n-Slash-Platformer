@@ -20,6 +20,7 @@ namespace TheGame
         public GameObject PrevItemButtonRef;
 
 
+
         [Header("UI Prefabs")]
         public GameObject LevelTogglePrefab;
         public GameObject ChallengePrefab;
@@ -29,14 +30,19 @@ namespace TheGame
         public Color CompleteChallengeColor;
 
 
+        [Header("Internal references")]
+        public Handler_Ability AbilityHandler;
+
+
         private LevelManager m_LevelManager;
         private List<Level> m_Levels;
+        private List<Ability> m_Abilities;
         private List<GameObject> m_LevelToggles;
         public Toggle CurrentLevelToggle => m_SelectedLevelIndex >= 0 && m_SelectedLevelIndex < m_LevelToggles.Count ? m_LevelToggles[m_SelectedLevelIndex].GetComponent<Toggle>() : null;
         public Level SelectedLevel => m_SelectedLevelIndex >= 0 && m_SelectedLevelIndex < m_Levels.Count ? m_Levels[m_SelectedLevelIndex] : null;
         private int m_SelectedLevelIndex = 0;
         private int m_PrevSelectedLevelIndex = -1;
-
+        private int m_SelectedAbilityIndex = 0;
 
 
         private void Awake()
@@ -57,14 +63,31 @@ namespace TheGame
             }
         }
 
+
         private void Start()
         {
             //Must be called after LevelManager start!
             m_Levels = m_LevelManager.RuntimeLevels;
+            m_Abilities = m_LevelManager.RuntimeAbilities;
 
             PopulateLevelList();
 
+            SetPassiveAbility();
+
         }
+
+        private void OnEnable()
+        {
+            NextItemButtonRef.GetComponent<Button>().onClick.AddListener(NextPassiveAbility);
+            PrevItemButtonRef.GetComponent<Button>().onClick.AddListener(PrevPassiveAbility);
+        }
+
+        private void OnDisable()
+        {
+            NextItemButtonRef.GetComponent<Button>().onClick.RemoveListener(NextPassiveAbility);
+            PrevItemButtonRef.GetComponent<Button>().onClick.RemoveListener(PrevPassiveAbility);
+        }
+        
 
         public void RefreshState()
         {
@@ -145,6 +168,44 @@ namespace TheGame
             m_PrevSelectedLevelIndex = m_SelectedLevelIndex;
         }
 
+        private void SetPassiveAbility()
+        {
+            Ability selectedAbility = m_Abilities[m_SelectedAbilityIndex];
+            if (selectedAbility.Unlocked)
+            {
+                m_LevelManager.SetPlayerPassiveAbility(selectedAbility);
+                AbilityHandler.Unlock(selectedAbility);
+            }
+            else
+            {
+                m_LevelManager.SetPlayerPassiveAbility(null);
+                AbilityHandler.Lock(selectedAbility);
+            }
+        }
+
+        public void NextPassiveAbility()
+        {
+            if (m_Abilities == null || m_Abilities.Count == 0)
+            {
+                Debug.LogWarning("No abilities available to select.");
+                return;
+            }
+
+            m_SelectedAbilityIndex = (m_SelectedAbilityIndex + 1) % m_Abilities.Count;
+            SetPassiveAbility();
+        }
+
+        public void PrevPassiveAbility()
+        {
+            if (m_Abilities == null || m_Abilities.Count == 0)
+            {
+                Debug.LogWarning("No abilities available to select.");
+                return;
+            }
+            m_SelectedAbilityIndex = (m_SelectedAbilityIndex - 1 + m_Abilities.Count) % m_Abilities.Count;
+            SetPassiveAbility();
+        }
+
         private void RefreshChallenges()
         {
             Level selectedLevel = m_Levels[m_SelectedLevelIndex];
@@ -168,11 +229,23 @@ namespace TheGame
 
                 TMP_Text challengeNumberText = challengeGameObject.transform.GetChild(0).GetComponent<TMP_Text>();
                 challengeNumberText.text = selectedLevel.Challenges.IndexOf(challenge) + 1 + ".";
-                challengeNumberText.color = challenge.Status == ChallengeStatus.Complete ? CompleteChallengeColor : DefaultChallengeColor;
 
-                TMP_Text challengeDescriptionText = challengeGameObject.transform.GetChild(1).GetComponent<TMP_Text>();
-                challengeDescriptionText.text = challenge.Description;
-                challengeDescriptionText.color = challenge.Status == ChallengeStatus.Complete ? CompleteChallengeColor : DefaultChallengeColor;
+                var description = challengeGameObject.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+                description.text = challenge.Description;
+                var themeApplier = description.GetComponent<TextThemeApplier>();
+
+                if (challenge.Status == ChallengeStatus.Complete)
+                {
+                    description.fontStyle = FontStyles.Strikethrough;
+                    themeApplier.ColorType = TextThemeApplier.TextColorType.GoodGlyphs;
+                    themeApplier.ApplyTheme();
+                }
+                else
+                {
+                    description.fontStyle = FontStyles.Normal;
+                    themeApplier.ColorType = TextThemeApplier.TextColorType.BadGlyphs;
+                    themeApplier.ApplyTheme();
+                }
 
 
                 if (challenge.RewardAbility != null)
@@ -185,7 +258,7 @@ namespace TheGame
                         rewardImage = rewardImage.transform.GetChild(0).GetComponent<Image>();
                     }
 
-                    rewardImage.sprite = challenge.RewardAbility.ItemIcon; ;
+                    rewardImage.sprite = challenge.RewardAbility.ItemIcon;
                 }
             });
         }

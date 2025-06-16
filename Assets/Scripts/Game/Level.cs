@@ -103,6 +103,7 @@ namespace TheGame
             });
         }
 
+
         public virtual void OnUpdate(float deltaTime)
         {
             if (LevelStatus == Status.InProgress)
@@ -139,6 +140,7 @@ namespace TheGame
             {
                 Level = this,
             });
+
         }
 
         public virtual void OnLevelCompleted()

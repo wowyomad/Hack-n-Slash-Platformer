@@ -41,6 +41,8 @@ namespace TheGame
                 {
                     Debug.Log($"Challenge {Name} failed due to alerted enemies exceeding allowed {AllowedAlertedDuration}.");
                     Status = ChallengeStatus.Failed;
+
+                    FindAnyObjectByType<UIManager>().DisplayChallengePopup(this, false);
                 }
             }
 

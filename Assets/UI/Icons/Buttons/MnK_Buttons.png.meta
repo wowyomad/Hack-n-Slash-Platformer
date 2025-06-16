@@ -64,7 +64,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -78,7 +78,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -102,7 +102,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -127,15 +127,15 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: MnK_Buttons_0
+      name: MnK_Button_1
       rect:
         serializedVersion: 2
-        x: 1
-        y: 1009
-        width: 15
-        height: 14
+        x: 2
+        y: 1010
+        width: 13
+        height: 12
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -149,37 +149,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MnK_Buttons_1
+      name: MnK_Button_2
       rect:
         serializedVersion: 2
-        x: 17
-        y: 1009
-        width: 31
-        height: 14
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ba9136512d1950020800000000000000
-      internalID: 2307410715585223083
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MnK_Buttons_2
-      rect:
-        serializedVersion: 2
-        x: 49
-        y: 1009
-        width: 47
-        height: 14
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 18
+        y: 1010
+        width: 29
+        height: 12
+      alignment: 9
+      pivot: {x: 0.55073786, y: 0.5000038}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -193,37 +171,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MnK_Buttons_3
+      name: MnK_Button_3
       rect:
         serializedVersion: 2
-        x: 95
-        y: 1007
-        width: 50
-        height: 17
+        x: 50
+        y: 1010
+        width: 45
+        height: 12
       alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c0dcfc8ca0cd08720800000000000000
-      internalID: 2846516903374998796
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MnK_Buttons_4
-      rect:
-        serializedVersion: 2
-        x: 145
-        y: 1009
-        width: 47
-        height: 14
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -237,37 +193,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MnK_Buttons_5
+      name: MnK_Mouse
       rect:
         serializedVersion: 2
-        x: 193
-        y: 1009
-        width: 31
-        height: 14
+        x: 96
+        y: 1008
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c2eb478fa10127ae0800000000000000
-      internalID: -1553161213465805268
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MnK_Buttons_6
-      rect:
-        serializedVersion: 2
-        x: 225
-        y: 1009
-        width: 15
-        height: 14
-      alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -281,15 +215,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MnK_Buttons_7
+      name: MnK_Mouse_LMB
       rect:
         serializedVersion: 2
-        x: 241
-        y: 1009
-        width: 15
-        height: 14
+        x: 112
+        y: 1008
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -303,15 +237,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MnK_Buttons_8
+      name: MnK_Mouse_RMB
       rect:
         serializedVersion: 2
-        x: 257
-        y: 1009
-        width: 15
-        height: 14
+        x: 128
+        y: 1008
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -325,15 +259,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MnK_Buttons_9
+      name: MnK_Space
       rect:
         serializedVersion: 2
-        x: 273
-        y: 1009
-        width: 15
-        height: 14
+        x: 146
+        y: 1010
+        width: 45
+        height: 12
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -346,11 +280,143 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: MnK_LShift
+      rect:
+        serializedVersion: 2
+        x: 194
+        y: 1010
+        width: 29
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 75b31a8a81d144a469046e65f57b1a17
+      internalID: 686302098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MnK_W
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 1010
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ca4d5eddbffe924d916cbc89ff3c3f1
+      internalID: 1722720229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MnK_S
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 1010
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f7ca0ee6f5e4f24d9f25aac480d0907
+      internalID: 1067312934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MnK_D
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 1010
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 412e8f38773ed654f80e25142fd77c77
+      internalID: -2143617270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MnK_A
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 1010
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 58c0d871388b4234293cc294a85f2860
+      internalID: -632687326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MnK_R
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 1010
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37b823f48de0b0542a983909db5425b4
+      internalID: -1316835632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 287d829087aff9943b9a74177912a39c
     internalID: 0
     vertices: []
     indices: 
@@ -358,8 +424,29 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
-    nameFileIdTable: {}
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      MnK_A: -632687326
+      MnK_Button_1: -8821071950389694987
+      MnK_Button_2: -5811011396035648291
+      MnK_Button_3: 1139886377556674849
+      MnK_Buttons_1: 2307410715585223083
+      MnK_Buttons_10: -1767047912
+      MnK_Buttons_11: -1086820235
+      MnK_Buttons_13: 1833567190
+      MnK_Buttons_3: 2846516903374998796
+      MnK_Buttons_5: -1553161213465805268
+      MnK_D: -2143617270
+      MnK_LShift: 686302098
+      MnK_Mouse: -2735602486296739968
+      MnK_Mouse_LMB: -2088209879316623990
+      MnK_Mouse_RMB: -2759230322155232965
+      MnK_R: -1316835632
+      MnK_S: 1067312934
+      MnK_Space: -2853181659793774203
+      MnK_W: 1722720229
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

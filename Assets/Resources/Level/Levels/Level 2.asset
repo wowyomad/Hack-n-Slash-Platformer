@@ -9,22 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a6a4569f14b96c4e922609eb912c2ea, type: 3}
-  m_Name: DebugLevel
+  m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
+  m_Name: Level 2
   m_EditorClassIdentifier: 
-  ID: b9926f3f-faa2-4d18-82d9-c491199e3535
-  Name: 1. Sometthing ends, something begings
-  Description: Ivy has to escape the dungeon.
-  Opened: 1
+  ID: 6db96fda-4ce7-459f-bac7-d304df2d0dfd
+  Name: 2. To new beginnings
+  Description: After escaping the dungeon, Ivy found herself caught in a trap.
+  Opened: 0
   Completed: 0
   SceneName: SampleScene
   SceneReference:
     _asset: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
     _path: Assets/Scenes/SampleScene.unity
-  Challenges:
-  - {fileID: 11400000, guid: 4e262f7abcee7694d9bce13920ac3900, type: 2}
-  - {fileID: 11400000, guid: 1f18fa1d717ac2b4bb615cd92cef29e3, type: 2}
-  NextLevels:
-  - {fileID: 11400000, guid: 2a54e3ebc9d246847a9bc8209b0e157c, type: 2}
+  Challenges: []
+  NextLevels: []
   LevelStatus: 0
   TimeToComplete: 40

@@ -1,6 +1,7 @@
 using TheGame;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 
@@ -13,7 +14,7 @@ public class Handler_LevelComplete : MonoBehaviour
     private UIManager m_UIManager;
     private Handler_StartMenu m_StartHandler;
 
-    
+
 
     public InputReader m_InputReader;
 
@@ -55,6 +56,10 @@ public class Handler_LevelComplete : MonoBehaviour
         m_CurrentLevel.Challenges.ForEach(challenge =>
         {
             GameObject challengeObj = Instantiate(m_ChallengePrefab, m_ContentReference.transform);
+
+            TMP_Text challengeNumberText = challengeObj.transform.GetChild(0).GetComponent<TMP_Text>();
+            challengeNumberText.text = m_CurrentLevel.Challenges.IndexOf(challenge) + 1 + ".";
+
             var description = challengeObj.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
             description.text = challenge.Description;
             var themeApplier = description.GetComponent<TextThemeApplier>();
@@ -62,7 +67,7 @@ public class Handler_LevelComplete : MonoBehaviour
             if (challenge.Status == ChallengeStatus.Complete)
             {
                 description.fontStyle = FontStyles.Strikethrough;
-                themeApplier.ColorType = TextThemeApplier.TextColorType.GoodGlpyhs;
+                themeApplier.ColorType = TextThemeApplier.TextColorType.GoodGlyphs;
                 themeApplier.ApplyTheme();
             }
             else
@@ -70,6 +75,19 @@ public class Handler_LevelComplete : MonoBehaviour
                 description.fontStyle = FontStyles.Normal;
                 themeApplier.ColorType = TextThemeApplier.TextColorType.BadGlyphs;
                 themeApplier.ApplyTheme();
+            }
+
+            if (challenge.RewardAbility != null)
+            {
+                Image rewardImage = challengeObj.transform.GetChild(2).GetComponent<Image>();
+
+                //if there's background?
+                if (rewardImage.transform.childCount > 0)
+                {
+                    rewardImage = rewardImage.transform.GetChild(0).GetComponent<Image>();
+                }
+
+                rewardImage.sprite = challenge.RewardAbility.ItemIcon;
             }
         });
     }

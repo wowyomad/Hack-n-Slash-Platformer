@@ -16,5 +16,5 @@ MonoBehaviour:
   Name: Invincible Dash
   Description: When player dashes, enemies attack don't hit!
   Type: 0
-  ItemIcon: {fileID: -4597125335365995649, guid: 48d5ef6ffdb6fde43b674a5fb25ab2f8, type: 3}
+  ItemIcon: {fileID: -4651523909648363842, guid: c47257202d581454cbe9ff83b6dc24ee, type: 3}
   Unlocked: 0

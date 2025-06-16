@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57bbec65358651a449bd1b42e57a37fa, type: 3}
-  m_Name: DebugChallenge
+  m_Name: LeverChallenge
   m_EditorClassIdentifier: 
   ID: f2fac630-293a-486d-b453-0b6141294936
-  Name: Careful!
-  Description: Complete level without alerting anyone for too long.
+  Name: Push It Real Good
+  Description: That lever looks supsicious... Hit it!
   RewardAbility: {fileID: 11400000, guid: 571749da5def5ec469a9d6f9599f2558, type: 2}
   Status: 0
   m_Input: {fileID: 11400000, guid: 452f792e14b2f564da6e091333de0784, type: 2}

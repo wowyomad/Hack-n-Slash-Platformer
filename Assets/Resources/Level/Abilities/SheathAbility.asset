@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef0a64d597b90b4db715a4709896523, type: 3}
+  m_Name: SheathAbility
+  m_EditorClassIdentifier: 
+  ID: 4314fa04-ba69-4c7e-b373-2b2043820837
+  Name: Sheath
+  Description: Allows to pick up knifes!
+  Type: 0
+  ItemIcon: {fileID: -4597125335365995649, guid: 48d5ef6ffdb6fde43b674a5fb25ab2f8, type: 3}
+  Unlocked: 0

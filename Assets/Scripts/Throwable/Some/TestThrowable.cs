@@ -3,7 +3,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
-public class TestThrowable : MonoBehaviour, IThrowableWithThrower
+public class ThrowableKnife : MonoBehaviour, IThrowableWithThrower
 {
     [Header("Configuration")]
     [SerializeField] private float m_Speed = 20f;

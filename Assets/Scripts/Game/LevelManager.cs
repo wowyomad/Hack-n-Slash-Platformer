@@ -19,7 +19,7 @@ namespace TheGame
         private string m_SaveFilePath;
         private GameManager m_GameManager;
 
-        private IAbility m_PLayerPassiveAbility;
+        private Ability m_PLayerPassiveAbility;
 
         private bool m_Running = false;
 
@@ -71,7 +71,7 @@ namespace TheGame
             }
         }
 
-        public void SetPlayerPassiveAbility(IAbility ability)
+        public void SetPlayerPassiveAbility(Ability ability)
         {
             if (m_Running)
             {
@@ -84,7 +84,7 @@ namespace TheGame
         public void ApplyPlayerPassiveAbility()
         {
             Player player = FindAnyObjectByType<Player>();
-            if (player != null && m_PLayerPassiveAbility != null)
+            if (player != null && m_PLayerPassiveAbility != null && m_PLayerPassiveAbility.Unlocked)
             {
                 m_PLayerPassiveAbility.Apply(player);
             }

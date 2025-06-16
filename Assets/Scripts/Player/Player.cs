@@ -96,7 +96,7 @@ namespace TheGame
         public override event Action OnHit;
 
         public bool IsGrounded => Controller.IsGrounded;
-
+        public bool CanPickupKnifes = false;
         public bool CanTakeHit => !IsVulnerable;
         private float m_StunCooldownDuration = 1.5f;
 
@@ -287,6 +287,12 @@ namespace TheGame
             if (m_ThrowablePicker.PickablesInArea.Count > 0)
             {
                 var item = m_ThrowablePicker.PickablesInArea[0];
+                if (!CanPickupKnifes)
+                {
+                    Debug.LogWarning("Cannot pick up knives while CanPickupKnifes is false.");
+                    return false;
+                }
+
                 IThrowable pickedItem = item.Pickup(m_ThrowablePicker) as IThrowable;
                 if (pickedItem != null)
                 {

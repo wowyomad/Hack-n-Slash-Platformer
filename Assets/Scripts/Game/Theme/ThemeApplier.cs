@@ -32,7 +32,7 @@ public abstract class ThemeApplier : MonoBehaviour
     {
         if (ThemeManager.Instance == null || ThemeManager.Instance.CurrentTheme == null)
         {
-            Debug.LogWarning("ThemeManager or CurrentTheme is not set. Cannot apply theme.");
+            //Debug.LogWarning("ThemeManager or CurrentTheme is not set. Cannot apply theme.");
             return;
         }
         OnApplyTheme(ThemeManager.Instance.CurrentTheme);

@@ -8,27 +8,38 @@ namespace TheGame
     {
         [SerializeField]
         private GameObject m_ThrowablePrefab;
-        private SpriteRenderer m_SpriteRenderer;
+        private SpriteRenderer m_IconSpriteRenderer;
+        private SpriteRenderer m_CrossSpriteRenderer;
+
+        private Player m_PlayerReference;
 
         private void Awake()
         {
-            m_SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            if (m_SpriteRenderer == null)
+            var spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+            if (spriteRenderers.Length < 2)
             {
-                Debug.LogError("PickableThrowable requires a SpriteRenderer in its children.", this);
+                Debug.LogError("PickableThrowable requires two SpriteRenderers in its children (icon and cross).", this);
             }
-            else if (m_ThrowablePrefab != null)
+            else
+            {
+                m_IconSpriteRenderer = spriteRenderers[0];
+                m_CrossSpriteRenderer = spriteRenderers[1];
+            }
+
+            if (m_IconSpriteRenderer != null && m_ThrowablePrefab != null)
             {
                 var throwable = m_ThrowablePrefab.GetComponent<IThrowable>();
                 if (throwable != null)
                 {
-                    m_SpriteRenderer.sprite = throwable.Icon;
+                    m_IconSpriteRenderer.sprite = throwable.Icon;
                 }
                 else
                 {
                     Debug.LogError("Throwable Prefab does not have an IThrowable component.", m_ThrowablePrefab);
                 }
             }
+
+            m_PlayerReference = FindAnyObjectByType<Player>();
         }
         private void Start()
         {
@@ -36,6 +47,21 @@ namespace TheGame
             {
                 Debug.LogError("Throwable Prefab is not assigned in PickableThrowable.", this);
             }
+
+            UpdateCrossSprite();
+        }
+
+        private void Update()
+        {
+            UpdateCrossSprite();
+        }
+
+        private void UpdateCrossSprite()
+        {
+            if (m_PlayerReference == null || m_CrossSpriteRenderer == null)
+                return;
+
+            m_CrossSpriteRenderer.enabled = !m_PlayerReference.CanPickupKnifes;
         }
 
         public IThrowable Pickup(IPicker<IThrowable> picker)
