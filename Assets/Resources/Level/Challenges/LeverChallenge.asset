@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: LeverChallenge
   m_EditorClassIdentifier: 
   ID: f2fac630-293a-486d-b453-0b6141294936
-  Name: Push It Real Good
-  Description: That lever looks supsicious... Hit it!
+  Name: I don't like you, Lever
+  Description: That lever looks supsicious... It's watching you! Show it what you
+    are made of! About 7 times
   RewardAbility: {fileID: 11400000, guid: 571749da5def5ec469a9d6f9599f2558, type: 2}
   Status: 0
-  m_Input: {fileID: 11400000, guid: 452f792e14b2f564da6e091333de0784, type: 2}
+  m_HitsRequired: 7

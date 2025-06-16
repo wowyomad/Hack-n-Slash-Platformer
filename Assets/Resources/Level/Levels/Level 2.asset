@@ -17,10 +17,10 @@ MonoBehaviour:
   Description: After escaping the dungeon, Ivy found herself caught in a trap.
   Opened: 0
   Completed: 0
-  SceneName: SampleScene
+  SceneName: AnotherScene
   SceneReference:
-    _asset: {fileID: 102900000, guid: 57c27ee2a2142064085bb1161c283f93, type: 3}
-    _path: Assets/Scenes/SampleScene.unity
+    _asset: {fileID: 102900000, guid: 045cd92e25a380145bd9ae418995b592, type: 3}
+    _path: Assets/Scenes/AnotherScene.unity
   Challenges: []
   NextLevels: []
   LevelStatus: 0

@@ -17,6 +17,11 @@ public class LeverChallenge : Challenge
         EventBus<LeverHitEvent>.OnEvent -= OnLeverHit;
     }
 
+    public override void OnLevelRestarted()
+    {
+        EventBus<LeverHitEvent>.OnEvent -= OnLeverHit;
+    }
+
     public override void OnLevelStarted()
     {
         Status = ChallengeStatus.InProgress;

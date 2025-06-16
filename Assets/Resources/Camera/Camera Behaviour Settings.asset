@@ -19,9 +19,9 @@ MonoBehaviour:
   LeadSmoothTime: 0.3
   CenterRadius: 0.353
   MaxMouseOffsetX: 0.5
-  MaxMouseOffsetY: 0.75
+  MaxMouseOffsetY: 0.9
   MouseInfluenceSmoothTime: 0.2
   ResetMouseOffsetOutsideBounds: 1
   MinZoom: 0.5
   MaxZoom: 1
-  ZoomStep: 1
+  ZoomStep: 0.25

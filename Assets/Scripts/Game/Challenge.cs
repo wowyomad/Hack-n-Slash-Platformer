@@ -39,7 +39,7 @@ namespace TheGame
         public virtual void OnLevelCompleted() { }
         public virtual void OnLevelFailed() { }
         public virtual void OnLevelExited() { }
-        public virtual void OnLevelRestarted() => OnLevelStarted();
+        public virtual void OnLevelRestarted() { }
 
         public virtual ChallengeSaveData GetSaveData()
         {

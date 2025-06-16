@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: AllertedChallenge
   m_EditorClassIdentifier: 
   ID: 69189518-1b64-44cf-92e7-1cb181f85321
-  Name: Careful!
-  Description: "Complete level without alerting anyone for too long \U0001F628\U0001F628\U0001F628"
+  Name: The Unseen Hand
+  Description: "To move as if you were never there, to act without leaving a trace
+    \u2013 that is the ultimate mastery. The slightest ripple could shatter your
+    illusion."
   RewardAbility: {fileID: 11400000, guid: 894969dcd210bd942b05fd488cfe03b6, type: 2}
   Status: 0
   AllowedAlertedDuration: 2

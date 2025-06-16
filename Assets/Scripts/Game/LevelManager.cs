@@ -396,6 +396,24 @@ namespace TheGame
             m_GameManager.LoadGameLevel(level.SceneName);
         }
 
+        public void LoadNextLevel()
+        {
+            if (CurrentLevel == null)
+            {
+                Debug.LogError("Current level is not set.");
+                return;
+            }
+
+            var nextLevel = CurrentLevel.NextLevels.FirstOrDefault(l => l.Opened);
+            if (nextLevel == null)
+            {
+                Debug.LogWarning($"No next level available for {CurrentLevel.Name}.");
+                return;
+            }
+
+            LoadLevel(nextLevel);
+        }
+
         public void UnloadCurrentLevel()
         {
             if (CurrentLevel == null)

@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class Handler_LevelComplete : MonoBehaviour
 {
     [SerializeField] private GameObject m_ContentReference;
+    [SerializeField] private GameObject m_NextButton;
     [SerializeField] private GameObject m_ChallengePrefab;
     private GameManager m_GameManager;
     private LevelManager m_LevelManager;
@@ -90,6 +91,15 @@ public class Handler_LevelComplete : MonoBehaviour
                 rewardImage.sprite = challenge.RewardAbility.ItemIcon;
             }
         });
+
+        if (m_CurrentLevel.NextLevels.Count > 0)
+        {
+            m_NextButton.SetActive(true);
+        }
+        else
+        {
+            m_NextButton.SetActive(false);
+        }
     }
 
     public void ClearChallenges()
