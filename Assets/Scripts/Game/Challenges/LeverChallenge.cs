@@ -55,6 +55,7 @@ public class LeverChallenge : Challenge
             Debug.Log($"Challenge {Name} completed after {m_HitsCount} hits.");
             m_JustCompleted = true;
             FindAnyObjectByType<UIManager>().DisplayChallengePopup(this, true);
+            FindAnyObjectByType<AudioManager>().PlayChallengeCompleteSFX();
         }
         else
         {

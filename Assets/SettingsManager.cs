@@ -84,4 +84,9 @@ public class SettingsManager : MonoBehaviour
         m_AudioManager.SetGeneralVolume(m_DefaultSettings.GeneralVolume);
         m_AudioManager.SetMusicVolume(m_DefaultSettings.MusicVolume);
     }
+
+    private void OnApplicationQuit()
+    {
+        ApplySettings();
+    }
 }

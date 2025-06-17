@@ -41,6 +41,7 @@ namespace TheGame
         [SerializeField] public ChallengePopup ChallengePopup;
 
         private GameObject m_CurrentScreen;
+        public GameObject CurrentScreen => m_CurrentScreen;
         private GameObject m_CurrentSettingsTab;
         private LevelManager m_LevelManager;
         private GameObject m_ScreenToReturnToFromOptions;
@@ -137,6 +138,12 @@ namespace TheGame
         public void ShowScreen(GameObject screen)
         {
             GameObject previousScreen = m_CurrentScreen;
+
+            if (previousScreen == LevelCompleteScreen && screen == PauseScreen)
+            {
+                return;
+            }
+
             ScreenType previousScreenType = GetScreenType(previousScreen);
 
             if (screen == OptionsScreen && previousScreen != OptionsScreen)

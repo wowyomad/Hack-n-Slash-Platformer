@@ -43,6 +43,7 @@ namespace TheGame
                     Status = ChallengeStatus.Failed;
 
                     FindAnyObjectByType<UIManager>().DisplayChallengePopup(this, false);
+                    FindAnyObjectByType<AudioManager>().PlayChallengeFailedSFX();
                 }
             }
 

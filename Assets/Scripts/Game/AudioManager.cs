@@ -20,6 +20,8 @@ public class AudioManager : MonoBehaviour
     [Header("SFX Clips")]
     [SerializeField] private AudioClip m_ButtonClickSFX;
     [SerializeField] private AudioClip m_EnemyHitSound;
+    [SerializeField] private AudioClip m_ChallengeCompleteSFX;
+    [SerializeField] private AudioClip m_ChallengeFailedSFX;
 
     private UIManager m_UIManager;
     private LevelManager m_LevelManager;
@@ -29,6 +31,8 @@ public class AudioManager : MonoBehaviour
 
     private float m_BaseMusicVolume = 1.0f;
     private bool m_IsMusicVolumeHalvedForPause = false;
+
+    private bool m_HasChangedScreenOnce = false;
 
     private void Awake()
     {
@@ -40,6 +44,7 @@ public class AudioManager : MonoBehaviour
         if (m_UIManager != null)
         {
             m_UIManager.OnScreenChanged += HandleScreenChanged;
+
         }
         else
         {
@@ -52,6 +57,12 @@ public class AudioManager : MonoBehaviour
 
     private void Update()
     {
+        if (!m_HasChangedScreenOnce && m_UIManager.CurrentScreen == m_UIManager.MainScreen)
+        {
+            m_HasChangedScreenOnce = true;
+            PlayMusic(m_MenuMusic, true);
+        }
+        
         if (m_IsPlayingLevelPlaylist && m_MusicSource != null && m_MusicSource.clip != null && !m_MusicSource.isPlaying)
         {
             m_CurrentLevelMusicIndex++;
@@ -132,7 +143,7 @@ public class AudioManager : MonoBehaviour
                     ApplyMusicVolume();
                 }
                 break;
-            
+
             case UIManager.ScreenType.OptionsScreen:
                 m_IsMusicVolumeHalvedForPause = false;
                 ApplyMusicVolume();
@@ -155,7 +166,7 @@ public class AudioManager : MonoBehaviour
                 break;
 
             default:
-                if (newScreen != UIManager.ScreenType.OptionsScreen) 
+                if (newScreen != UIManager.ScreenType.OptionsScreen)
                 {
                     m_IsPlayingLevelPlaylist = false;
                     m_IsMusicVolumeHalvedForPause = false;
@@ -229,10 +240,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Manually skips to the next track in the level music playlist.
-    /// Only works if the level music playlist is currently active.
-    /// </summary>
     public void SkipToNextLevelTrack()
     {
         if (!m_IsPlayingLevelPlaylist)
@@ -248,7 +255,6 @@ public class AudioManager : MonoBehaviour
         }
 
         m_CurrentLevelMusicIndex++;
-        // PlayNextLevelTrack will handle wrapping the index and playing the track.
         PlayNextLevelTrack();
         Debug.Log("Skipped to the next level music track.");
     }
@@ -266,6 +272,32 @@ public class AudioManager : MonoBehaviour
         if (m_SFXSource != null && m_EnemyHitSound != null)
         {
             m_SFXSource.PlayOneShot(m_EnemyHitSound);
+        }
+    }
+
+    public void PlayChallengeCompleteSFX()
+    {
+        if (m_SFXSource != null && m_ChallengeCompleteSFX != null)
+        {
+            m_SFXSource.PlayOneShot(m_ChallengeCompleteSFX);
+        }
+        else
+        {
+            if (m_SFXSource == null) Debug.LogWarning("SFXSource is not assigned in AudioManager.");
+            if (m_ChallengeCompleteSFX == null) Debug.LogWarning("ChallengeCompleteSFX clip is not assigned in AudioManager.");
+        }
+    }
+
+    public void PlayChallengeFailedSFX()
+    {
+        if (m_SFXSource != null && m_ChallengeFailedSFX != null)
+        {
+            m_SFXSource.PlayOneShot(m_ChallengeFailedSFX);
+        }
+        else
+        {
+            if (m_SFXSource == null) Debug.LogWarning("SFXSource is not assigned in AudioManager.");
+            if (m_ChallengeFailedSFX == null) Debug.LogWarning("ChallengeFailedSFX clip is not assigned in AudioManager.");
         }
     }
 }

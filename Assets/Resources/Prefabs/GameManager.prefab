@@ -245,11 +245,13 @@ MonoBehaviour:
   m_MusicSource: {fileID: 0}
   m_SFXSource: {fileID: 0}
   m_MenuMusic: {fileID: 8300000, guid: 3382e0fe54332a642ae443a21f646eff, type: 3}
-  m_LevelMusic: {fileID: 8300000, guid: 05e9c6f7109830a4aa688ff97f5e3ded, type: 3}
+  m_LevelMusicPlaylist: []
   m_WinClip: {fileID: 8300000, guid: 16d4b0c4fc9b3e64bbd537dd0b883c06, type: 3}
   m_LoseClip: {fileID: 8300000, guid: a1b98e515901ec5429fd4f911623e9ee, type: 3}
   m_ButtonClickSFX: {fileID: 0}
   m_EnemyHitSound: {fileID: 0}
+  m_ChallengeCompleteSFX: {fileID: 0}
+  m_ChallengeFailedSFX: {fileID: 0}
 --- !u!82 &1331101792610728613
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1805,6 +1807,30 @@ PrefabInstance:
     - target: {fileID: 4964535377799961835, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -65
+      objectReference: {fileID: 0}
+    - target: {fileID: 5416568588584705338, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
+      propertyPath: m_Spacing
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5416568588584705338, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
+      propertyPath: m_ChildAlignment
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5416568588584705338, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
+      propertyPath: m_Padding.m_Left
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5416568588584705338, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
+      propertyPath: m_Padding.m_Right
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5416568588584705338, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
+      propertyPath: m_ChildControlWidth
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5416568588584705338, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
+      propertyPath: m_ChildControlHeight
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5812114784979691318, guid: 4d8d14364812f0b42ac9b60dc6d3c08b, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
