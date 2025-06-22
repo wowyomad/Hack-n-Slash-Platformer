@@ -217,7 +217,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 30
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -289,7 +289,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 218.6192, y: 171.51}
+  m_SizeDelta: {x: 91.875, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6809533005710586116
 CanvasRenderer:
@@ -321,7 +321,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: -632687326, guid: 4041c9e74a6103b4d94162886de713ac, type: 3}
   m_Type: 0
-  m_PreserveAspect: 1
+  m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1

@@ -6,6 +6,52 @@ namespace TheGame
 {
     public class UIManager : MonoBehaviour
     {
+
+        //temp ---
+        public float RestartDelay = 0.75f;
+        public float RestartTime = 0.0f;
+        public bool IsRestarting { get; private set; } = false;
+        public event Action Restarted;
+
+        public void StartRestart()
+        {
+            IsRestarting = true;
+        }
+
+        public void PerformRestart()
+        {
+            m_LevelManager.RestartCurrentLevel();
+            ShowScreen(HUD);
+            ChallengePopup.HidePopup();
+
+            Restarted?.Invoke();
+
+            IsRestarting = false;
+            RestartTime = 0.0f;
+        }
+
+        public void CancelRestart()
+        {
+            IsRestarting = false;
+        }
+
+        private void Update()
+        {
+            if (IsRestarting)
+            {
+                RestartTime += Time.deltaTime;
+                if (RestartTime >= RestartDelay)
+                {
+                    PerformRestart();
+                }
+            }
+            else if (RestartTime > 0.0f)
+            {
+                RestartTime = Mathf.Clamp(RestartTime, 0.0f, RestartTime - Time.deltaTime);
+            }
+        }
+        // ----
+
         public event Action<ScreenType, ScreenType> OnScreenChanged;
         public enum ScreenType
         {
@@ -74,7 +120,9 @@ namespace TheGame
         {
             m_Input.Pause += OnPauseResume;
             m_Input.Resume += OnPauseResume;
-            m_Input.Restart += Restart;
+            m_Input.RestartStarted += StartRestart;
+            m_Input.RestartCancelled += CancelRestart;
+            m_Input.ImmediateRestart += PerformRestart;
             EventBus<PlayerDiedEvent>.OnEvent += ShowDeathScreen;
             EventBus<LevelTimeExpiredEvent>.OnEvent += ShowDeathScreen;
         }
@@ -83,47 +131,49 @@ namespace TheGame
         {
             m_Input.Pause -= OnPauseResume;
             m_Input.Resume -= OnPauseResume;
-            m_Input.Restart -= Restart;
+            m_Input.RestartStarted -= StartRestart;
+            m_Input.RestartCancelled -= CancelRestart;
+            m_Input.ImmediateRestart -= PerformRestart;
             EventBus<PlayerDiedEvent>.OnEvent -= ShowDeathScreen;
             EventBus<LevelTimeExpiredEvent>.OnEvent -= ShowDeathScreen;
         }
 
         public void OnPauseResume()
         {
-            if (m_CurrentScreen == LevelCompleteScreen  )
+            if (m_CurrentScreen == LevelCompleteScreen)
             {
                 return; //ignore
             }
-         
+
             if (m_CurrentScreen == null || m_CurrentScreen == HUD)
+            {
+                ShowScreen(PauseScreen);
+                m_GameManager.PauseGame();
+            }
+            else if (m_CurrentScreen == PauseScreen)
+            {
+                ShowScreen(HUD);
+                m_GameManager.ResumeGame();
+            }
+            else if (m_CurrentScreen == MainScreen)
+            {
+                m_GameManager.Quit();
+            }
+            else if (m_CurrentScreen == OptionsScreen)
+            {
+                GoBackFromOptions();
+            }
+            else
+            {
+                if (m_GameManager.IsGamePaused)
                 {
                     ShowScreen(PauseScreen);
-                    m_GameManager.PauseGame();
-                }
-                else if (m_CurrentScreen == PauseScreen)
-                {
-                    ShowScreen(HUD);
-                    m_GameManager.ResumeGame();
-                }
-                else if (m_CurrentScreen == MainScreen)
-                {
-                    m_GameManager.Quit();
-                }
-                else if (m_CurrentScreen == OptionsScreen)
-                {
-                    GoBackFromOptions();
                 }
                 else
                 {
-                    if (m_GameManager.IsGamePaused)
-                    {
-                        ShowScreen(PauseScreen);
-                    }
-                    else
-                    {
-                        ShowScreen(MainScreen);
-                    }
+                    ShowScreen(MainScreen);
                 }
+            }
         }
 
         public void DisplayChallengePopup(Challenge challenge, bool success)
@@ -240,12 +290,7 @@ namespace TheGame
         }
 
 
-        public void Restart()
-        {
-            m_LevelManager.RestartCurrentLevel();
-            ShowScreen(HUD);
-            ChallengePopup.HidePopup();
-        }
+
 
         private void ShowDeathScreen(PlayerDiedEvent e)
         {

@@ -695,6 +695,27 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
+  - name: UI_Elements_Square
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 180
+      width: 32
+      height: 32
+    spriteID: 5a46689edac84c6428b5202e7c790364
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
   tileSetImportData: []
   asepriteLayers:
   - layerIndex: 0
@@ -716,7 +737,7 @@ ScriptedImporter:
         x: 0
         y: 0
         width: 212
-        height: 165
+        height: 208
       spriteId: 948fc1ac60eff7c408c53f3ef74a0f77
     linkedCells: []
     tileCells: []

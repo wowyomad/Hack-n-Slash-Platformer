@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
+  m_Name: Level 5
+  m_EditorClassIdentifier: 
+  ID: 9bee0ed9-9460-4cbc-bea3-ff6c72f367fc
+  Name: 5. Echoes of the Past
+  Description: With the truth laid bare, Ivy realizes her escape was just the first
+    step in a much larger, predetermined journey. Ancient prophecies and forgotten
+    magic guide her as she seeks to right ancestral wrongs and confront a looming
+    threat that spans generations.
+  Opened: 0
+  Completed: 0
+  SceneName: 
+  SceneReference:
+    _asset: {fileID: 0}
+    _path: 
+  Challenges: []
+  NextLevels:
+  - {fileID: 11400000, guid: 6d056acd58030904296b0fb5f8e35e93, type: 2}
+  LevelStatus: 0
+  TimeToComplete: 60

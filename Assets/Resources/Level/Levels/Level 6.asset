@@ -10,19 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
-  m_Name: Level 2
+  m_Name: Level 6
   m_EditorClassIdentifier: 
-  ID: 6db96fda-4ce7-459f-bac7-d304df2d0dfd
-  Name: 2. To new beginnings
-  Description: After escaping the dungeon, Ivy found herself caught in a trap.
+  ID: cf229de3-2ea4-4cab-bfa8-eac5312c6cfc
+  Name: 6. A Shattered Crown
+  Description: Ivy stands on the precipice of a new era, but the path ahead is fraught
+    with peril. She must unite fragmented factions and challenge a powerful, corrupted
+    entity determined to control her destiny and the fate of the realm.
   Opened: 0
   Completed: 0
-  SceneName: AnotherScene
+  SceneName: 
   SceneReference:
-    _asset: {fileID: 102900000, guid: 045cd92e25a380145bd9ae418995b592, type: 3}
-    _path: Assets/Scenes/AnotherScene.unity
+    _asset: {fileID: 0}
+    _path: 
   Challenges: []
-  NextLevels:
-  - {fileID: 11400000, guid: b340df58dca128a4abc2516f977955b5, type: 2}
+  NextLevels: []
   LevelStatus: 0
-  TimeToComplete: 40
+  TimeToComplete: 60

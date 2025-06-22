@@ -10,11 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71286a419a39ac84294dc439533a222a, type: 3}
-  m_Name: Level 2
+  m_Name: Level 4
   m_EditorClassIdentifier: 
-  ID: 6db96fda-4ce7-459f-bac7-d304df2d0dfd
-  Name: 2. To new beginnings
-  Description: After escaping the dungeon, Ivy found herself caught in a trap.
+  ID: 523a8316-cdcf-4178-8982-fe736e4c359e
+  Name: 4. Revelations
+  Description: ' As Ivy delves deeper, she uncovers long-hidden truths about her
+    lineage and the true purpose of the dungeon she escaped. The revelations force
+    her to question everything she believed, setting her on a path to reclaim her
+    destiny.'
   Opened: 0
   Completed: 0
   SceneName: AnotherScene
@@ -23,6 +26,6 @@ MonoBehaviour:
     _path: Assets/Scenes/AnotherScene.unity
   Challenges: []
   NextLevels:
-  - {fileID: 11400000, guid: b340df58dca128a4abc2516f977955b5, type: 2}
+  - {fileID: 11400000, guid: 675eea5446980c048954d4588208c266, type: 2}
   LevelStatus: 0
-  TimeToComplete: 40
+  TimeToComplete: 60

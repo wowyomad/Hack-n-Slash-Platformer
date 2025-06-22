@@ -4,19 +4,20 @@ using UnityEngine.UI;
 
 namespace TheGame
 {
-    public class EnemyStunIndicator : MonoBehaviour
+    public class EnemyDurationStatusIndicator : MonoBehaviour
     {
         [SerializeField] protected Image FillBar;
+        [SerializeField] private Enemy.State m_ActivationState = Enemy.State.Stunned;
 
         [Header("Blackboard variable names")]
         [SerializeField] private string m_CurrentStateVariableName = "State";
-        [SerializeField] private string m_StunDurationVariableName = "StunDuration";
-        [SerializeField] private string m_StunTimeLeftVariableName = "StunTimeLeft";
+        [SerializeField] private string m_StateDurationVariableName = "StateDuration";
+        [SerializeField] private string m_StateTimeLeftVariableName = "StateTimeLeft";
 
         private BehaviorGraphAgent m_BehaviorGraphAgent;
         private BlackboardVariable<Enemy.State> m_State;
-        private BlackboardVariable<float> m_StunDuration;
-        private BlackboardVariable<float> m_StunTimeLeft;
+        private BlackboardVariable<float> m_StateDuration;
+        private BlackboardVariable<float> m_StateTimeLeft;
 
         private void Awake()
         {
@@ -30,18 +31,18 @@ namespace TheGame
         private void Start()
         {
             m_BehaviorGraphAgent.GetVariable(m_CurrentStateVariableName, out m_State);
-            m_BehaviorGraphAgent.GetVariable(m_StunDurationVariableName, out m_StunDuration);
-            m_BehaviorGraphAgent.GetVariable(m_StunTimeLeftVariableName, out m_StunTimeLeft);
+            m_BehaviorGraphAgent.GetVariable(m_StateDurationVariableName, out m_StateDuration);
+            m_BehaviorGraphAgent.GetVariable(m_StateTimeLeftVariableName, out m_StateTimeLeft);
 
             m_State.OnValueChanged += OnStateChanged;
-            m_StunTimeLeft.OnValueChanged += OnStunTimeLeftChanged;
+            m_StateTimeLeft.OnValueChanged += OnStateTimeLeftChanged;
 
             gameObject.SetActive(false);
         }
 
         private void OnStateChanged()
         {
-            if (m_State.Value == Enemy.State.Stunned)
+            if (m_State.Value == m_ActivationState)
             {
                 gameObject.SetActive(true);
             }
@@ -51,11 +52,11 @@ namespace TheGame
             }
         }
 
-        private void OnStunTimeLeftChanged()
+        private void OnStateTimeLeftChanged()
         {
-            if (FillBar != null)
+            if (FillBar != null && m_StateDuration.Value > 0)
             {
-                FillBar.fillAmount = 1.0f - m_StunTimeLeft.Value / m_StunDuration.Value;
+                FillBar.fillAmount = 1.0f - m_StateTimeLeft.Value / m_StateDuration.Value;
             }
         }
     }

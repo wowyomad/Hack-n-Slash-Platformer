@@ -21,7 +21,9 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     public event Action Resume;
     public event Action Secret;
     public event Action ClimbDown;
-    public event Action Restart;
+    public event Action RestartStarted;
+    public event Action ImmediateRestart;
+    public event Action RestartCancelled;
     public event Action DebugGood;
     public event Action DebugBad;
 
@@ -196,7 +198,11 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         if (InputActionPhase.Performed == context.phase)
         {
-            Restart?.Invoke();
+            RestartStarted?.Invoke();
+        }
+        else if (InputActionPhase.Canceled == context.phase)
+        {
+            RestartCancelled?.Invoke();
         }
     }
 
@@ -204,7 +210,7 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions, GameInp
     {
         if (InputActionPhase.Performed == context.phase)
         {
-            Restart?.Invoke();
+            ImmediateRestart?.Invoke();
         }
     }
     public void OnMove(InputAction.CallbackContext context)

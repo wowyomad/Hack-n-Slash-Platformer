@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &7872253043248830275
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 793323243493187850, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4184343030370630755, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4184343030370630755, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4673507576835187325, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_Color.b
+      value: 0.504717
+      objectReference: {fileID: 0}
+    - target: {fileID: 4673507576835187325, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_Color.g
+      value: 0.97016025
+      objectReference: {fileID: 0}
+    - target: {fileID: 4673507576835187325, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: 'managedReferences[7839694344919187696]'
+      value: 'Unity.Behavior Unity.Behavior.BlackboardVariable`1[[System.Int32, mscorlib]]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: managedReferences[7839694344919187696].Name
+      value: HitsToDie
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_BlackboardVariableOverridesList.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: managedReferences[7839694344919187696].m_Value
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: 'm_BlackboardVariableOverridesList.Array.data[5]'
+      value: 7839694344919187696
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: managedReferences[7839694344919187696].GUID.m_Value0
+      value: 3622096649899361248
+      objectReference: {fileID: 0}
+    - target: {fileID: 6271697378530476676, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: managedReferences[7839694344919187696].GUID.m_Value1
+      value: 6462119585761461764
+      objectReference: {fileID: 0}
+    - target: {fileID: 8188237940391912730, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}
+      propertyPath: m_Name
+      value: Black Knight
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 85387a01df2c0c243970ecec58129bdb, type: 3}

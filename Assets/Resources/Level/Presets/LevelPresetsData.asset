@@ -15,6 +15,10 @@ MonoBehaviour:
   Levels:
   - {fileID: 11400000, guid: 2a54e3ebc9d246847a9bc8209b0e157c, type: 2}
   - {fileID: 11400000, guid: e14327a3117aced45bad7bf604287baf, type: 2}
+  - {fileID: 11400000, guid: b340df58dca128a4abc2516f977955b5, type: 2}
+  - {fileID: 11400000, guid: be35830b2efbab04aa8aba860cfaf43d, type: 2}
+  - {fileID: 11400000, guid: 675eea5446980c048954d4588208c266, type: 2}
+  - {fileID: 11400000, guid: 6d056acd58030904296b0fb5f8e35e93, type: 2}
   Abilities:
   - {fileID: 11400000, guid: 571749da5def5ec469a9d6f9599f2558, type: 2}
   - {fileID: 11400000, guid: 894969dcd210bd942b05fd488cfe03b6, type: 2}

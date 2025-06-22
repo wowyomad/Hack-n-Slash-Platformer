@@ -22,6 +22,12 @@ public class DescriptionPopup : MonoBehaviour
     [SerializeField]
     private Vector3 m_MouseOffset = new Vector3(0, 0, 0);
     private Camera m_Camera;
+    private static DescriptionPopup s_Instance;
+    public static DescriptionPopup Get()
+    {
+        s_Instance ??= FindAnyObjectByType<DescriptionPopup>();
+        return s_Instance;
+    }
 
     private void Awake()
     {

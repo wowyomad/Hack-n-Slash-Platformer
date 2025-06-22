@@ -4,6 +4,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
 namespace TheGame
 {
@@ -210,12 +211,12 @@ namespace TheGame
         {
             Level selectedLevel = m_Levels[m_SelectedLevelIndex];
 
-            if (m_SelectedLevelIndex == 0)
-            {
+            // if (m_SelectedLevelIndex == 0)
+            // {
 
-                SelectedItemIconRef.GetComponent<Image>().sprite = selectedLevel.Challenges[0].RewardAbility?.ItemIcon;
-                SelectedItemLockRef.GetComponent<Image>().enabled = selectedLevel.Challenges[0].Status != ChallengeStatus.Complete;
-            }
+            //     SelectedItemIconRef.GetComponent<Image>().sprite = selectedLevel.Challenges[0].RewardAbility?.ItemIcon;
+            //     SelectedItemLockRef.GetComponent<Image>().enabled = selectedLevel.Challenges[0].Status != ChallengeStatus.Complete;
+            // }
 
             // Clear existing challenge list
             foreach (Transform child in ChallengeListContentRef.transform)
@@ -250,15 +251,8 @@ namespace TheGame
 
                 if (challenge.RewardAbility != null)
                 {
-                    Image rewardImage = challengeGameObject.transform.GetChild(2).GetComponent<Image>();
-
-                    //if there's background?
-                    if (rewardImage.transform.childCount > 0)
-                    {
-                        rewardImage = rewardImage.transform.GetChild(0).GetComponent<Image>();
-                    }
-
-                    rewardImage.sprite = challenge.RewardAbility.ItemIcon;
+                    Handler_Reward rewardHandler = challengeGameObject.transform.GetChild(2).GetComponent<Handler_Reward>();
+                    rewardHandler.SetRewardAbility(challenge.RewardAbility);
                 }
             });
         }

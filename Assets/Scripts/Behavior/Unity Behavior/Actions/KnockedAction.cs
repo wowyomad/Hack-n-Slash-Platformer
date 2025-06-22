@@ -9,6 +9,7 @@ using Unity.Properties;
 public partial class KnockedAction : Action
 {
     [SerializeReference] public BlackboardVariable<float> Duration;
+    
 
     private float m_ElapsedTime;
 
