@@ -23,7 +23,7 @@ public class Handler_Reward : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             m_DescriptionPopup = DescriptionPopup.Get();
             if (m_DescriptionPopup == null)
             {
-                Debug.LogError("DescriptionPopup instance not found in Handler_Reward.", this);
+                    Debug.LogError("DescriptionPopup instance not found in Handler_Reward.", this);
             }
         }
     }

@@ -22,6 +22,7 @@ namespace TheGame
             EventBus<EnemyAlertedEvent>.OnEvent -= OnEnemyAlerted;
         }
 
+
         public override void OnLevelStarted()
         {
             m_AlertedEnemies.Clear();
@@ -65,7 +66,7 @@ namespace TheGame
             if (@event.Alerted)
             {
                 Debug.Log($"Enemy alerted: {@event.EnemyGameObject.name}");
-                if (m_AlertedEnemies.SingleOrDefault(e => e.Enemy.gameObject == @event.EnemyGameObject) != null)
+                if (m_AlertedEnemies.SingleOrDefault(e => e != null && e.Enemy.gameObject == @event.EnemyGameObject) != null)
                 {
                     return;
                 }

@@ -185,6 +185,18 @@ namespace TheGame
             ChallengePopup.HidePopup();
         }
 
+        public void ShowScreen(ScreenType screenType)
+        {
+            GameObject screen = GetScreenObject(screenType);
+            if (screen != null)
+            {
+                ShowScreen(screen);
+            }
+            else
+            {
+                Debug.LogError($"Screen of type {screenType} not found!", this);
+            }
+        }
         public void ShowScreen(GameObject screen)
         {
             GameObject previousScreen = m_CurrentScreen;
@@ -287,6 +299,23 @@ namespace TheGame
             m_SettingsTabs.Add(Settings_AudioTab);
             m_SettingsTabs.Add(Settings_GameplayTab);
             m_SettingsTabs.Add(Settings_KeyBindingsTab);
+
+            m_Screens.ForEach(screen =>
+            {
+                if (screen != null)
+                {
+                    screen.SetActive(true); //trigger Awake
+                    screen.SetActive(false);
+                }
+            });
+            m_SettingsTabs.ForEach(tab =>
+            {
+                if (tab != null)
+                {
+                    tab.SetActive(true);
+                    tab.SetActive(false);
+                }
+            });
         }
 
 
@@ -304,7 +333,7 @@ namespace TheGame
             ShowScreen(DeathScreen);
         }
 
-        private ScreenType GetScreenType(GameObject screen)
+        public ScreenType GetScreenType(GameObject screen)
         {
             if (screen == MainScreen) return ScreenType.MainScreen;
             if (screen == PauseScreen) return ScreenType.PauseScreen;
@@ -317,6 +346,23 @@ namespace TheGame
             if (screen == HUD) return ScreenType.HUD;
 
             return ScreenType.None;
+        }
+
+        public GameObject GetScreenObject(ScreenType screenType)
+        {
+            switch (screenType)
+            {
+            case ScreenType.MainScreen: return MainScreen;
+            case ScreenType.PauseScreen: return PauseScreen;
+            case ScreenType.OptionsScreen: return OptionsScreen;
+            case ScreenType.StartScreen: return StartScreen;
+            case ScreenType.ContinueScreen: return ContinueScreen;
+            case ScreenType.LevelCompleteScreen: return LevelCompleteScreen;
+            case ScreenType.ExitScreen: return ExitScreen;
+            case ScreenType.DeathScreen: return DeathScreen;
+            case ScreenType.HUD: return HUD;
+            default: return null;
+            }
         }
     }
 }

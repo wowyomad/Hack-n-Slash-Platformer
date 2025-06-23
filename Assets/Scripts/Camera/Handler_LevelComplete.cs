@@ -23,25 +23,23 @@ public class Handler_LevelComplete : MonoBehaviour
 
     private void Awake()
     {
-        m_UIManager = GetComponent<UIManager>();
-        m_GameManager = GetComponent<GameManager>();
-        m_LevelManager = GetComponent<LevelManager>();
-        m_StartHandler = GetComponent<Handler_StartMenu>();
+        m_UIManager = FindAnyObjectByType<UIManager>();
+        m_GameManager = FindAnyObjectByType<GameManager>();
+        m_LevelManager = FindAnyObjectByType<LevelManager>();
+        m_StartHandler = FindAnyObjectByType<Handler_StartMenu>(FindObjectsInactive.Include);
+
+        EventBus<LevelCompletedEvent>.OnEvent += ShowLevelCompleteScreen;
+
         if (m_UIManager == null)
         {
             Debug.LogError("UIManager component is not found on the Handler_LevelComplete GameObject.", this);
         }
     }
-    private bool m_Green = false;
-    private void OnEnable()
-    {
-        EventBus<LevelCompletedEvent>.OnEvent += ShowLevelCompleteScreen;
-    }
-
-    private void OnDisable()
+    private void OnDestroy()
     {
         EventBus<LevelCompletedEvent>.OnEvent -= ShowLevelCompleteScreen;
     }
+
 
     private void ShowLevelCompleteScreen(LevelCompletedEvent e)
     {
@@ -112,12 +110,23 @@ public class Handler_LevelComplete : MonoBehaviour
 
     public void GoToMenu()
     {
+        GoToScreen(UIManager.ScreenType.MainScreen);
+    }
+
+    public void GoToStartScreen()
+    {
+        GoToScreen(UIManager.ScreenType.StartScreen);
+    }
+
+    private void GoToScreen(UIManager.ScreenType screenType)
+    {
         m_StartHandler.RefreshState();
         m_LevelManager.UnloadCurrentLevel();
-        m_UIManager.ShowScreen(m_UIManager.MainScreen);
+        m_UIManager.ShowScreen(screenType);
 
         ClearChallenges();
     }
+
 
     public void GoNext()
     {

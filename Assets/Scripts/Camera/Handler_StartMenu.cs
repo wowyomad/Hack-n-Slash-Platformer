@@ -57,11 +57,7 @@ namespace TheGame
             {
                 Debug.LogError("UI prefabs are not assigned in the Handler_StartMenu script.");
             }
-
-            if (!TryGetComponent<LevelManager>(out m_LevelManager))
-            {
-                Debug.LogError("LevelManager component not found.");
-            }
+            m_LevelManager = FindAnyObjectByType<LevelManager>();
         }
 
 
@@ -71,24 +67,26 @@ namespace TheGame
             m_Levels = m_LevelManager.RuntimeLevels;
             m_Abilities = m_LevelManager.RuntimeAbilities;
 
+            NextItemButtonRef.GetComponent<Button>().onClick.AddListener(NextPassiveAbility);
+            PrevItemButtonRef.GetComponent<Button>().onClick.AddListener(PrevPassiveAbility);
+
             PopulateLevelList();
-
+            RefreshChallenges();
             SetPassiveAbility();
-
         }
+
 
         private void OnEnable()
         {
-            NextItemButtonRef.GetComponent<Button>().onClick.AddListener(NextPassiveAbility);
-            PrevItemButtonRef.GetComponent<Button>().onClick.AddListener(PrevPassiveAbility);
+            RefreshChallenges();
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             NextItemButtonRef.GetComponent<Button>().onClick.RemoveListener(NextPassiveAbility);
             PrevItemButtonRef.GetComponent<Button>().onClick.RemoveListener(PrevPassiveAbility);
         }
-        
+
 
         public void RefreshState()
         {
@@ -209,6 +207,10 @@ namespace TheGame
 
         private void RefreshChallenges()
         {
+            if (m_Levels == null)
+            {
+                return;
+            }
             Level selectedLevel = m_Levels[m_SelectedLevelIndex];
 
             // if (m_SelectedLevelIndex == 0)
